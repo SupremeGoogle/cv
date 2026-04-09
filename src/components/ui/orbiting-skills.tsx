@@ -178,7 +178,7 @@ const OrbitingSkill = memo(({ config, angle }: OrbitingSkillProps) => {
 
   return (
     <div
-      className="absolute top-1/2 left-1/2 transition-all duration-300 ease-out"
+      className="absolute top-1/2 left-1/2"
       style={{
         width: `${size}px`,
         height: `${size}px`,
