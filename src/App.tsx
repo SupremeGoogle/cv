@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './style.css'
@@ -75,6 +75,45 @@ class ScrambleText {
 function App() {
   const [activeSite, setActiveSite] = useState<WebProject | null>(null);
   const [fullscreenImgUrl, setFullscreenImgUrl] = useState<string | null>(null);
+
+  // ── Drag to scroll logic ──
+  const trackWrapperRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const handleDragStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    isDragging.current = true;
+    const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+    if (trackWrapperRef.current) {
+      startX.current = pageX - trackWrapperRef.current.offsetLeft;
+      scrollLeft.current = trackWrapperRef.current.scrollLeft;
+      trackWrapperRef.current.style.cursor = 'grabbing';
+      trackWrapperRef.current.style.scrollBehavior = 'auto';
+      trackWrapperRef.current.style.scrollSnapType = 'none';
+      if ('touches' in e) document.body.style.overscrollBehaviorY = 'contain';
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    if (trackWrapperRef.current) {
+      trackWrapperRef.current.style.cursor = 'grab';
+      trackWrapperRef.current.style.scrollBehavior = 'smooth';
+      trackWrapperRef.current.style.scrollSnapType = 'x proximity';
+      document.body.style.overscrollBehaviorY = 'auto';
+    }
+  };
+
+  const handleDragMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging.current || !trackWrapperRef.current) return;
+    if (!('touches' in e)) e.preventDefault();
+    const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+    const x = pageX - trackWrapperRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    trackWrapperRef.current.scrollLeft = scrollLeft.current - walk;
+  };
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -332,7 +371,7 @@ function App() {
                   <div className="hero-btns">
                     <a href="#projects" className="btn-primary">Портфолио</a>
                     <a href="https://github.com/SupremeGoogle/" target="_blank" className="btn-outline">GitHub</a>
-                    <a href="mailto:gafarovakbar@mail.ru" className="btn-outline">Связаться</a>
+                    <a href="#contact" className="btn-outline">Связаться</a>
                   </div>
                 </div>
               </div>
@@ -627,7 +666,18 @@ function App() {
             <div className="projects-scroll-hint">Листайте горизонтально ➔</div>
           </div>
         </div>
-        <div className="projects-track-wrapper">
+        <div 
+          className="projects-track-wrapper"
+          ref={trackWrapperRef}
+          onMouseDown={handleDragStart}
+          onMouseLeave={handleDragEnd}
+          onMouseUp={handleDragEnd}
+          onMouseMove={handleDragMove}
+          onTouchStart={handleDragStart}
+          onTouchEnd={handleDragEnd}
+          onTouchMove={handleDragMove}
+          style={{ cursor: 'grab' }}
+        >
           <div className="projects-track">
             {/* Project 1 */}
             <div className="project-slide project-slide-standard">
@@ -731,7 +781,7 @@ function App() {
                         { id: 4, title: "Dreamcars39", date: "2024", content: "Бот аренды премиальных авто: онлайн-запись, управление расписанием броней, уведомления для клиентов и менеджеров.", iconName: "car", relatedIds: [2, 5], status: "completed", energy: 80, category: "Bot", link: "https://t.me/Dreamcars39_bot" },
                         { id: 5, title: "Kibernalog", date: "2024", content: "Полностью автоматизированный бот: генерирует пакет документов для налогового вычета по данным пользователя, экспорт в PDF.", category: "Automation", iconName: "fileText", relatedIds: [1, 4], status: "completed", energy: 100, link: "https://t.me/kibernalog_bot" },
                         { id: 6, title: "KIBERone Visor", date: "2024", content: "Сложнейший бот: мониторит родительских чаты школы KIBERone, анализирует активность, автоматический контроль качества коммуникаций.", category: "Shield", iconName: "shieldCheck", relatedIds: [1], status: "completed", energy: 98, link: "https://t.me/KIBERoneVisor_bot" },
-                        { id: 7, title: "All Interior", date: "2025", content: "ИИ-консультант по дизайну интерьера: помогает выбрать стиль, палитру и мебель, интегрирован с нейросетью для визуализации идей.", iconName: "messageSquare", relatedIds: [3, 4], status: "in-progress", energy: 70, category: "AI", link: "https://t.me/allinterior_bot" },
+                        { id: 7, title: "All Interior", date: "2026", content: "ИИ-консультант по дизайну интерьера: помогает выбрать стиль, палитру и мебель, интегрирован с нейросетью для визуализации идей.", iconName: "messageSquare", relatedIds: [3, 4], status: "in-progress", energy: 70, category: "AI", link: "https://t.me/allinterior_bot" },
                       ]} />
                     </div>
                   </div>
@@ -846,7 +896,7 @@ function App() {
           <div className="edu-card">
             <div className="edu-name">Балтийский федеральный университет имени Иммануила Канта</div>
             <div className="edu-degree">ОНК Высоких технологий · Информационные системы и технологии</div>
-            <div className="edu-dates">2021 — 2025</div>
+            <div className="edu-dates">2021 — 2026</div>
             <span className="diploma-badge">✦ Красный диплом</span>
           </div>
 
@@ -879,7 +929,7 @@ function App() {
       </section>
 
       <footer className="footer">
-        <span>GA</span> · © 2025 Гафаров Акбар Маруфович
+        <span>GA</span> · © 2026 Гафаров Акбар Маруфович
       </footer>
 
       {/* ══════ MODAL ══════ */}
