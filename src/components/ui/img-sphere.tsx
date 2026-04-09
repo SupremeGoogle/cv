@@ -227,9 +227,7 @@ const SphereImageGrid: React.FC<SphereImageGridProps> = ({
     const isHovered = hoveredIndex === index;
     const finalScale = isHovered ? Math.min(1.2, 1.2 / position.scale) : 1;
     
-    // Check if it's the C# project
-    const isCSharp = image.title?.includes('C#');
-    
+
     return (
       <div
         key={image.id}

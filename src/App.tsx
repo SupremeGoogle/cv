@@ -5,7 +5,6 @@ import './style.css'
 import OrbitingSkills from './components/ui/orbiting-skills'
 import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
 import SphereImageGrid from './components/ui/img-sphere';
-import type { ImageData } from './components/ui/img-sphere';
 
 type WebProject = {
   id: number;
