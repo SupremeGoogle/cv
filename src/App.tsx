@@ -337,7 +337,7 @@ function App() {
               </div>
             </div>
 
-            <div className="hero-visual">
+            <div className="hero-visual hidden md:flex">
               <OrbitingSkills />
             </div>
           </div>
@@ -519,7 +519,7 @@ function App() {
                 <span className="bento-pill">OpenCV</span>
                 <span className="bento-pill">RAG</span>
               </div>
-              <div className="bento-decoration dek-window">
+              <div className="bento-decoration dek-window hidden md:block">
                 <div className="code-window">
                   <div className="code-window-bar"><span></span><span></span><span></span></div>
                   <div className="code-window-body">
@@ -558,7 +558,7 @@ function App() {
                 <span className="bento-pill">Telegram API</span>
                 <span className="bento-pill">CI/CD</span>
               </div>
-              <div className="bento-decoration dek-orbit">
+              <div className="bento-decoration dek-orbit hidden md:block">
                 <div className="orbit-deco">
                   <div className="orbit-ring"></div>
                   <div className="orbit-center">
@@ -585,7 +585,7 @@ function App() {
               <h3>Инфраструктура и БД</h3>
               <p>Проектирование логики хранения данных в PostgreSQL, контейнеризация приложений в Docker и работа с сетевыми
                 протоколами.</p>
-              <div className="bento-decoration dek-progress">
+              <div className="bento-decoration dek-progress hidden md:block">
                 <div className="progress-decoration">
                   <div className="prog-row"><span className="bracket">{">_"}</span>
                     <div className="prog-bar-track">
@@ -715,16 +715,18 @@ function App() {
                     <div className="browser-dot green"></div>
                     <div className="browser-url"></div>
                   </div>
-                  <div className="browser-body p-0" style={{ background: '#0a0a0c', height: '480px', overflow: 'hidden', position: 'relative' }}>
-                    <RadialOrbitalTimeline timelineData={[
-                      { id: 1, title: "KIBERone KLD", date: "2023", content: "CRM-бот школы KIBERone: приём онлайн-заявок, умные ссылки, интеграция с AmoCRM, автоматические рассылки ученикам и родителям.", category: "Bot", iconName: "messageSquare", relatedIds: [6], status: "completed", energy: 95, link: "https://t.me/kiberoneKLD_bot" },
-                      { id: 2, title: "Этажи KLD", date: "2023", content: "Бот агентства недвижимости Этажи: умные ссылки на объекты, интеграция с CRM-системой, автоматическая обработка входящих заявок.", category: "Bot", iconName: "home", relatedIds: [3], status: "completed", energy: 90, link: "https://t.me/etagi_kaliningrad_bot" },
-                      { id: 3, title: "AZTmoto", date: "2024", content: "Бот мото-магазина: каталог экипировки с фото, автоматические рассылки новинок и акций по базе клиентов.", category: "Bot", iconName: "zap", relatedIds: [2], status: "completed", energy: 85, link: "https://t.me/AZTmoto_bot" },
-                      { id: 4, title: "Dreamcars39", date: "2024", content: "Бот аренды премиальных авто: онлайн-запись, управление расписанием броней, уведомления для клиентов и менеджеров.", iconName: "car", relatedIds: [2, 5], status: "completed", energy: 80, category: "Bot", link: "https://t.me/Dreamcars39_bot" },
-                      { id: 5, title: "Kibernalog", date: "2024", content: "Полностью автоматизированный бот: генерирует пакет документов для налогового вычета по данным пользователя, экспорт в PDF.", category: "Automation", iconName: "fileText", relatedIds: [1, 4], status: "completed", energy: 100, link: "https://t.me/kibernalog_bot" },
-                      { id: 6, title: "KIBERone Visor", date: "2024", content: "Сложнейший бот: мониторит родительские чаты школы KIBERone, анализирует активность, автоматический контроль качества коммуникаций.", category: "Shield", iconName: "shieldCheck", relatedIds: [1], status: "completed", energy: 98, link: "https://t.me/KIBERoneVisor_bot" },
-                      { id: 7, title: "All Interior", date: "2025", content: "ИИ-консультант по дизайну интерьера: помогает выбрать стиль, палитру и мебель, интегрирован с нейросетью для визуализации идей.", iconName: "messageSquare", relatedIds: [3, 4], status: "in-progress", energy: 70, category: "AI", link: "https://t.me/allinterior_bot" },
-                    ]} />
+                  <div className="browser-body p-0 digital-projects-bg" style={{ overflow: 'hidden', position: 'relative' }}>
+                    <div className="h-[260px] md:h-[480px] w-full">
+                      <RadialOrbitalTimeline timelineData={[
+                        { id: 1, title: "KIBERone KLD", date: "2023", content: "CRM-бот школы KIBERone: приём онлайн-заявок, умные ссылки, интеграция с AmoCRM, автоматические рассылки ученикам и родителям.", category: "Bot", iconName: "messageSquare", relatedIds: [6], status: "completed", energy: 95, link: "https://t.me/kiberoneKLD_bot" },
+                        { id: 2, title: "Этажи KLD", date: "2023", content: "Бот агентства недвижимости Этажи: умные ссылки на объекты, интеграция с CRM-системой, автоматическая обработка входящих заявок.", category: "Bot", iconName: "home", relatedIds: [3], status: "completed", energy: 90, link: "https://t.me/etagi_kaliningrad_bot" },
+                        { id: 3, title: "AZTmoto", date: "2024", content: "Бот мото-магазина: каталог экипировки с фото, автоматические рассылки новинок и акций по базе клиентов.", category: "Bot", iconName: "zap", relatedIds: [2], status: "completed", energy: 85, link: "https://t.me/AZTmoto_bot" },
+                        { id: 4, title: "Dreamcars39", date: "2024", content: "Бот аренды премиальных авто: онлайн-запись, управление расписанием броней, уведомления для клиентов и менеджеров.", iconName: "car", relatedIds: [2, 5], status: "completed", energy: 80, category: "Bot", link: "https://t.me/Dreamcars39_bot" },
+                        { id: 5, title: "Kibernalog", date: "2024", content: "Полностью автоматизированный бот: генерирует пакет документов для налогового вычета по данным пользователя, экспорт в PDF.", category: "Automation", iconName: "fileText", relatedIds: [1, 4], status: "completed", energy: 100, link: "https://t.me/kibernalog_bot" },
+                        { id: 6, title: "KIBERone Visor", date: "2024", content: "Сложнейший бот: мониторит родительских чаты школы KIBERone, анализирует активность, автоматический контроль качества коммуникаций.", category: "Shield", iconName: "shieldCheck", relatedIds: [1], status: "completed", energy: 98, link: "https://t.me/KIBERoneVisor_bot" },
+                        { id: 7, title: "All Interior", date: "2025", content: "ИИ-консультант по дизайну интерьера: помогает выбрать стиль, палитру и мебель, интегрирован с нейросетью для визуализации идей.", iconName: "messageSquare", relatedIds: [3, 4], status: "in-progress", energy: 70, category: "AI", link: "https://t.me/allinterior_bot" },
+                      ]} />
+                    </div>
                   </div>
                 </div>
                 <div className="project-info">
@@ -787,15 +789,15 @@ function App() {
                   </div>
                   <div className="browser-body p-0 digital-projects-bg">
                     {activeSite ? (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10 }}>
+                      <div className="h-[380px] md:h-[520px] w-full flex flex-col relative z-10">
                         <button onClick={() => setActiveSite(null)} className="iframe-back-btn">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                           Назад к проектам
                         </button>
-                        <iframe src={activeSite.url} style={{ width: '100%', height: '100%', minHeight: '520px', border: 'none', background: '#fff' }} title={activeSite.name} />
+                        <iframe src={activeSite.url} className="w-full h-full min-h-[380px] md:min-h-[520px] border-none bg-white" title={activeSite.name} />
                       </div>
                     ) : (
-                      <div style={{ height: '520px', width: '100%', position: 'relative' }}>
+                      <div className="h-[260px] md:h-[520px] w-full relative flex items-center justify-center overflow-hidden">
                         <SphereImageGrid
                           images={COMMERCIAL_SITES.map(site => ({
                             id: String(site.id),
@@ -804,13 +806,13 @@ function App() {
                             title: site.name,
                             description: site.desc
                           }))}
-                          containerSize={460}
-                          sphereRadius={175}
+                          containerSize={typeof window !== 'undefined' && window.innerWidth < 768 ? 260 : 460}
+                          sphereRadius={typeof window !== 'undefined' && window.innerWidth < 768 ? 100 : 175}
                           autoRotate={true}
                           autoRotateSpeed={0.8}
                           dragSensitivity={0.9}
                           momentumDecay={0.96}
-                          baseImageScale={0.13}
+                          baseImageScale={typeof window !== 'undefined' && window.innerWidth < 768 ? 0.16 : 0.13}
                           perspective={1000}
                           onImageClick={(imgData) => {
                              const site = COMMERCIAL_SITES.find(s => String(s.id) === imgData.id);
