@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Гафаров Акбар — AI/ML Engineer</title>
+  <meta name="description"
+    content="Портфолио Гафарова Акбара — AI/ML инженер, Computer Vision, Python-разработчик. Создаю интеллектуальные системы." />
+  <meta name="author" content="Гафаров Акбар Маруфович" />
+  <meta name="keywords"
+    content="AI engineer, ML engineer, Python developer, computer vision, portfolio, Гафаров Акбар" />
+  <meta property="og:title" content="Гафаров Акбар — AI/ML Engineer" />
+  <meta property="og:description" content="AI/ML инженер, Computer Vision, Python-разработчик." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+
+<body>
+
+  <canvas id="particles-canvas"></canvas>
+  <div id="progress-bar"></div>
+  <div class="cursor-ring"></div>
+  <div class="cursor-dot"></div>
+
+  <!-- ══════ NAV ══════ -->
+  <nav class="navbar" id="navbar">
+    <a href="#hero" class="nav-logo">GA<span>.</span></a>
+    <div class="nav-links">
+      <a href="#about">О себе</a>
+      <a href="#experience">Опыт</a>
+      <a href="#projects">Проекты</a>
+      <a href="#skills">Навыки</a>
+      <a href="#education">Образование</a>
+    </div>
+    <a href="#contact" class="nav-cta">Связаться</a>
+    <div class="hamburger" onclick="this.parentElement.querySelector('.nav-links').classList.toggle('active')">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- ══════ HERO ══════ -->
+  <section class="hero" id="hero">
+    <video autoplay loop muted playsinline id="hero-video">
+      <source src="ezgif-40e95fbedf42a49f.mp4" type="video/mp4">
+    </video>
+    <div class="hero-video-overlay"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="terminal-window">
+            <div class="terminal-bar">
+              <div class="terminal-dot red"></div>
+              <div class="terminal-dot yellow"></div>
+              <div class="terminal-dot green"></div>
+              <div class="terminal-title">bash — ~/portfolio — 90×30</div>
+            </div>
+            <div class="terminal-body">
+              <div class="hero-greeting">
+                <span class="pulse"></span>
+                <span>Открыт к предложениям</span>
+              </div>
+
+              <div class="terminal-command hero-cmd">akbar@portfolio:~$ cat ./personal_info.txt</div>
+              <h1 class="hero-name">
+                <span class="scramble-text" data-value="Гафаров">Гафаров</span><br><span class="accent scramble-text"
+                  data-value="Акбар">Акбар</span>
+              </h1>
+
+              <div class="hero-title">
+                <span class="line"></span>
+                <span id="typed-role">AI/ML Engineer</span>
+                <span class="typed-cursor" style="animation:blink-c 0.8s step-end infinite;color:var(--accent)">|</span>
+              </div>
+
+              <p class="hero-desc">
+                Молодой разработчик с практическим опытом в области <span class="hl">искусственного интеллекта</span>,
+                компьютерного зрения, Python-разработки и автоматизации процессов. Полный цикл создания IT-решений:
+                от сбора данных до внедрения готовых систем.
+              </p>
+
+              <div class="hero-btns">
+                <a href="#projects" class="btn-primary">Портфолио</a>
+                <a href="https://github.com/SupremeGoogle/" target="_blank" class="btn-outline">GitHub</a>
+                <a href="mailto:gafarovakbar@mail.ru" class="btn-outline">Связаться</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-avatar-wrapper mobile-hide-visual">
+            <!-- Abstract geometric avatar -->
+            <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+              <defs>
+                <radialGradient id="glow-bg" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#34D399" stop-opacity="0.15" />
+                  <stop offset="100%" stop-color="#0A0A1A" stop-opacity="0" />
+                </radialGradient>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#34D399" />
+                  <stop offset="50%" stop-color="#38BDF8" />
+                  <stop offset="100%" stop-color="#818CF8" />
+                </linearGradient>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="url(#glow-bg)" />
+              <circle cx="200" cy="200" r="150" fill="none" stroke="url(#grad1)" stroke-width="1.5" opacity="0.3">
+                <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="30s"
+                  repeatCount="indefinite" />
+              </circle>
+              <circle cx="200" cy="200" r="120" fill="none" stroke="#34D399" stroke-width="1" opacity="0.15"
+                stroke-dasharray="8 6">
+                <animateTransform attributeName="transform" type="rotate" from="360 200 200" to="0 200 200" dur="25s"
+                  repeatCount="indefinite" />
+              </circle>
+              <!-- Code brackets -->
+              <text x="200" y="170" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="80"
+                font-weight="700" fill="url(#grad1)" opacity="0.9" class="mobile-hide">&lt;/&gt;</text>
+              <text x="200" y="230" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="16"
+                fill="#6868A0" letter-spacing="4">AI · ML · CV</text>
+              <!-- Orbiting dots -->
+              <circle r="5" fill="#34D399" opacity="0.8">
+                <animateMotion dur="8s" repeatCount="indefinite" path="M200,50 A150,150 0 1,1 199,50 Z" />
+              </circle>
+              <circle r="4" fill="#38BDF8" opacity="0.6">
+                <animateMotion dur="12s" repeatCount="indefinite" path="M200,80 A120,120 0 1,0 201,80 Z" />
+              </circle>
+              <circle r="3" fill="#818CF8" opacity="0.5">
+                <animateMotion dur="15s" repeatCount="indefinite" path="M200,70 A130,130 0 1,1 199,70 Z" />
+              </circle>
+            </svg>
+            <div class="hero-avatar-ring"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <div class="scroll-mouse"></div>
+      <span>SCROLL</span>
+    </div>
+  </section>
+
+  <!-- ══════ ABOUT ══════ -->
+  <section class="about" id="about">
+    <div class="container">
+      <div class="section-label"><span class="dot"></span> akbar@portfolio:~$ cat ./about_me.txt</div>
+      <h2 class="section-title">Обо мне</h2>
+
+      <div class="about-grid">
+
+        <div class="about-text">
+          <p>Я — амбициозный разработчик, специализирующийся на <strong>AI, Computer Vision и Python</strong>. Мой опыт
+            охватывает полный цикл создания IT-продуктов: от проектирования архитектуры и сбора данных до обучения
+            нейросетей и развертывания готовых инструментов.</p>
+          <p>Легко адаптируюсь к новым задачам, быстро осваиваю современные технологии и умею эффективно работать как в
+            команде, так и самостоятельно, беря на себя полную ответственность за финальный результат.</p>
+          <p>Помимо разработки, я успешно совмещаю роли наставника и координатора, имея опыт управления академическими
+            процессами и курирования команд из более чем 35 специалистов.</p>
+
+          <div class="langs-grid" style="margin-top:2rem">
+            <div class="lang-item"><span class="lang-name">Русский</span><span class="lang-level">Разг.</span></div>
+            <div class="lang-item"><span class="lang-name">Английский</span><span class="lang-level">B2</span></div>
+            <div class="lang-item"><span class="lang-name">Таджикский</span><span class="lang-level">Разг.</span></div>
+            <div class="lang-item"><span class="lang-name">Узбекский</span><span class="lang-level">Разг.</span></div>
+            <div class="lang-item"><span class="lang-name">Казахский</span><span class="lang-level">Разг.</span></div>
+          </div>
+        </div>
+
+        <div class="about-cards">
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <h4>AI / ML</h4>
+            <p>PyTorch, YOLO, RAG, нейросети, компьютерное зрение</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M12 21v-8m4-4h-8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2Zm0-4V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2" />
+              </svg>
+            </div>
+            <h4>Python</h4>
+            <p>Бэкенд, автоматизация, боты, анализ данных</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V4a2 2 0 0 1 2-2h10l4 4v16a2 2 0 0 1-2 2H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
+              </svg>
+            </div>
+            <h4>Менторство</h4>
+            <p>100+ учеников, 35+ тьюторов, 4 учебных модуля</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+              </svg>
+            </div>
+            <h4>Универсальность</h4>
+            <p>Разработчик, автоматизатор, наставник — всё в одном</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-num count-up" data-target="4" data-suffix="+">0</div>
+          <div class="stat-label">Лет в IT и обучении</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num count-up" data-target="100" data-suffix="+">0</div>
+          <div class="stat-label">Учеников обучено</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num count-up" data-target="15" data-suffix="+">0</div>
+          <div class="stat-label">Сайтов для бизнеса</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num count-up" data-target="10" data-suffix="+">0</div>
+          <div class="stat-label">Telegram-ботов</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ EXPERIENCE ══════ -->
+  <section class="experience" id="experience">
+    <div class="container">
+      <div class="section-label"><span class="dot"></span> akbar@portfolio:~$ cat ./experience.txt</div>
+      <h2 class="section-title">Мой <span>опыт</span></h2>
+
+      <div class="exp-timeline">
+        <!-- Baltic Center -->
+        <div class="exp-card">
+          <div class="exp-card-inner">
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">Разработчик (AI/ML)</div>
+                <div class="exp-company">Балтийский центр нейротехнологий и ИИ</div>
+              </div>
+              <span class="exp-date">2024 — н.в.</span>
+            </div>
+            <p class="exp-desc">Разрабатываю интеллектуальные системы на базе AI, компьютерного зрения и анализа
+              цифрового контента. Полный цикл AI-разработки: сбор данных → датасеты → разметка → обучение → тестирование
+              → оценка.</p>
+            <div class="tags">
+              <span class="tag">Python</span>
+              <span class="tag">PyTorch</span>
+              <span class="tag">YOLO</span>
+              <span class="tag-blue tag">PostgreSQL</span>
+              <span class="tag-purple tag">RAG</span>
+              <span class="tag-blue tag">Docker</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KIBERone -->
+        <div class="exp-card">
+          <div class="exp-card-inner">
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">Старший тьютор / Тьютор</div>
+                <div class="exp-company">KIBERone</div>
+              </div>
+              <span class="exp-date">2021 — 2026</span>
+            </div>
+            <p class="exp-desc">Преподавал детям 6–14 лет программирование и цифровые технологии. Последние 2 года
+              совмещал преподавание с ролью старшего тьютора: руководил академическими процессами, курировал команду,
+              адаптировал новых сотрудников.</p>
+            <ul class="exp-list">
+              <li>Обучил более 100 учеников</li>
+              <li>Курировал около 35 тьюторов</li>
+              <li>Разработал 4 собственных учебных модуля</li>
+              <li>Автоматизировал внутренние процессы команды</li>
+            </ul>
+            <div class="tags">
+              <span class="tag">Python</span>
+              <span class="tag-blue tag">Telegram Bot API</span>
+              <span class="tag-purple tag">Unity</span>
+              <span class="tag-purple tag">Blender</span>
+              <span class="tag-blue tag">HTML/CSS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ SKILLS (EXPERTISE — bento grid) ══════ -->
+  <section class="skills" id="skills">
+    <div class="container">
+      <div class="section-label"><span class="dot"></span> akbar@portfolio:~$ ls ./skills/</div>
+      <h2 class="section-title">Мои <span>Компетенции</span></h2>
+      <p class="skills-subtitle">Универсален: работаю как разработчик, специалист по автоматизации и наставник команды.
+        Быстро осваиваю новые технологии и довожу каждый проект до результата.</p>
+
+      <div class="bento-grid-custom">
+        <!-- Card 1: AI / ML (Top Left) -->
+        <div class="bento-card top-left">
+          <div class="bento-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <h3>AI и Computer Vision</h3>
+          <p>Обучение нейросетей с нуля, подготовка и разметка датасетов, анализ данных и создание прикладных решений в
+            области компьютерного зрения.
+          </p>
+          <div class="bento-pills">
+            <span class="bento-pill">PyTorch</span>
+            <span class="bento-pill">YOLO</span>
+            <span class="bento-pill">OpenCV</span>
+            <span class="bento-pill">RAG</span>
+          </div>
+          <!-- Code window decoration -->
+          <div class="bento-decoration dek-window">
+            <div class="code-window">
+              <div class="code-window-bar"><span></span><span></span><span></span></div>
+              <div class="code-window-body">
+                <div class="code-line"><span class="bracket">&lt;&gt;</span>
+                  <div class="bar p" style="width:100px"></div>
+                </div>
+                <div class="code-line">
+                  <div class="bar g" style="width:180px"></div>
+                </div>
+                <div class="code-line">
+                  <div class="bar g" style="width:140px"></div>
+                </div>
+                <div class="code-line">
+                  <div class="bar g" style="width:160px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Prototyping/Web (Bottom Left) -->
+        <div class="bento-card bottom-left">
+          <div class="bento-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              <path d="M2 2l7.586 7.586"></path>
+              <circle cx="11" cy="11" r="2"></circle>
+            </svg>
+          </div>
+          <h3>Автоматизация и Боты</h3>
+          <p>Разработка Telegram-ботов для бизнеса, CRM-автоматизация и цифровизация повторяющихся задач для оптимизации
+            рабочих процессов.</p>
+          <div class="bento-pills">
+            <span class="bento-pill">Python</span>
+            <span class="bento-pill">Docker</span>
+            <span class="bento-pill">Telegram API</span>
+            <span class="bento-pill">CI/CD</span>
+          </div>
+          <!-- Orbiting decoration -->
+          <div class="bento-decoration dek-orbit">
+            <div class="orbit-deco">
+              <div class="orbit-ring"></div>
+              <div class="orbit-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)"
+                  stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div class="orbit-dot"></div>
+              <div class="orbit-dot"></div>
+              <div class="orbit-dot"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Backend (Right Tall) -->
+        <div class="bento-card right-tall">
+          <div class="bento-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+          </div>
+          <h3>Инфраструктура и БД</h3>
+          <p>Проектирование логики хранения данных в PostgreSQL, контейнеризация приложений в Docker и работа с сетевыми
+            протоколами.</p>
+
+          <div class="bento-decoration dek-progress">
+            <div class="progress-decoration">
+              <div class="prog-row"><span class="bracket">>_</span>
+                <div class="prog-bar-track">
+                  <div class="prog-bar-fill" style="width:40%"></div>
+                </div>
+              </div>
+              <div class="prog-row"><span class="bracket">>_</span>
+                <div class="prog-bar-track">
+                  <div class="prog-bar-fill" style="width:65%"></div>
+                </div>
+              </div>
+              <div class="prog-row"><span class="bracket">>_</span>
+                <div class="prog-bar-track">
+                  <div class="prog-bar-fill" style="width:80%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-pills bento-pills-bottom">
+            <span class="bento-pill">SQL</span>
+            <span class="bento-pill">PostgreSQL</span>
+            <span class="bento-pill">Docker</span>
+            <span class="bento-pill">CRM API</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ PROJECTS (PORTFOLIO — horizontal scroll) ══════ -->
+  <section class="projects" id="projects">
+    <div class="container">
+      <div class="projects-header">
+        <div class="projects-header-left">
+          <div class="section-label"><span class="dot"></span> akbar@portfolio:~$ cat ./projects.txt</div>
+          <h2 class="section-title">Лучшие <span>Проекты</span></h2>
+        </div>
+        <div class="projects-scroll-hint">ЛИСТАЙТЕ ГОРИЗОНТАЛЬНО</div>
+      </div>
+    </div>
+
+    <div class="projects-track-wrapper">
+      <div class="projects-track">
+        <!-- Project 1 -->
+        <div class="project-slide project-slide-sm">
+          <div class="project-ghost">UAV VISION</div>
+          <div class="project-slide-content">
+            <div class="project-browser">
+              <div class="browser-bar">
+                <div class="browser-dot red"></div>
+                <div class="browser-dot yellow"></div>
+                <div class="browser-dot green"></div>
+                <div class="browser-url"></div>
+              </div>
+              <div class="browser-body">
+                <div class="project-video-wrapper">
+                  <video autoplay loop muted playsinline class="project-video">
+                    <source src="bpla.mp4" type="video/mp4">
+                  </video>
+                </div>
+                <div class="mock-title">UAV Detection System</div>
+              </div>
+            </div>
+            <div class="project-info">
+              <div class="project-num"><span class="num-val">01</span> КОМПЬЮТЕРНОЕ ЗРЕНИЕ</div>
+              <h3 class="project-name">Система распознавания техники для БПЛА</h3>
+              <p class="project-desc">Система компьютерного зрения для автоматического обнаружения наземной техники по
+                данным с беспилотников.</p>
+              <ul class="project-tasks">
+                <li>Сбор и разметка датасетов</li>
+                <li>Обучение моделей компьютерного зрения</li>
+                <li>Тестирование и оценка качества</li>
+              </ul>
+              <div class="tags">
+                <span class="tag">Python</span>
+                <span class="tag">PyTorch</span>
+                <span class="tag">YOLO</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="project-slide project-slide-lg">
+          <div class="project-ghost">MONITORING</div>
+          <div class="project-slide-content" style="direction:rtl">
+            <div class="project-info" style="direction:ltr;text-align:left">
+              <div class="project-num"><span class="num-val">02</span> AI АНАЛИЗ</div>
+              <h3 class="project-name">Система мониторинга контента</h3>
+              <p class="project-desc">Интеллектуальная система выявления признаков продажи запрещённых веществ с
+                применением RAG-подходов.</p>
+              <ul class="project-tasks">
+                <li>Подготовка и анализ данных</li>
+                <li>Обучение AI-моделей</li>
+                <li>RAG-архитектура и работа с БД</li>
+              </ul>
+              <div class="tags">
+                <span class="tag">Python</span>
+                <span class="tag-purple tag">RAG</span>
+                <span class="tag-blue tag">PostgreSQL</span>
+                <span class="tag-blue tag">Docker</span>
+              </div>
+            </div>
+            <div class="project-browser" style="direction:ltr">
+              <div class="browser-bar">
+                <div class="browser-dot red"></div>
+                <div class="browser-dot yellow"></div>
+                <div class="browser-dot green"></div>
+                <div class="browser-url"></div>
+              </div>
+              <div class="browser-body">
+                <img src="monitoring.jpg" alt="Мониторинг" class="project-img">
+                <div class="mock-title">Content Monitor</div>
+                <button class="btn-outline btn-sm cert-btn">Свидетельство</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 3 -->
+        <div class="project-slide">
+          <div class="project-ghost">TELEGRAM</div>
+          <div class="project-slide-content">
+            <div class="project-browser">
+              <div class="browser-bar">
+                <div class="browser-dot red"></div>
+                <div class="browser-dot yellow"></div>
+                <div class="browser-dot green"></div>
+                <div class="browser-url"></div>
+              </div>
+              <div class="browser-body">
+                <div class="mock-icon">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 8V4H8" />
+                    <rect width="16" height="12" x="4" y="8" rx="2" />
+                    <path d="M2 14h2" />
+                    <path d="M20 14h2" />
+                    <path d="M15 13v2" />
+                    <path d="M9 13v2" />
+                  </svg>
+                </div>
+                <div class="mock-title">Bot Automation Suite</div>
+                <div class="mock-lines">
+                  <div class="mock-line"></div>
+                  <div class="mock-line"></div>
+                  <div class="mock-line"></div>
+                </div>
+              </div>
+            </div>
+            <div class="project-info">
+              <div class="project-num"><span class="num-val">03</span> АВТОМАТИЗАЦИЯ</div>
+              <h3 class="project-name">Telegram-боты для автоматизации</h3>
+              <p class="project-desc">Серия из 10+ Telegram-ботов для реальных бизнес-задач: налоговый вычет, учёт
+                медиафайлов, CRM-процессы.</p>
+              <ul class="project-tasks">
+                <li>Генерация сертификатов автоматически</li>
+                <li>Учёт фото и видео материалов</li>
+                <li>CRM-автоматизация внутри компании</li>
+              </ul>
+              <div class="tags">
+                <span class="tag">Python</span>
+                <span class="tag-blue tag">Telegram Bot API</span>
+                <span class="tag-blue tag">SQL</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 4 -->
+        <div class="project-slide">
+          <div class="project-ghost">DIGITAL WEB</div>
+          <div class="project-slide-content" style="direction:rtl">
+            <div class="project-info" style="direction:ltr;text-align:left">
+              <div class="project-num"><span class="num-val">04</span> WEB-РАЗРАБОТКА</div>
+              <h3 class="project-name">Коммерческие digital-проекты</h3>
+              <p class="project-desc">15+ сайтов для бизнеса и сайт-агрегатор, собирающий данные дистрибьюторов города и
+                публикующий их в единой системе.</p>
+              <ul class="project-tasks">
+                <li>15+ сайтов для различных бизнесов</li>
+                <li>Проектирование и сопровождение</li>
+                <li>Парсинг и обработка данных</li>
+              </ul>
+              <div class="tags">
+                <span class="tag-blue tag">HTML</span>
+                <span class="tag-blue tag">CSS</span>
+                <span class="tag">Python</span>
+                <span class="tag-blue tag">SQL</span>
+              </div>
+            </div>
+            <div class="project-browser" style="direction:ltr">
+              <div class="browser-bar">
+                <div class="browser-dot red"></div>
+                <div class="browser-dot yellow"></div>
+                <div class="browser-dot green"></div>
+                <div class="browser-url"></div>
+              </div>
+              <div class="browser-body">
+                <div class="mock-icon">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M2 12h20" />
+                    <path
+                      d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </svg>
+                </div>
+                <div class="mock-title">Web Projects</div>
+                <div class="mock-lines">
+                  <div class="mock-line"></div>
+                  <div class="mock-line"></div>
+                  <div class="mock-line"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ EDUCATION ══════ -->
+  <section class="education" id="education">
+    <div class="container">
+      <div class="section-label"><span class="dot"></span> akbar@portfolio:~$ cat ./education.txt</div>
+      <h2 class="section-title">Моё <span>образование</span></h2>
+
+      <div class="edu-card">
+        <div class="edu-name">Балтийский федеральный университет имени Иммануила Канта</div>
+        <div class="edu-degree">ОНК Высоких технологий · Информационные системы и технологии</div>
+        <div class="edu-dates">2021 — 2025</div>
+        <span class="diploma-badge">✦ Красный диплом</span>
+      </div>
+
+      <div class="certs-grid">
+        <div class="cert-item">Диплом о профессиональной подготовке: специалист по ИИ</div>
+        <div class="cert-item">Сертифицированный педагог HISTES</div>
+        <div class="cert-item">Сертификаты онлайн-курсов (Stepik и др.)</div>
+        <div class="cert-item">Наставник первокурсников БФУ</div>
+        <div class="cert-item">Победитель международной олимпиады по арифметике</div>
+        <div class="cert-item">Свидетельство о регистрации разработанной системы</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ CONTACT ══════ -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="section-label"><span class="dot"></span> akbar@portfolio:~$ nc -zv portfolio 8000</div>
+      <h2 class="section-title">Свяжитесь <span>со мной</span></h2>
+
+      <div class="contact-box">
+        <h3 class="contact-title">Готов к новым вызовам</h3>
+        <p class="contact-sub">Открыт к предложениям о работе, фрилансу и интересным проектам. Напишите мне — обсудим!
+        </p>
+        <div class="contact-links">
+          <a href="mailto:gafarovakbar@mail.ru" class="btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+            Email
+          </a>
+          <a href="https://t.me/supremeHn" target="_blank" class="btn-outline">Telegram</a>
+          <a href="https://github.com/SupremeGoogle/" target="_blank" class="btn-outline">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ FOOTER ══════ -->
+  <!-- ══════ MODAL ══════ -->
+  <div class="modal" id="cert-modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <div class="modal-body">
+        <embed src="100 СВИДЕТЕЛЬСТВО.pdf" type="application/pdf" width="100%" height="800px" />
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>GA</span> · © 2025 Гафаров Акбар Маруфович
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+
+</html>
