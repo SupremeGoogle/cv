@@ -81,13 +81,26 @@ function App() {
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  const velocity = useRef(0);
+  const lastX = useRef(0);
+  const rafId = useRef<number | null>(null);
+
+  const applyMomentum = () => {
+    if (!trackWrapperRef.current || Math.abs(velocity.current) < 0.5) return;
+    trackWrapperRef.current.scrollLeft -= velocity.current;
+    velocity.current *= 0.92; // Friction factor
+    rafId.current = requestAnimationFrame(applyMomentum);
+  };
 
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     isDragging.current = true;
+    if (rafId.current) cancelAnimationFrame(rafId.current);
     const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
     if (trackWrapperRef.current) {
       startX.current = pageX - trackWrapperRef.current.offsetLeft;
       scrollLeft.current = trackWrapperRef.current.scrollLeft;
+      lastX.current = pageX;
+      velocity.current = 0;
       trackWrapperRef.current.style.cursor = 'grabbing';
       trackWrapperRef.current.style.scrollBehavior = 'auto';
       trackWrapperRef.current.style.scrollSnapType = 'none';
@@ -100,19 +113,28 @@ function App() {
     isDragging.current = false;
     if (trackWrapperRef.current) {
       trackWrapperRef.current.style.cursor = 'grab';
-      trackWrapperRef.current.style.scrollBehavior = 'smooth';
-      trackWrapperRef.current.style.scrollSnapType = 'x proximity';
       document.body.style.overscrollBehaviorY = 'auto';
+      applyMomentum();
+      
+      // Restore snapping after momentum finishes or after a delay
+      setTimeout(() => {
+        if (!isDragging.current && trackWrapperRef.current) {
+          trackWrapperRef.current.style.scrollSnapType = 'x proximity';
+          trackWrapperRef.current.style.scrollBehavior = 'smooth';
+        }
+      }, 500);
     }
   };
 
   const handleDragMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!isDragging.current || !trackWrapperRef.current) return;
-    if (!('touches' in e)) e.preventDefault();
     const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
     const x = pageX - trackWrapperRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
+    const walk = (x - startX.current); 
     trackWrapperRef.current.scrollLeft = scrollLeft.current - walk;
+    
+    velocity.current = pageX - lastX.current;
+    lastX.current = pageX;
   };
 
   useEffect(() => {
