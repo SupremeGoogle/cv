@@ -1979,25 +1979,34 @@ section {
     overflow: hidden;
   }
   .projects-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
     gap: 0.5rem;
+    margin-bottom: 1.5rem; /* Increased spacing per user request */
+  }
+  .projects-header-left .section-title {
+    margin-bottom: 0 !important;
   }
   .projects-scroll-hint {
-    display: block;
+    display: flex;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-    opacity: 0.6;
-    margin-bottom: 0.5rem;
+    font-size: 0.65rem;
+    color: var(--primary);
+    letter-spacing: normal;
+    opacity: 0.8;
+    margin-top: 0;
+    margin-bottom: 0.4rem; /* precisely matches the visual baseline of the bold h2 title */
+    text-align: right;
   }
   .projects-track-wrapper {
     display: block !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     height: auto !important;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
     padding-bottom: 1.5rem;
     -webkit-overflow-scrolling: touch;
     width: 100% !important;

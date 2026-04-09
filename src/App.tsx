@@ -74,6 +74,7 @@ class ScrambleText {
 
 function App() {
   const [activeSite, setActiveSite] = useState<WebProject | null>(null);
+  const [fullscreenImgUrl, setFullscreenImgUrl] = useState<string | null>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -621,9 +622,9 @@ function App() {
           <div className="projects-header">
             <div className="projects-header-left">
               <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ cat ./projects.txt</div>
-              <h2 className="section-title">Лучшие <span data-value="Проекты"></span></h2>
+              <h2 className="section-title">Мои <span data-value="Проекты"></span></h2>
             </div>
-            <div className="projects-scroll-hint">ЛИСТАЙТЕ ГОРИЗОНТАЛЬНО</div>
+            <div className="projects-scroll-hint">Листайте горизонтально ➔</div>
           </div>
         </div>
         <div className="projects-track-wrapper">
@@ -696,7 +697,13 @@ function App() {
                     <div className="browser-url"></div>
                   </div>
                   <div className="browser-body">
-                    <img src="/monitoring.jpg" alt="Мониторинг" className="project-img" />
+                    <img 
+                      src="/monitoring.jpg" 
+                      alt="Мониторинг" 
+                      className="project-img cursor-pointer transition-transform duration-300 hover:scale-[1.02]" 
+                      onClick={() => setFullscreenImgUrl('/monitoring.jpg')}
+                      title="Нажмите, чтобы увеличить"
+                    />
                     <div className="mock-title">Content Monitor</div>
                     <button className="btn-outline btn-sm cert-btn" onClick={() => toggleModal(true)}>Свидетельство</button>
                   </div>
@@ -885,6 +892,28 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* ══════ IMAGE MODAL ══════ */}
+      {fullscreenImgUrl && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 cursor-zoom-out p-4"
+          onClick={() => setFullscreenImgUrl(null)}
+          style={{ backdropFilter: 'blur(10px)' }}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white text-4xl leading-none hover:text-[var(--primary)] transition-colors"
+            onClick={() => setFullscreenImgUrl(null)}
+          >
+            &times;
+          </button>
+          <img 
+            src={fullscreenImgUrl} 
+            alt="Fullscreen View" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-white/10" 
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
     </>
   )
 }
