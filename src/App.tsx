@@ -49,9 +49,19 @@ const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) 
 
 const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new Image();
-  image.crossOrigin = 'anonymous';
-  image.onload = () => resolve(image);
-  image.onerror = () => reject(new Error(src === ME_REFERENCE_PATH ? `Не найдено фото для вставки. Положите файл сюда: ${ME_REFERENCE_PUBLIC_FILE} (в браузере путь будет ${ME_REFERENCE_PATH})` : 'Не удалось загрузить изображение.'));
+  // Only set crossOrigin for external URLs; same-origin paths (like /me/me.png) don't need it
+  // and setting it can cause 403 errors on some hosting platforms (e.g. Vercel)
+  if (src.startsWith('http')) {
+    image.crossOrigin = 'anonymous';
+  }
+  image.onload = () => {
+    console.log(`[WorkplaceAI] Image loaded: ${src} (${image.naturalWidth}x${image.naturalHeight})`);
+    resolve(image);
+  };
+  image.onerror = (e) => {
+    console.error(`[WorkplaceAI] Failed to load image: ${src}`, e);
+    reject(new Error(src === ME_REFERENCE_PATH ? `Не найдено фото для вставки. Положите файл сюда: ${ME_REFERENCE_PUBLIC_FILE} (в браузере путь будет ${ME_REFERENCE_PATH})` : 'Не удалось загрузить изображение.'));
+  };
   image.src = src;
 });
 
@@ -75,29 +85,36 @@ const drawCover = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: nu
 };
 
 const createWorkplaceComposite = async (workspaceDataUrl: string) => {
+  console.log('[WorkplaceAI] Creating composite image...');
   const [workspaceImage, meImage] = await Promise.all([
     loadImage(workspaceDataUrl),
     loadImage(ME_REFERENCE_PATH),
   ]);
 
+  // Use 1024x512 and JPEG to keep the payload small for DeepInfra
+  const HALF = 512;
   const canvas = document.createElement('canvas');
-  canvas.width = 1536;
-  canvas.height = 768;
+  canvas.width = HALF * 2; // 1024
+  canvas.height = HALF;     // 512
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
 
   ctx.fillStyle = '#080818';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawCover(ctx, workspaceImage, 0, 0, 768, 768);
-  drawCover(ctx, meImage, 768, 0, 768, 768);
+  drawCover(ctx, workspaceImage, 0, 0, HALF, HALF);
+  drawCover(ctx, meImage, HALF, 0, HALF, HALF);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-  ctx.fillRect(766, 0, 4, 768);
+  ctx.fillRect(HALF - 1, 0, 2, HALF);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(blob => {
-      if (blob) resolve(blob);
-      else reject(new Error('Не удалось подготовить изображение для генерации.'));
-    }, 'image/png', 0.95);
+      if (blob) {
+        console.log(`[WorkplaceAI] Composite ready: ${canvas.width}x${canvas.height}, size=${(blob.size / 1024).toFixed(0)}KB`);
+        resolve(blob);
+      } else {
+        reject(new Error('Не удалось подготовить изображение для генерации.'));
+      }
+    }, 'image/jpeg', 0.85);
   });
 };
 
@@ -424,10 +441,14 @@ function App() {
       const formData = new FormData();
       formData.append('model', DEEPINFRA_MODEL);
       formData.append('prompt', WORKPLACE_AI_PROMPT);
-      formData.append('image', compositeBlob, 'workspace-reference.png');
-      formData.append('size', '1024x1024');
+      formData.append('image', compositeBlob, 'workspace-reference.jpg');
       formData.append('n', '1');
-      formData.append('response_format', 'b64_json');
+
+      console.log('[WorkplaceAI] Sending request to DeepInfra...');
+      console.log('[WorkplaceAI] Endpoint:', DEEPINFRA_IMAGE_EDIT_ENDPOINT);
+      console.log('[WorkplaceAI] Model:', DEEPINFRA_MODEL);
+      console.log('[WorkplaceAI] Image blob size:', (compositeBlob.size / 1024).toFixed(0), 'KB');
+      console.log('[WorkplaceAI] Prompt length:', WORKPLACE_AI_PROMPT.length, 'chars');
 
       const response = await fetch(DEEPINFRA_IMAGE_EDIT_ENDPOINT, {
         method: 'POST',
@@ -437,23 +458,42 @@ function App() {
         body: formData,
       });
 
-      const payload = await response.json().catch(() => null);
+      console.log('[WorkplaceAI] Response status:', response.status, response.statusText);
+      console.log('[WorkplaceAI] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      const rawText = await response.text();
+      console.log('[WorkplaceAI] Raw response body (first 500 chars):', rawText.substring(0, 500));
+
+      let payload: any = null;
+      try {
+        payload = JSON.parse(rawText);
+      } catch {
+        console.error('[WorkplaceAI] Failed to parse response as JSON');
+      }
+
       if (!response.ok) {
+        console.error('[WorkplaceAI] API error payload:', payload);
         throw new Error(extractDeepInfraError(payload));
       }
+
+      console.log('[WorkplaceAI] Success! Payload keys:', payload ? Object.keys(payload) : 'null');
 
       const imageBase64 = payload?.data?.[0]?.b64_json;
       const imageUrl = payload?.data?.[0]?.url;
       if (imageBase64) {
+        console.log('[WorkplaceAI] Got b64_json image, length:', imageBase64.length);
         setWorkplaceResult(`data:image/png;base64,${imageBase64}`);
       } else if (imageUrl) {
+        console.log('[WorkplaceAI] Got image URL:', imageUrl);
         setWorkplaceResult(imageUrl);
       } else {
+        console.error('[WorkplaceAI] No image in response. Full payload:', JSON.stringify(payload));
         throw new Error('DeepInfra вернула ответ без изображения.');
       }
 
       setWorkplaceStatus('done');
     } catch (error) {
+      console.error('[WorkplaceAI] Generation failed:', error);
       setWorkplaceStatus('error');
       setWorkplaceError(error instanceof Error ? error.message : 'Произошла ошибка генерации.');
     }
