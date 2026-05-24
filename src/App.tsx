@@ -25,19 +25,19 @@ type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ''; // TODO: move to backend-only env before production.
 const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
 const OPENAI_IMAGE_MODEL = 'gpt-image-1';
-const OPENAI_IMAGE_QUALITY = 'medium';
+const OPENAI_IMAGE_QUALITY = 'high';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
-const WORKPLACE_AI_PROMPT = `Create one realistic final photograph using the user's uploaded place as the target scene and the reference photo /me/me.png as the person and fallback workplace setup.
+const WORKPLACE_AI_PROMPT = `Create one realistic final photograph by preserving the exact identity of the man from the first input image and placing him into the workspace from the second input image.
 
-Use the first input image as the main scene. Preserve its room layout, walls, floor, windows, lighting direction, camera angle, perspective, colors, shadows, and photographic realism.
+The first input image is the identity source. Keep the man's face as close as possible to the first image: same facial structure, eyes, eyelids, eyebrows, nose, mouth, jawline, cheeks, skin tone, hairstyle, hairline, age, expression, and black t-shirt. Do not beautify, average, age, de-age, change ethnicity, change facial proportions, or invent a similar-looking person. Preserve his likeness with very high fidelity.
 
-Use the second input image only as reference for the person and, if needed, the desk setup. Preserve the man's face identity, hairstyle, skin tone, approximate body proportions, black t-shirt, natural working posture, and realistic appearance.
+The second input image is the target place. Preserve its room layout, walls, floor, windows, lighting direction, camera angle, perspective, colors, shadows, and photographic realism as much as possible.
 
-Insert the man naturally into the first image as if he is physically present there. If the first image already has a visible desk, table, chair, laptop, monitor, or work area, place him at that existing work area. If the first image does not have a usable desk or work area, bring the desk, chair, laptop, monitor setup, and working posture from the second image into the first scene together with the man.
+Move the exact man from the first input image into the second input image as if he is physically present there. If the second image already has a visible desk, table, chair, laptop, monitor, or work area, place him naturally at that existing work area. If the second image does not have a usable desk or work area, bring the desk, chair, laptop, monitor setup, and working posture from the first input image together with the man into the second scene.
 
-Match scale, perspective, shadows, contact shadows, occlusion, depth of field, color temperature, camera quality, and lighting. The result must look like one natural photo taken in the user's place.
+Match scale, perspective, shadows, contact shadows, occlusion, depth of field, color temperature, camera quality, and lighting. The final result must look like one natural photo taken in the user's place, but the man's face must remain recognizably the same person from the first image.
 
 Do not output a collage, split-screen, before/after view, sticker, poster, painting, cartoon, or UI mockup. Do not add extra people. Do not distort the face. Do not include labels, captions, borders, or text.`;
 
@@ -58,23 +58,23 @@ const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, rejec
   image.src = src;
 });
 
-const drawCover = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) => {
+const drawContain = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) => {
   const sourceRatio = image.naturalWidth / image.naturalHeight;
   const targetRatio = width / height;
-  let sourceWidth = image.naturalWidth;
-  let sourceHeight = image.naturalHeight;
-  let sourceX = 0;
-  let sourceY = 0;
+  let targetWidth = width;
+  let targetHeight = height;
+  let targetX = x;
+  let targetY = y;
 
   if (sourceRatio > targetRatio) {
-    sourceWidth = image.naturalHeight * targetRatio;
-    sourceX = (image.naturalWidth - sourceWidth) / 2;
+    targetHeight = width / sourceRatio;
+    targetY = y + (height - targetHeight) / 2;
   } else {
-    sourceHeight = image.naturalWidth / targetRatio;
-    sourceY = (image.naturalHeight - sourceHeight) / 2;
+    targetWidth = height * sourceRatio;
+    targetX = x + (width - targetWidth) / 2;
   }
 
-  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+  ctx.drawImage(image, targetX, targetY, targetWidth, targetHeight);
 };
 
 const createImageFile = async (src: string, filename: string) => {
@@ -87,7 +87,7 @@ const createImageFile = async (src: string, filename: string) => {
 
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawCover(ctx, image, 0, 0, canvas.width, canvas.height);
+  drawContain(ctx, image, 0, 0, canvas.width, canvas.height);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(blob => {
@@ -420,15 +420,15 @@ function App() {
         throw new Error('Не задан VITE_OPENAI_API_KEY для генерации изображения.');
       }
 
-      const [workspaceBlob, meBlob] = await Promise.all([
-        createImageFile(workplacePreview, 'workspace.jpg'),
+      const [meBlob, workspaceBlob] = await Promise.all([
         createImageFile(ME_REFERENCE_PATH, 'me.jpg'),
+        createImageFile(workplacePreview, 'workspace.jpg'),
       ]);
       const formData = new FormData();
       formData.append('model', OPENAI_IMAGE_MODEL);
       formData.append('prompt', WORKPLACE_AI_PROMPT);
-      formData.append('image[]', workspaceBlob, 'workspace.jpg');
       formData.append('image[]', meBlob, 'me.jpg');
+      formData.append('image[]', workspaceBlob, 'workspace.jpg');
       formData.append('size', '1024x1024');
       formData.append('quality', OPENAI_IMAGE_QUALITY);
       formData.append('output_format', 'jpeg');
