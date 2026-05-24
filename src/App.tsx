@@ -22,23 +22,24 @@ const digitalProjects: DigitalProject[] = [
 
 type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
-const DEEPINFRA_API_KEY = 'E7tma2I01AofybkVchlAQb6nUZDi7oXI'; // TODO: move to backend/env before production.
-const DEEPINFRA_IMAGE_EDIT_ENDPOINT = 'https://api.deepinfra.com/v1/openai/images/edits';
-const DEEPINFRA_MODEL = 'black-forest-labs/FLUX.1-Kontext-dev';
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ''; // TODO: move to backend-only env before production.
+const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
+const OPENAI_IMAGE_MODEL = 'gpt-image-1';
+const OPENAI_IMAGE_QUALITY = 'medium';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
-const WORKPLACE_AI_PROMPT = `Create one realistic final photograph from the provided side-by-side composite image.
+const WORKPLACE_AI_PROMPT = `Create one realistic final photograph using the user's uploaded place as the target scene and the reference photo /me/me.png as the person and fallback workplace setup.
 
-The LEFT panel is the user's uploaded place and must be treated as the main target scene. Preserve its room layout, walls, windows, floor, lighting direction, camera angle, perspective, colors, shadows, and overall photo realism.
+Use the first input image as the main scene. Preserve its room layout, walls, floor, windows, lighting direction, camera angle, perspective, colors, shadows, and photographic realism.
 
-The RIGHT panel is a reference photo of the person and his working desk setup. Use the right panel to identify the person: preserve his face identity, hairstyle, approximate body proportions, skin tone, black t-shirt, and natural appearance. The right panel also contains a fallback desk, chair, laptop, monitor setup, and working posture.
+Use the second input image only as reference for the person and, if needed, the desk setup. Preserve the man's face identity, hairstyle, skin tone, approximate body proportions, black t-shirt, natural working posture, and realistic appearance.
 
-Insert the person from the right panel naturally into the left panel as if he is physically present in the user's place. If the left panel already has a visible desk, table, chair, or work area, place the person near that existing workspace in a believable working pose. If the left panel does not contain a usable desk or work area, bring the desk/chair/laptop/monitor setup from the right panel together with the person and place that setup naturally into the left scene, matching the left scene's perspective and available space.
+Insert the man naturally into the first image as if he is physically present there. If the first image already has a visible desk, table, chair, laptop, monitor, or work area, place him at that existing work area. If the first image does not have a usable desk or work area, bring the desk, chair, laptop, monitor setup, and working posture from the second image into the first scene together with the man.
 
-Match the person's scale, body position, lighting, shadows, contact shadows, depth of field, color temperature, lens quality, and camera realism to the left panel. Add realistic occlusion with furniture where needed.
+Match scale, perspective, shadows, contact shadows, occlusion, depth of field, color temperature, camera quality, and lighting. The result must look like one natural photo taken in the user's place.
 
-Output only one natural final photo. Do not output a split-screen composite. Do not include labels, captions, borders, panels, text, UI, watermarks, or before/after views. Do not create extra people. Do not distort the face. Do not make the result look like a cutout, sticker, poster, painting, cartoon, or AI collage. Keep the user's environment intact unless a desk setup must be added from the right panel.`;
+Do not output a collage, split-screen, before/after view, sticker, poster, painting, cartoon, or UI mockup. Do not add extra people. Do not distort the face. Do not include labels, captions, borders, or text.`;
 
 const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
@@ -49,19 +50,11 @@ const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) 
 
 const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new Image();
-  // Only set crossOrigin for external URLs; same-origin paths (like /me/me.png) don't need it
-  // and setting it can cause 403 errors on some hosting platforms (e.g. Vercel)
   if (src.startsWith('http')) {
     image.crossOrigin = 'anonymous';
   }
-  image.onload = () => {
-    console.log(`[WorkplaceAI] Image loaded: ${src} (${image.naturalWidth}x${image.naturalHeight})`);
-    resolve(image);
-  };
-  image.onerror = (e) => {
-    console.error(`[WorkplaceAI] Failed to load image: ${src}`, e);
-    reject(new Error(src === ME_REFERENCE_PATH ? `Не найдено фото для вставки. Положите файл сюда: ${ME_REFERENCE_PUBLIC_FILE} (в браузере путь будет ${ME_REFERENCE_PATH})` : 'Не удалось загрузить изображение.'));
-  };
+  image.onload = () => resolve(image);
+  image.onerror = () => reject(new Error(src === ME_REFERENCE_PATH ? `Не найдено фото для вставки. Положите файл сюда: ${ME_REFERENCE_PUBLIC_FILE} (в браузере путь будет ${ME_REFERENCE_PATH})` : 'Не удалось загрузить изображение.'));
   image.src = src;
 });
 
@@ -84,42 +77,28 @@ const drawCover = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: nu
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
 };
 
-const createWorkplaceComposite = async (workspaceDataUrl: string) => {
-  console.log('[WorkplaceAI] Creating composite image...');
-  const [workspaceImage, meImage] = await Promise.all([
-    loadImage(workspaceDataUrl),
-    loadImage(ME_REFERENCE_PATH),
-  ]);
-
-  // Use 1024x512 and JPEG to keep the payload small for DeepInfra
-  const HALF = 512;
+const createImageFile = async (src: string, filename: string) => {
+  const image = await loadImage(src);
   const canvas = document.createElement('canvas');
-  canvas.width = HALF * 2; // 1024
-  canvas.height = HALF;     // 512
+  canvas.width = 1024;
+  canvas.height = 1024;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
 
-  ctx.fillStyle = '#080818';
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawCover(ctx, workspaceImage, 0, 0, HALF, HALF);
-  drawCover(ctx, meImage, HALF, 0, HALF, HALF);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-  ctx.fillRect(HALF - 1, 0, 2, HALF);
+  drawCover(ctx, image, 0, 0, canvas.width, canvas.height);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(blob => {
-      if (blob) {
-        console.log(`[WorkplaceAI] Composite ready: ${canvas.width}x${canvas.height}, size=${(blob.size / 1024).toFixed(0)}KB`);
-        resolve(blob);
-      } else {
-        reject(new Error('Не удалось подготовить изображение для генерации.'));
-      }
-    }, 'image/jpeg', 0.85);
+      if (blob) resolve(blob);
+      else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
+    }, 'image/jpeg', 0.86);
   });
 };
 
-const extractDeepInfraError = (payload: unknown) => {
-  if (!payload) return 'DeepInfra не смогла сгенерировать изображение.';
+const extractOpenAiError = (payload: unknown) => {
+  if (!payload) return 'OpenAI не смог сгенерировать изображение.';
   if (typeof payload === 'string') return payload;
   if (typeof payload !== 'object') return String(payload);
 
@@ -437,63 +416,51 @@ function App() {
       setWorkplaceError('');
       setWorkplaceResult(null);
 
-      const compositeBlob = await createWorkplaceComposite(workplacePreview);
+      if (!OPENAI_API_KEY) {
+        throw new Error('Не задан VITE_OPENAI_API_KEY для генерации изображения.');
+      }
+
+      const [workspaceBlob, meBlob] = await Promise.all([
+        createImageFile(workplacePreview, 'workspace.jpg'),
+        createImageFile(ME_REFERENCE_PATH, 'me.jpg'),
+      ]);
       const formData = new FormData();
-      formData.append('model', DEEPINFRA_MODEL);
+      formData.append('model', OPENAI_IMAGE_MODEL);
       formData.append('prompt', WORKPLACE_AI_PROMPT);
-      formData.append('image', compositeBlob, 'workspace-reference.jpg');
+      formData.append('image[]', workspaceBlob, 'workspace.jpg');
+      formData.append('image[]', meBlob, 'me.jpg');
+      formData.append('size', '1024x1024');
+      formData.append('quality', OPENAI_IMAGE_QUALITY);
+      formData.append('output_format', 'jpeg');
       formData.append('n', '1');
 
-      console.log('[WorkplaceAI] Sending request to DeepInfra...');
-      console.log('[WorkplaceAI] Endpoint:', DEEPINFRA_IMAGE_EDIT_ENDPOINT);
-      console.log('[WorkplaceAI] Model:', DEEPINFRA_MODEL);
-      console.log('[WorkplaceAI] Image blob size:', (compositeBlob.size / 1024).toFixed(0), 'KB');
-      console.log('[WorkplaceAI] Prompt length:', WORKPLACE_AI_PROMPT.length, 'chars');
-
-      const response = await fetch(DEEPINFRA_IMAGE_EDIT_ENDPOINT, {
+      const response = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${DEEPINFRA_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
         body: formData,
       });
 
-      console.log('[WorkplaceAI] Response status:', response.status, response.statusText);
-      console.log('[WorkplaceAI] Response headers:', Object.fromEntries(response.headers.entries()));
-
       const rawText = await response.text();
-      console.log('[WorkplaceAI] Raw response body (first 500 chars):', rawText.substring(0, 500));
-
       let payload: any = null;
       try {
         payload = JSON.parse(rawText);
-      } catch {
-        console.error('[WorkplaceAI] Failed to parse response as JSON');
-      }
+      } catch { /* OpenAI should return JSON; keep payload null for readable fallback. */ }
 
       if (!response.ok) {
-        console.error('[WorkplaceAI] API error payload:', payload);
-        throw new Error(extractDeepInfraError(payload));
+        throw new Error(extractOpenAiError(payload));
       }
 
-      console.log('[WorkplaceAI] Success! Payload keys:', payload ? Object.keys(payload) : 'null');
-
       const imageBase64 = payload?.data?.[0]?.b64_json;
-      const imageUrl = payload?.data?.[0]?.url;
       if (imageBase64) {
-        console.log('[WorkplaceAI] Got b64_json image, length:', imageBase64.length);
-        setWorkplaceResult(`data:image/png;base64,${imageBase64}`);
-      } else if (imageUrl) {
-        console.log('[WorkplaceAI] Got image URL:', imageUrl);
-        setWorkplaceResult(imageUrl);
+        setWorkplaceResult(`data:image/jpeg;base64,${imageBase64}`);
       } else {
-        console.error('[WorkplaceAI] No image in response. Full payload:', JSON.stringify(payload));
-        throw new Error('DeepInfra вернула ответ без изображения.');
+        throw new Error('OpenAI вернул ответ без изображения.');
       }
 
       setWorkplaceStatus('done');
     } catch (error) {
-      console.error('[WorkplaceAI] Generation failed:', error);
       setWorkplaceStatus('error');
       setWorkplaceError(error instanceof Error ? error.message : 'Произошла ошибка генерации.');
     }
@@ -1166,7 +1133,7 @@ function App() {
             {(workplaceStatus === 'uploading' || workplaceStatus === 'generating') && (
               <div className="workplace-loading">
                 <span></span>
-                {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'DeepInfra собирает реалистичный кадр...'}
+                {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'OpenAI собирает реалистичный кадр...'}
               </div>
             )}
 
