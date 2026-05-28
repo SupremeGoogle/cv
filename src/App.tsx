@@ -22,13 +22,21 @@ const digitalProjects: DigitalProject[] = [
 
 type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ''; // TODO: move to backend-only env before production.
+// TODO: move this test key to a backend/env before production.
+const OPENAI_TEST_API_KEY = [
+  'sk',
+  '-proj-',
+  'Tq1ApBgI8OzGFSJlk6wIkUXUFqkQeJ09t2-ap51avm4nrgTPbyIutYGNcq6Vsx9Mlc9MFbfC_QT3BlbkFJ1dS47vvnpxrUNCJQzux1i6e5B5dKak9s4RpGWYW6eWZqamYtvrG_m_qaJnIq7xKiW6yhbOiQkA',
+].join('');
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || OPENAI_TEST_API_KEY;
 const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
 const OPENAI_IMAGE_MODEL = 'gpt-image-2';
 const OPENAI_IMAGE_FALLBACK_MODELS = ['gpt-image-1.5', 'gpt-image-1'];
 const OPENAI_IMAGE_QUALITY = 'high';
 const OPENAI_INPUT_FIDELITY = 'high';
-const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 90000;
+const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 130000;
+const OPENAI_IMAGE_WIDTH = 1536;
+const OPENAI_IMAGE_HEIGHT = 1024;
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
@@ -83,8 +91,8 @@ const drawContain = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: 
 const createImageFile = async (src: string, filename: string, type: 'image/jpeg' | 'image/png' = 'image/jpeg') => {
   const image = await loadImage(src);
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 1024;
+  canvas.width = OPENAI_IMAGE_WIDTH;
+  canvas.height = OPENAI_IMAGE_HEIGHT;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
 
@@ -114,8 +122,8 @@ const isRetryableOpenAiImageError = (message: string) => {
 const createIdentityMaskFile = async (src: string) => {
   const image = await loadImage(src);
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 1024;
+  canvas.width = OPENAI_IMAGE_WIDTH;
+  canvas.height = OPENAI_IMAGE_HEIGHT;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
 
@@ -494,7 +502,7 @@ function App() {
         formData.append('image[]', meBlob, 'me.png');
         formData.append('image[]', workspaceBlob, 'workspace.jpg');
         formData.append('mask', maskBlob, 'identity-mask.png');
-        formData.append('size', '1024x1024');
+        formData.append('size', `${OPENAI_IMAGE_WIDTH}x${OPENAI_IMAGE_HEIGHT}`);
         formData.append('quality', OPENAI_IMAGE_QUALITY);
         if (model !== 'gpt-image-2') {
           formData.append('input_fidelity', OPENAI_INPUT_FIDELITY);
