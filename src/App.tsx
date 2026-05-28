@@ -24,8 +24,10 @@ type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ''; // TODO: move to backend-only env before production.
 const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
-const OPENAI_IMAGE_MODEL = 'gpt-image-1.5';
+const OPENAI_IMAGE_MODEL = 'gpt-image-2';
+const OPENAI_IMAGE_FALLBACK_MODELS = ['gpt-image-1.5', 'gpt-image-1'];
 const OPENAI_IMAGE_QUALITY = 'high';
+const OPENAI_INPUT_FIDELITY = 'high';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
@@ -77,7 +79,7 @@ const drawContain = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: 
   ctx.drawImage(image, targetX, targetY, targetWidth, targetHeight);
 };
 
-const createImageFile = async (src: string, filename: string) => {
+const createImageFile = async (src: string, filename: string, type: 'image/jpeg' | 'image/png' = 'image/jpeg') => {
   const image = await loadImage(src);
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
@@ -93,8 +95,17 @@ const createImageFile = async (src: string, filename: string) => {
     canvas.toBlob(blob => {
       if (blob) resolve(blob);
       else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
-    }, 'image/jpeg', 0.86);
+    }, type, type === 'image/jpeg' ? 0.9 : undefined);
   });
+};
+
+const isRetryableOpenAiImageError = (message: string) => {
+  const normalized = message.toLowerCase();
+  return normalized.includes('input_fidelity')
+    || normalized.includes('unsupported')
+    || normalized.includes('invalid_value')
+    || normalized.includes('param')
+    || normalized.includes('model');
 };
 
 const createIdentityMaskFile = async (src: string) => {
@@ -249,7 +260,7 @@ function App() {
     const cp = initParticles();
 
     // ── Visibility Setup ──
-    gsap.set('.terminal-window, .hero-greeting, .hero-cmd, .hero-title, .hero-desc, .hero-btns, .hero-visual, .scroll-indicator, .contact-box', { opacity: 0, y: 30 });
+    gsap.set('.terminal-window, .hero-greeting, .hero-cmd, .hero-title, .hero-desc, .hero-btns, .hero-visual, .scroll-indicator, .workplace-cta, .contact-box', { opacity: 0, y: 30 });
     gsap.set('.hero-title', { x: -30, y: 0 }); // Override for title slide-in
 
     // ── Scroll Events ──
@@ -280,7 +291,7 @@ function App() {
        .to('.scroll-indicator', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
 
     // ── General Scroll Reveals ──
-    document.querySelectorAll('.section-label, .about-card, .exp-card, .bento-card, .edu-card, .cert-item, .contact-box').forEach(el => {
+    document.querySelectorAll('.section-label, .about-card, .exp-card, .bento-card, .edu-card, .cert-item, .workplace-cta, .contact-box').forEach(el => {
       gsap.to(el, { opacity: 1, y: 0, duration: 0.8, scrollTrigger: { trigger: el, start: 'top 85%' } });
     });
 
@@ -468,42 +479,78 @@ function App() {
       }
 
       const [meBlob, workspaceBlob, maskBlob] = await Promise.all([
-        createImageFile(ME_REFERENCE_PATH, 'me.jpg'),
+        createImageFile(ME_REFERENCE_PATH, 'me.png', 'image/png'),
         createImageFile(workplacePreview, 'workspace.jpg'),
         createIdentityMaskFile(ME_REFERENCE_PATH),
       ]);
-      const formData = new FormData();
-      formData.append('model', OPENAI_IMAGE_MODEL);
-      formData.append('prompt', WORKPLACE_AI_PROMPT);
-      formData.append('image[]', meBlob, 'me.jpg');
-      formData.append('image[]', workspaceBlob, 'workspace.jpg');
-      formData.append('mask', maskBlob, 'identity-mask.png');
-      formData.append('size', '1024x1024');
-      formData.append('quality', OPENAI_IMAGE_QUALITY);
-      formData.append('output_format', 'jpeg');
-      formData.append('n', '1');
 
-      const response = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: formData,
-      });
+      const createEditPayload = (model: string) => {
+        const formData = new FormData();
+        formData.append('model', model);
+        formData.append('prompt', WORKPLACE_AI_PROMPT);
+        formData.append('image[]', meBlob, 'me.png');
+        formData.append('image[]', workspaceBlob, 'workspace.jpg');
+        formData.append('mask', maskBlob, 'identity-mask.png');
+        formData.append('size', '1024x1024');
+        formData.append('quality', OPENAI_IMAGE_QUALITY);
+        if (model !== 'gpt-image-2') {
+          formData.append('input_fidelity', OPENAI_INPUT_FIDELITY);
+        }
+        formData.append('output_format', 'png');
+        formData.append('n', '1');
+        return formData;
+      };
 
-      const rawText = await response.text();
-      let payload: any = null;
+      const requestEdit = async (model: string) => {
+        const response = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+          },
+          body: createEditPayload(model),
+        });
+
+        const rawText = await response.text();
+        let payload: any = null;
+        try {
+          payload = JSON.parse(rawText);
+        } catch { /* OpenAI should return JSON; keep payload null for readable fallback. */ }
+
+        if (!response.ok) {
+          throw new Error(extractOpenAiError(payload));
+        }
+
+        return payload;
+      };
+
+      let payload: any;
       try {
-        payload = JSON.parse(rawText);
-      } catch { /* OpenAI should return JSON; keep payload null for readable fallback. */ }
+        payload = await requestEdit(OPENAI_IMAGE_MODEL);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!isRetryableOpenAiImageError(message)) {
+          throw error;
+        }
 
-      if (!response.ok) {
-        throw new Error(extractOpenAiError(payload));
+        let fallbackError = error;
+        for (const fallbackModel of OPENAI_IMAGE_FALLBACK_MODELS) {
+          try {
+            payload = await requestEdit(fallbackModel);
+            fallbackError = null;
+            break;
+          } catch (nextError) {
+            fallbackError = nextError;
+          }
+        }
+
+        if (fallbackError) {
+          throw fallbackError;
+        }
       }
 
       const imageBase64 = payload?.data?.[0]?.b64_json;
       if (imageBase64) {
-        setWorkplaceResult(`data:image/jpeg;base64,${imageBase64}`);
+        setWorkplaceResult(`data:image/png;base64,${imageBase64}`);
       } else {
         throw new Error('OpenAI вернул ответ без изображения.');
       }
@@ -1094,6 +1141,19 @@ function App() {
             <div className="cert-item">Победитель международной олимпиады по арифметике</div>
             <div className="cert-item">Свидетельство о регистрации разработанной системы</div>
           </div>
+
+          <div className="workplace-cta">
+            <div>
+              <div className="workplace-cta-kicker">AI workplace preview</div>
+              <h3>Проверьте, как я буду выглядеть на вашем рабочем месте</h3>
+              <p>Сфотографируйте рабочее место — это займет меньше минуты.</p>
+            </div>
+            <button className="workplace-try-btn workplace-try-btn-large" type="button" onClick={openWorkplaceModal}>
+              <span className="workplace-try-btn-icon">AI</span>
+              <span>Попробуйте меня на своём рабочем месте</span>
+              <span className="workplace-try-btn-arrow">→</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -1110,12 +1170,6 @@ function App() {
               <a href="mailto:gafarovakbar@mail.ru" className="btn-primary">Email</a>
               <a href="https://t.me/supremeHn" target="_blank" rel="noopener noreferrer" className="btn-outline">Telegram</a>
             </div>
-            <button className="workplace-try-btn" type="button" onClick={openWorkplaceModal}>
-              <span className="workplace-try-btn-icon">AI</span>
-              <span>Попробуйте меня на своём рабочем месте</span>
-              <span className="workplace-try-btn-arrow">→</span>
-            </button>
-            <p className="workplace-try-note">Сфотографируйте рабочее место — это займет меньше минуты.</p>
           </div>
         </div>
       </section>

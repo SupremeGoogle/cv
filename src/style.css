@@ -1617,6 +1617,46 @@ section {
   flex-shrink: 0;
 }
 
+.workplace-cta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 2.4rem;
+  padding: 2rem;
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(52, 211, 153, 0.13), rgba(56, 189, 248, 0.08) 48%, rgba(129, 140, 248, 0.1)),
+    rgba(18, 18, 42, 0.58);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.workplace-cta-kicker {
+  margin-bottom: 0.6rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workplace-cta h3 {
+  max-width: 660px;
+  margin-bottom: 0.65rem;
+  font-size: clamp(1.6rem, 3vw, 2.45rem);
+  line-height: 1.12;
+}
+
+.workplace-cta p {
+  max-width: 560px;
+  color: var(--text-mid);
+  font-size: 1rem;
+}
+
 /* ── Languages ── */
 .langs-grid {
   display: grid;
@@ -1707,7 +1747,6 @@ section {
 
 .workplace-try-btn {
   position: relative;
-  margin-top: 1.6rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1724,6 +1763,14 @@ section {
   cursor: pointer;
   overflow: hidden;
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.workplace-try-btn-large {
+  min-width: 390px;
+  min-height: 76px;
+  padding: 1.25rem 1.6rem;
+  font-size: 1.06rem;
+  border-radius: 18px;
 }
 
 .workplace-try-btn::before {
@@ -1763,6 +1810,13 @@ section {
   color: #061018;
   font-family: var(--font-mono);
   font-size: 0.78rem;
+}
+
+.workplace-try-btn-large .workplace-try-btn-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 0.86rem;
 }
 
 .workplace-try-btn span {
@@ -2279,6 +2333,17 @@ section {
   .workplace-actions {
     flex-direction: column;
   }
+
+  .workplace-cta {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+    padding: 1.6rem;
+  }
+
+  .workplace-try-btn-large {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2334,6 +2399,15 @@ section {
     padding: 3rem 1.5rem;
   }
 
+  .workplace-cta {
+    margin-top: 1.8rem;
+    border-radius: 20px;
+  }
+
+  .workplace-cta h3 {
+    font-size: clamp(1.45rem, 8vw, 2rem);
+  }
+
   .workplace-try-btn {
     width: 100%;
     align-items: center;
@@ -2343,6 +2417,11 @@ section {
   .workplace-try-btn span:nth-child(2) {
     flex: 1;
     line-height: 1.3;
+  }
+
+  .workplace-try-btn-large {
+    min-height: 78px;
+    padding: 1rem 1rem;
   }
 }
 
@@ -3495,6 +3574,20 @@ section {
     font-size: 0.96rem;
     line-height: 1.55;
     margin-bottom: 1.8rem;
+  }
+
+  .workplace-cta {
+    padding: 1.2rem !important;
+    gap: 1.2rem;
+  }
+
+  .workplace-cta-kicker {
+    font-size: 0.68rem;
+  }
+
+  .workplace-cta p {
+    font-size: 0.92rem;
+    line-height: 1.5;
   }
 
   .workplace-try-btn {
