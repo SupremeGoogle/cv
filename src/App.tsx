@@ -28,6 +28,7 @@ const OPENAI_IMAGE_MODEL = 'gpt-image-2';
 const OPENAI_IMAGE_FALLBACK_MODELS = ['gpt-image-1.5', 'gpt-image-1'];
 const OPENAI_IMAGE_QUALITY = 'high';
 const OPENAI_INPUT_FIDELITY = 'high';
+const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 90000;
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
@@ -105,7 +106,9 @@ const isRetryableOpenAiImageError = (message: string) => {
     || normalized.includes('unsupported')
     || normalized.includes('invalid_value')
     || normalized.includes('param')
-    || normalized.includes('model');
+    || normalized.includes('model')
+    || normalized.includes('долго отвечает')
+    || normalized.includes('timeout');
 };
 
 const createIdentityMaskFile = async (src: string) => {
@@ -502,25 +505,38 @@ function App() {
       };
 
       const requestEdit = async (model: string) => {
-        const response = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-          },
-          body: createEditPayload(model),
-        });
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), OPENAI_IMAGE_REQUEST_TIMEOUT_MS);
 
-        const rawText = await response.text();
-        let payload: any = null;
         try {
-          payload = JSON.parse(rawText);
-        } catch { /* OpenAI should return JSON; keep payload null for readable fallback. */ }
+          const response = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
+            },
+            body: createEditPayload(model),
+            signal: controller.signal,
+          });
 
-        if (!response.ok) {
-          throw new Error(extractOpenAiError(payload));
+          const rawText = await response.text();
+          let payload: any = null;
+          try {
+            payload = JSON.parse(rawText);
+          } catch { /* OpenAI should return JSON; keep payload null for readable fallback. */ }
+
+          if (!response.ok) {
+            throw new Error(extractOpenAiError(payload));
+          }
+
+          return payload;
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error(`${model} слишком долго отвечает. Пробую другую модель.`);
+          }
+          throw error;
+        } finally {
+          window.clearTimeout(timeout);
         }
-
-        return payload;
       };
 
       let payload: any;
@@ -540,6 +556,10 @@ function App() {
             break;
           } catch (nextError) {
             fallbackError = nextError;
+            const fallbackMessage = nextError instanceof Error ? nextError.message : String(nextError);
+            if (!isRetryableOpenAiImageError(fallbackMessage)) {
+              break;
+            }
           }
         }
 
@@ -1236,7 +1256,7 @@ function App() {
             {(workplaceStatus === 'uploading' || workplaceStatus === 'generating') && (
               <div className="workplace-loading">
                 <span></span>
-                {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'OpenAI собирает реалистичный кадр...'}
+                {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'OpenAI генерирует кадр. Если лучшая модель ответит слишком долго, я автоматически переключусь на резервную.'}
               </div>
             )}
 
