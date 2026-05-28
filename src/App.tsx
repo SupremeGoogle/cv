@@ -24,7 +24,7 @@ type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ''; // TODO: move to backend-only env before production.
 const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
-const OPENAI_IMAGE_MODEL = 'gpt-image-1';
+const OPENAI_IMAGE_MODEL = 'gpt-image-1.5';
 const OPENAI_IMAGE_QUALITY = 'high';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
