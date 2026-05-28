@@ -36,6 +36,9 @@ const OPENAI_INPUT_FIDELITY = 'high';
 const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 90000;
 const OPENAI_IMAGE_WIDTH = 1536;
 const OPENAI_IMAGE_HEIGHT = 1024;
+const WORKPLACE_GENERATION_LIMIT = 2;
+const IP_LOOKUP_ENDPOINT = 'https://api.ipify.org?format=json';
+const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
@@ -176,6 +179,31 @@ const extractOpenAiError = (payload: unknown) => {
   return JSON.stringify(payload);
 };
 
+const getClientIp = async () => {
+  try {
+    const response = await fetch(IP_LOOKUP_ENDPOINT, { cache: 'no-store' });
+    if (!response.ok) throw new Error('IP lookup failed');
+    const payload = await response.json();
+    return typeof payload.ip === 'string' && payload.ip ? payload.ip : 'unknown-ip';
+  } catch {
+    return 'unknown-ip';
+  }
+};
+
+const reserveWorkplaceGeneration = async () => {
+  const ip = await getClientIp();
+  const key = `${WORKPLACE_LIMIT_STORAGE_PREFIX}${ip}`;
+  const current = Number(window.localStorage.getItem(key) || '0');
+
+  if (current >= WORKPLACE_GENERATION_LIMIT) {
+    return { allowed: false, used: current, ip };
+  }
+
+  const next = current + 1;
+  window.localStorage.setItem(key, String(next));
+  return { allowed: true, used: next, ip };
+};
+
 // ── ScrambleText class for animations ──
 class ScrambleText {
   el: HTMLElement;
@@ -227,6 +255,7 @@ function App() {
   const [workplacePreview, setWorkplacePreview] = useState<string | null>(null);
   const [workplaceResult, setWorkplaceResult] = useState<string | null>(null);
   const [workplaceError, setWorkplaceError] = useState('');
+  const [workplaceLimitReached, setWorkplaceLimitReached] = useState(false);
   const workplaceInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -442,6 +471,7 @@ function App() {
     setWorkplacePreview(null);
     setWorkplaceResult(null);
     setWorkplaceError('');
+    setWorkplaceLimitReached(false);
     if (workplaceInputRef.current) workplaceInputRef.current.value = '';
   };
 
@@ -451,6 +481,7 @@ function App() {
     try {
       setWorkplaceStatus('uploading');
       setWorkplaceError('');
+      setWorkplaceLimitReached(false);
       setWorkplaceResult(null);
       const dataUrl = await readFileAsDataUrl(file);
       setWorkplacePreview(dataUrl);
@@ -471,10 +502,17 @@ function App() {
     try {
       setWorkplaceStatus('generating');
       setWorkplaceError('');
+      setWorkplaceLimitReached(false);
       setWorkplaceResult(null);
 
       if (!OPENAI_API_KEY) {
         throw new Error('Не задан VITE_OPENAI_API_KEY для генерации изображения.');
+      }
+
+      const limit = await reserveWorkplaceGeneration();
+      if (!limit.allowed) {
+        setWorkplaceLimitReached(true);
+        throw new Error('На этот IP уже использованы 2 тестовые генерации.');
       }
 
       const [meBlob, workspaceBlob, maskBlob] = await Promise.all([
@@ -1204,7 +1242,18 @@ function App() {
               </div>
             </div>
 
-            {workplaceError && <div className="workplace-error">{workplaceError}</div>}
+            {workplaceLimitReached ? (
+              <div className="workplace-limit-card">
+                <div className="workplace-limit-kicker">Лимит теста исчерпан</div>
+                <h4>Больше нельзя генерировать с этого IP</h4>
+                <p>Но мы можем сделать живую фотографию и обсудить задачу лично.</p>
+                <a href="#contact" className="btn-primary" onClick={closeWorkplaceModal}>
+                  Связаться со мной
+                </a>
+              </div>
+            ) : workplaceError ? (
+              <div className="workplace-error">{workplaceError}</div>
+            ) : null}
 
             <div className="workplace-actions">
               <button
@@ -1213,7 +1262,7 @@ function App() {
                 onClick={generateWorkplaceImage}
                 disabled={!workplacePreview || workplaceStatus === 'uploading' || workplaceStatus === 'generating'}
               >
-                {workplaceStatus === 'generating' ? 'Генерирую...' : 'Сгенерировать пример'}
+                {workplaceStatus === 'generating' ? 'Перемещаюсь...' : 'Сгенерировать пример'}
               </button>
               <button type="button" className="btn-outline workplace-reset-btn" onClick={resetWorkplaceAi}>
                 Сбросить
@@ -1223,7 +1272,10 @@ function App() {
             {(workplaceStatus === 'uploading' || workplaceStatus === 'generating') && (
               <div className="workplace-loading">
                 <span></span>
-                {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'OpenAI генерирует кадр через gpt-image-1.5...'}
+                <strong>
+                  {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'Перемещаюсь в ваш офис, подождите немного'}
+                  {workplaceStatus === 'generating' && <i aria-hidden="true"></i>}
+                </strong>
               </div>
             )}
 
