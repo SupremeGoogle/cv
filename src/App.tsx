@@ -30,11 +30,10 @@ const OPENAI_TEST_API_KEY = [
 ].join('');
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || OPENAI_TEST_API_KEY;
 const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
-const OPENAI_IMAGE_MODEL = 'gpt-image-2';
-const OPENAI_IMAGE_FALLBACK_MODELS = ['gpt-image-1.5', 'gpt-image-1'];
+const OPENAI_IMAGE_MODEL = 'gpt-image-1.5';
 const OPENAI_IMAGE_QUALITY = 'high';
 const OPENAI_INPUT_FIDELITY = 'high';
-const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 130000;
+const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 90000;
 const OPENAI_IMAGE_WIDTH = 1536;
 const OPENAI_IMAGE_HEIGHT = 1024;
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
@@ -106,17 +105,6 @@ const createImageFile = async (src: string, filename: string, type: 'image/jpeg'
       else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
     }, type, type === 'image/jpeg' ? 0.9 : undefined);
   });
-};
-
-const isRetryableOpenAiImageError = (message: string) => {
-  const normalized = message.toLowerCase();
-  return normalized.includes('input_fidelity')
-    || normalized.includes('unsupported')
-    || normalized.includes('invalid_value')
-    || normalized.includes('param')
-    || normalized.includes('model')
-    || normalized.includes('долго отвечает')
-    || normalized.includes('timeout');
 };
 
 const createIdentityMaskFile = async (src: string) => {
@@ -504,9 +492,7 @@ function App() {
         formData.append('mask', maskBlob, 'identity-mask.png');
         formData.append('size', `${OPENAI_IMAGE_WIDTH}x${OPENAI_IMAGE_HEIGHT}`);
         formData.append('quality', OPENAI_IMAGE_QUALITY);
-        if (model !== 'gpt-image-2') {
-          formData.append('input_fidelity', OPENAI_INPUT_FIDELITY);
-        }
+        formData.append('input_fidelity', OPENAI_INPUT_FIDELITY);
         formData.append('output_format', 'png');
         formData.append('n', '1');
         return formData;
@@ -539,7 +525,7 @@ function App() {
           return payload;
         } catch (error) {
           if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error(`${model} слишком долго отвечает. Пробую другую модель.`);
+            throw new Error(`${model} слишком долго отвечает. Попробуйте фото меньшего размера или повторите генерацию.`);
           }
           throw error;
         } finally {
@@ -547,34 +533,7 @@ function App() {
         }
       };
 
-      let payload: any;
-      try {
-        payload = await requestEdit(OPENAI_IMAGE_MODEL);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (!isRetryableOpenAiImageError(message)) {
-          throw error;
-        }
-
-        let fallbackError = error;
-        for (const fallbackModel of OPENAI_IMAGE_FALLBACK_MODELS) {
-          try {
-            payload = await requestEdit(fallbackModel);
-            fallbackError = null;
-            break;
-          } catch (nextError) {
-            fallbackError = nextError;
-            const fallbackMessage = nextError instanceof Error ? nextError.message : String(nextError);
-            if (!isRetryableOpenAiImageError(fallbackMessage)) {
-              break;
-            }
-          }
-        }
-
-        if (fallbackError) {
-          throw fallbackError;
-        }
-      }
+      const payload = await requestEdit(OPENAI_IMAGE_MODEL);
 
       const imageBase64 = payload?.data?.[0]?.b64_json;
       if (imageBase64) {
@@ -1264,7 +1223,7 @@ function App() {
             {(workplaceStatus === 'uploading' || workplaceStatus === 'generating') && (
               <div className="workplace-loading">
                 <span></span>
-                {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'OpenAI генерирует кадр. Если лучшая модель ответит слишком долго, я автоматически переключусь на резервную.'}
+                {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'OpenAI генерирует кадр через gpt-image-1.5...'}
               </div>
             )}
 
