@@ -29,15 +29,15 @@ const OPENAI_IMAGE_QUALITY = 'high';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
-const WORKPLACE_AI_PROMPT = `Create one realistic final photograph by preserving the exact identity of the man from the first input image and placing him into the workspace from the second input image.
+const WORKPLACE_AI_PROMPT = `Edit the first input image while preserving the man from the first input image as exactly as possible.
 
-The first input image is the identity source. Keep the man's face as close as possible to the first image: same facial structure, eyes, eyelids, eyebrows, nose, mouth, jawline, cheeks, skin tone, hairstyle, hairline, age, expression, and black t-shirt. Do not beautify, average, age, de-age, change ethnicity, change facial proportions, or invent a similar-looking person. Preserve his likeness with very high fidelity.
+The first input image is the source photo of the real person. The protected/masked region contains the man. Keep the man's face, eyes, eyelids, eyebrows, nose, mouth, jawline, cheeks, skin tone, hairstyle, hairline, age, expression, black t-shirt, watch, arms, hands, and body proportions as close to the first image as possible. Do not redraw, beautify, average, age, de-age, change ethnicity, change facial proportions, or invent a similar-looking person. The final face must remain recognizably the same real person from the first image.
 
-The second input image is the target place. Preserve its room layout, walls, floor, windows, lighting direction, camera angle, perspective, colors, shadows, and photographic realism as much as possible.
+The second input image is the target workplace or room. Use it as the environment reference. Replace or adapt the editable background/workspace around the protected man so the final image looks like he is sitting in the user's workplace.
 
-Move the exact man from the first input image into the second input image as if he is physically present there. If the second image already has a visible desk, table, chair, laptop, monitor, or work area, place him naturally at that existing work area. If the second image does not have a usable desk or work area, bring the desk, chair, laptop, monitor setup, and working posture from the first input image together with the man into the second scene.
+If the second image already has a visible desk, table, chair, laptop, monitor, or work area, blend the protected man naturally into that existing workspace. If the second image does not have a usable desk or work area, keep the desk, chair, laptop, monitor setup, and working posture from the first input image and adapt the surrounding room to the second image.
 
-Match scale, perspective, shadows, contact shadows, occlusion, depth of field, color temperature, camera quality, and lighting. The final result must look like one natural photo taken in the user's place, but the man's face must remain recognizably the same person from the first image.
+Match lighting, shadows, contact shadows, reflections, color temperature, depth of field, camera quality, and realism around the person. The environment may change, but the man's face and body should not become a newly generated person.
 
 Do not output a collage, split-screen, before/after view, sticker, poster, painting, cartoon, or UI mockup. Do not add extra people. Do not distort the face. Do not include labels, captions, borders, or text.`;
 
@@ -94,6 +94,53 @@ const createImageFile = async (src: string, filename: string) => {
       if (blob) resolve(blob);
       else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
     }, 'image/jpeg', 0.86);
+  });
+};
+
+const createIdentityMaskFile = async (src: string) => {
+  const image = await loadImage(src);
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const sourceRatio = image.naturalWidth / image.naturalHeight;
+  const targetRatio = canvas.width / canvas.height;
+  let imageWidth = canvas.width;
+  let imageHeight = canvas.height;
+  let imageX = 0;
+  let imageY = 0;
+
+  if (sourceRatio > targetRatio) {
+    imageHeight = canvas.width / sourceRatio;
+    imageY = (canvas.height - imageHeight) / 2;
+  } else {
+    imageWidth = canvas.height * sourceRatio;
+    imageX = (canvas.width - imageWidth) / 2;
+  }
+
+  const protectStart = imageX + imageWidth * 0.43;
+  const solidStart = imageX + imageWidth * 0.54;
+  const protectTop = imageY + imageHeight * 0.04;
+  const protectHeight = imageHeight * 0.94;
+
+  const feather = ctx.createLinearGradient(protectStart, 0, solidStart, 0);
+  feather.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  feather.addColorStop(1, 'rgba(0, 0, 0, 1)');
+  ctx.fillStyle = feather;
+  ctx.fillRect(protectStart, protectTop, solidStart - protectStart, protectHeight);
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+  ctx.fillRect(solidStart, protectTop, imageX + imageWidth - solidStart, protectHeight);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) resolve(blob);
+      else reject(new Error('Не удалось подготовить маску для сохранения лица.'));
+    }, 'image/png');
   });
 };
 
@@ -420,15 +467,17 @@ function App() {
         throw new Error('Не задан VITE_OPENAI_API_KEY для генерации изображения.');
       }
 
-      const [meBlob, workspaceBlob] = await Promise.all([
+      const [meBlob, workspaceBlob, maskBlob] = await Promise.all([
         createImageFile(ME_REFERENCE_PATH, 'me.jpg'),
         createImageFile(workplacePreview, 'workspace.jpg'),
+        createIdentityMaskFile(ME_REFERENCE_PATH),
       ]);
       const formData = new FormData();
       formData.append('model', OPENAI_IMAGE_MODEL);
       formData.append('prompt', WORKPLACE_AI_PROMPT);
       formData.append('image[]', meBlob, 'me.jpg');
       formData.append('image[]', workspaceBlob, 'workspace.jpg');
+      formData.append('mask', maskBlob, 'identity-mask.png');
       formData.append('size', '1024x1024');
       formData.append('quality', OPENAI_IMAGE_QUALITY);
       formData.append('output_format', 'jpeg');
