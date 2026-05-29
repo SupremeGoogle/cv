@@ -42,17 +42,19 @@ const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
-const WORKPLACE_AI_PROMPT = `Edit the first input image while preserving the man from the first input image as exactly as possible.
+const WORKPLACE_AI_PROMPT = `Create one realistic final photograph by placing the man from the first input image into the workplace shown in the second input image.
 
-The first input image is the source photo of the real person. The protected/masked region contains the man. Keep the man's face, eyes, eyelids, eyebrows, nose, mouth, jawline, cheeks, skin tone, hairstyle, hairline, age, expression, black t-shirt, watch, arms, hands, and body proportions as close to the first image as possible. Do not redraw, beautify, average, age, de-age, change ethnicity, change facial proportions, or invent a similar-looking person. The final face must remain recognizably the same real person from the first image.
+The first input image is the identity and body reference. Preserve the man's face, eyes, eyelids, eyebrows, nose, mouth, jawline, cheeks, skin tone, hairstyle, hairline, age, expression, black t-shirt, watch, arms, hands, and body proportions as close to the first image as possible. Do not redraw, beautify, average, age, de-age, change ethnicity, change facial proportions, or invent a similar-looking person. The final face must remain recognizably the same real person from the first image.
 
-The second input image is the target workplace or room. Use it as the environment reference. Replace or adapt the editable background/workspace around the protected man so the final image looks like he is sitting in the user's workplace.
+The second input image is the user's real workplace and must be treated as the target scene. Preserve its room layout, camera angle, perspective, walls, floor, windows, lighting direction, color temperature, furniture, decor, and photographic realism unless there is no usable workplace setup at all.
 
-If the second image already has a visible desk, table, chair, laptop, monitor, or work area, blend the protected man naturally into that existing workspace. If the second image does not have a usable desk or work area, keep the desk, chair, laptop, monitor setup, and working posture from the first input image and adapt the surrounding room to the second image.
+Before placing the man, inspect the second image for existing furniture. If the second image already contains a chair, office chair, armchair, couch, stool, bench, seat, desk, table, laptop, monitor, or visible work area, use that existing furniture. In this case insert only the man's body, clothes, head, arms, and hands into the existing scene. Do not bring the chair, desk, table, laptop, monitor, wall decor, or background from the first input image. Do not duplicate or replace the existing chair. Seat the man naturally on the chair that already exists in the second image, or place him beside the existing work area if that is more plausible.
 
-Match lighting, shadows, contact shadows, reflections, color temperature, depth of field, camera quality, and realism around the person. The environment may change, but the man's face and body should not become a newly generated person.
+Only if the second image has no usable chair, no table or desk, and no visible work area, then bring the minimal necessary setup from the first input image together with the man: chair, desk/table, laptop, monitor, and working posture. Adapt that setup to the perspective and lighting of the second image.
 
-Do not output a collage, split-screen, before/after view, sticker, poster, painting, cartoon, or UI mockup. Do not add extra people. Do not distort the face. Do not include labels, captions, borders, or text.`;
+Blend the person into the target scene naturally. Match scale, body position, occlusion with furniture, contact shadows, cast shadows, reflections, depth of field, lens quality, noise, sharpness, and realism. Hands and arms should align believably with the existing chair/desk/table when those objects are present.
+
+Output only one natural final photo. Do not output a collage, split-screen, before/after view, sticker, poster, painting, cartoon, or UI mockup. Do not add extra people. Do not distort the face. Do not include labels, captions, borders, watermarks, or text.`;
 
 const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();

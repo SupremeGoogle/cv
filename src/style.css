@@ -2228,6 +2228,10 @@ section {
     padding: 0 1.5rem;
   }
 
+  .nav-cta {
+    display: none !important;
+  }
+
   .nav-links {
     display: none;
   }
@@ -2266,6 +2270,9 @@ section {
 
   .projects-track-wrapper {
     height: auto !important;
+    width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     scroll-snap-type: x mandatory;
@@ -2281,7 +2288,7 @@ section {
     width: max-content !important;
     height: auto !important;
     gap: 1rem;
-    padding: 0 1rem 1.35rem;
+    padding: 0 1rem 1.35rem !important;
     transform: none !important;
   }
 
@@ -3333,12 +3340,14 @@ section {
   }
 
   .projects-track-wrapper {
-    width: 100% !important;
+    width: 100vw !important;
     height: auto !important;
     margin-top: 0 !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    padding: 0 1rem 1.35rem !important;
+    padding: 0 1rem 1.5rem !important;
     scroll-padding-inline: 1rem;
     scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
@@ -3389,6 +3398,7 @@ section {
     flex-direction: column !important;
     gap: 0.9rem !important;
     width: 100% !important;
+    touch-action: pan-x;
   }
 
   .project-slide-content > * {
@@ -3402,6 +3412,7 @@ section {
     border-radius: 12px;
     opacity: 1;
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.38);
+    touch-action: pan-x;
   }
 
   .project-browser:hover {
@@ -3410,6 +3421,7 @@ section {
 
   .project-info {
     order: 2;
+    touch-action: pan-x;
   }
 
   .project-ghost {
@@ -3593,8 +3605,7 @@ section {
   }
 
   .nav-cta {
-    padding: 0.72rem 1.05rem;
-    font-size: 0.86rem;
+    display: none !important;
   }
 
   .section-title {
@@ -3642,6 +3653,9 @@ section {
   }
 
   .projects-track-wrapper {
+    width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
     padding-inline: 0.75rem !important;
     touch-action: pan-x;
   }
