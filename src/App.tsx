@@ -496,6 +496,7 @@ function App() {
       };
 
       const onProjectsClick = (event: MouseEvent) => {
+        if ((event.target as HTMLElement | null)?.closest('.projects-mobile-controls')) return;
         if (!didDragProjects) return;
         event.preventDefault();
         event.stopPropagation();
@@ -716,6 +717,25 @@ function App() {
       setWorkplaceStatus('error');
       setWorkplaceError(error instanceof Error ? error.message : 'Произошла ошибка генерации.');
     }
+  };
+
+  const scrollMobileProjects = (direction: 'prev' | 'next') => {
+    const wrapper = document.querySelector('.projects-track-wrapper') as HTMLElement | null;
+    if (!wrapper) return;
+
+    const slides = Array.from(wrapper.querySelectorAll('.project-slide')) as HTMLElement[];
+    if (!slides.length) return;
+
+    const slideStep = slides[1]
+      ? Math.abs(slides[1].offsetLeft - slides[0].offsetLeft)
+      : slides[0].offsetWidth + 16;
+    const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+    const nextLeft = direction === 'next'
+      ? wrapper.scrollLeft + slideStep
+      : wrapper.scrollLeft - slideStep;
+    const targetLeft = Math.max(0, Math.min(maxScroll, nextLeft));
+
+    wrapper.scrollTo({ left: targetLeft, behavior: 'smooth' });
   };
 
   return (
@@ -1074,7 +1094,17 @@ function App() {
               <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ cat ./projects.txt</div>
               <h2 className="section-title">Лучшие <span data-value="Проекты"></span></h2>
             </div>
-            <div className="projects-scroll-hint">ЛИСТАЙТЕ ГОРИЗОНТАЛЬНО</div>
+            <div className="projects-header-actions">
+              <div className="projects-scroll-hint">ЛИСТАЙТЕ ГОРИЗОНТАЛЬНО</div>
+              <div className="projects-mobile-controls" aria-label="Навигация по проектам">
+                <button type="button" onClick={() => scrollMobileProjects('prev')} aria-label="Предыдущий проект">
+                  ‹
+                </button>
+                <button type="button" onClick={() => scrollMobileProjects('next')} aria-label="Следующий проект">
+                  ›
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div className="projects-track-wrapper">

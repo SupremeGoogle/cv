@@ -985,6 +985,16 @@ section {
   gap: 8px;
 }
 
+.projects-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.projects-mobile-controls {
+  display: none;
+}
+
 .projects-scroll-hint::after {
   content: '→';
   font-size: 1.2rem;
@@ -3325,6 +3335,13 @@ section {
     margin-bottom: 1.25rem;
   }
 
+  .projects-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
   .projects-header .section-title {
     margin-bottom: 0;
   }
@@ -3337,6 +3354,40 @@ section {
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
     letter-spacing: 0.08em;
+  }
+
+  .projects-mobile-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(18, 18, 42, 0.7);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+    backdrop-filter: blur(12px);
+  }
+
+  .projects-mobile-controls button {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.95), rgba(56, 189, 248, 0.95));
+    color: #061018;
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 10px 22px rgba(52, 211, 153, 0.22);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .projects-mobile-controls button:active {
+    transform: scale(0.95);
   }
 
   .projects-track-wrapper {
@@ -3690,6 +3741,22 @@ section {
     margin-right: calc(50% - 50vw) !important;
     padding-inline: 0.75rem !important;
     touch-action: pan-x;
+  }
+
+  .projects-header-actions {
+    align-items: center;
+  }
+
+  .projects-scroll-hint {
+    max-width: calc(100% - 96px);
+    font-size: 0.64rem;
+    line-height: 1.25;
+  }
+
+  .projects-mobile-controls button {
+    width: 36px;
+    height: 36px;
+    font-size: 1.45rem;
   }
 
   .project-slide,
