@@ -404,38 +404,10 @@ function App() {
       let startScrollLeft = 0;
       let isHorizontalSwipe = false;
       let isPointerDragging = false;
-      let didDragProjects = false;
-      let activePointerId: number | null = null;
-
-      const getNearestProjectOffset = () => {
-        const slides = Array.from(projectsWrapper.querySelectorAll('.project-slide')) as HTMLElement[];
-        if (!slides.length) return projectsWrapper.scrollLeft;
-
-        return slides.reduce((nearest, slide) => {
-          const distance = Math.abs(slide.offsetLeft - projectsWrapper.scrollLeft);
-          const nearestDistance = Math.abs(nearest - projectsWrapper.scrollLeft);
-          return distance < nearestDistance ? slide.offsetLeft : nearest;
-        }, slides[0].offsetLeft);
-      };
 
       const finishProjectsSwipe = () => {
-        if (activePointerId !== null && typeof mobileProjectsSection.releasePointerCapture === 'function') {
-          try {
-            mobileProjectsSection.releasePointerCapture(activePointerId);
-          } catch { /* Pointer capture may already be released. */ }
-        }
-        activePointerId = null;
         isPointerDragging = false;
         projectsWrapper.classList.remove('projects-dragging');
-
-        if (isHorizontalSwipe) {
-          projectsWrapper.scrollTo({ left: getNearestProjectOffset(), behavior: 'smooth' });
-          window.setTimeout(() => {
-            didDragProjects = false;
-          }, 250);
-        } else {
-          didDragProjects = false;
-        }
       };
 
       const updateProjectsSwipe = (clientX: number, clientY: number, preventDefault: () => void) => {
@@ -446,7 +418,6 @@ function App() {
 
         if (!isHorizontalSwipe && absX > 6 && absX > absY) {
           isHorizontalSwipe = true;
-          didDragProjects = true;
           projectsWrapper.classList.add('projects-dragging');
         }
 
@@ -464,7 +435,6 @@ function App() {
         startY = touch.clientY;
         startScrollLeft = projectsWrapper.scrollLeft;
         isHorizontalSwipe = false;
-        didDragProjects = false;
       };
 
       const onProjectsTouchMove = (event: TouchEvent) => {
@@ -474,6 +444,7 @@ function App() {
       };
 
       const onProjectsPointerDown = (event: PointerEvent) => {
+        if (event.pointerType === 'touch') return;
         if (event.pointerType === 'mouse' && event.button !== 0) return;
 
         startX = event.clientX;
@@ -481,25 +452,11 @@ function App() {
         startScrollLeft = projectsWrapper.scrollLeft;
         isHorizontalSwipe = false;
         isPointerDragging = true;
-        didDragProjects = false;
-        activePointerId = event.pointerId;
-        if (typeof mobileProjectsSection.setPointerCapture === 'function') {
-          try {
-            mobileProjectsSection.setPointerCapture(event.pointerId);
-          } catch { /* Some browsers only allow pointer capture for primary active pointers. */ }
-        }
       };
 
       const onProjectsPointerMove = (event: PointerEvent) => {
         if (!isPointerDragging) return;
         updateProjectsSwipe(event.clientX, event.clientY, () => event.preventDefault());
-      };
-
-      const onProjectsClick = (event: MouseEvent) => {
-        if ((event.target as HTMLElement | null)?.closest('.projects-mobile-controls')) return;
-        if (!didDragProjects) return;
-        event.preventDefault();
-        event.stopPropagation();
       };
 
       mobileProjectsSection.addEventListener('touchstart', onProjectsTouchStart, { passive: true, capture: true });
@@ -511,7 +468,6 @@ function App() {
       mobileProjectsSection.addEventListener('pointerup', finishProjectsSwipe, { passive: true, capture: true });
       mobileProjectsSection.addEventListener('pointercancel', finishProjectsSwipe, { passive: true, capture: true });
       mobileProjectsSection.addEventListener('pointerleave', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('click', onProjectsClick, { capture: true });
       cleanupHandlers.push(() => {
         mobileProjectsSection.removeEventListener('touchstart', onProjectsTouchStart, { capture: true });
         mobileProjectsSection.removeEventListener('touchmove', onProjectsTouchMove, { capture: true });
@@ -522,7 +478,6 @@ function App() {
         mobileProjectsSection.removeEventListener('pointerup', finishProjectsSwipe, { capture: true });
         mobileProjectsSection.removeEventListener('pointercancel', finishProjectsSwipe, { capture: true });
         mobileProjectsSection.removeEventListener('pointerleave', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('click', onProjectsClick, { capture: true });
       });
     }
 
@@ -717,25 +672,6 @@ function App() {
       setWorkplaceStatus('error');
       setWorkplaceError(error instanceof Error ? error.message : 'Произошла ошибка генерации.');
     }
-  };
-
-  const scrollMobileProjects = (direction: 'prev' | 'next') => {
-    const wrapper = document.querySelector('.projects-track-wrapper') as HTMLElement | null;
-    if (!wrapper) return;
-
-    const slides = Array.from(wrapper.querySelectorAll('.project-slide')) as HTMLElement[];
-    if (!slides.length) return;
-
-    const slideStep = slides[1]
-      ? Math.abs(slides[1].offsetLeft - slides[0].offsetLeft)
-      : slides[0].offsetWidth + 16;
-    const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-    const nextLeft = direction === 'next'
-      ? wrapper.scrollLeft + slideStep
-      : wrapper.scrollLeft - slideStep;
-    const targetLeft = Math.max(0, Math.min(maxScroll, nextLeft));
-
-    wrapper.scrollTo({ left: targetLeft, behavior: 'smooth' });
   };
 
   return (
@@ -1094,17 +1030,7 @@ function App() {
               <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ cat ./projects.txt</div>
               <h2 className="section-title">Лучшие <span data-value="Проекты"></span></h2>
             </div>
-            <div className="projects-header-actions">
-              <div className="projects-scroll-hint">ЛИСТАЙТЕ ГОРИЗОНТАЛЬНО</div>
-              <div className="projects-mobile-controls" aria-label="Навигация по проектам">
-                <button type="button" onClick={() => scrollMobileProjects('prev')} aria-label="Предыдущий проект">
-                  ‹
-                </button>
-                <button type="button" onClick={() => scrollMobileProjects('next')} aria-label="Следующий проект">
-                  ›
-                </button>
-              </div>
-            </div>
+            <div className="projects-scroll-hint">ЛИСТАЙТЕ ГОРИЗОНТАЛЬНО</div>
           </div>
         </div>
         <div className="projects-track-wrapper">

@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Badge } from "./badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 
+const isMobileViewport = () => typeof window !== "undefined" && window.innerWidth <= 968;
+
 // --- Custom SVG Icons to avoid lucide-react dependency issues ---
 const CustomIcon = ({ name, size = 16, className = "" }: { name: string; size?: number; className?: string }) => {
   const icons: Record<string, React.ReactNode> = {
@@ -145,7 +147,7 @@ export default function RadialOrbitalTimeline({
   useEffect(() => {
     let rotationTimer: any;
 
-    if (autoRotate) {
+    if (autoRotate && !isMobileViewport()) {
       rotationTimer = setInterval(() => {
         setRotationAngle((prev) => (prev + 0.3) % 360);
       }, 50);
@@ -166,7 +168,7 @@ export default function RadialOrbitalTimeline({
 
   const calculateNodePosition = (index: number, total: number) => {
     const angle = ((index / total) * 360 + rotationAngle) % 360;
-    const radius = 180;
+    const radius = isMobileViewport() ? 92 : 180;
     const radian = (angle * Math.PI) / 180;
     const x = radius * Math.cos(radian);
     const y = radius * Math.sin(radian);
@@ -197,11 +199,11 @@ export default function RadialOrbitalTimeline({
   return (
     <div
       className="w-full h-full flex flex-col items-center justify-center bg-[#0a0a0c] overflow-hidden rounded-xl relative"
-      style={{ minHeight: '480px' }}
+      style={{ minHeight: isMobileViewport() ? '235px' : '480px' }}
       ref={containerRef}
       onClick={handleContainerClick}
     >
-      <div className="relative w-full h-full flex items-center justify-center min-h-[480px]">
+      <div className="relative w-full h-full flex items-center justify-center min-h-[235px] md:min-h-[480px]">
         <div
           className="absolute w-full h-full flex items-center justify-center"
           ref={orbitRef}
@@ -210,13 +212,13 @@ export default function RadialOrbitalTimeline({
           }}
         >
           {/* Central Hub */}
-          <div className="absolute w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-teal-500 animate-pulse flex items-center justify-center z-10">
-            <div className="absolute w-16 h-16 rounded-full border border-white/20 animate-ping opacity-70"></div>
+          <div className="absolute w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-teal-500 animate-pulse flex items-center justify-center z-10">
+            <div className="absolute w-14 h-14 md:w-16 md:h-16 rounded-full border border-white/20 animate-ping opacity-70"></div>
             <div className="w-6 h-6 rounded-full bg-white/80 backdrop-blur-md"></div>
           </div>
 
           {/* Orbit paths */}
-          <div className="absolute w-[360px] h-[360px] rounded-full border border-white/10"></div>
+          <div className="absolute w-[184px] h-[184px] md:w-[360px] md:h-[360px] rounded-full border border-white/10"></div>
 
           {timelineData.map((item, index) => {
             const position = calculateNodePosition(index, timelineData.length);
