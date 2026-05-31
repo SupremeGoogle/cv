@@ -397,12 +397,46 @@ function App() {
     }
 
     const projectsWrapper = document.querySelector('.projects-track-wrapper') as HTMLElement;
-    if (projectsWrapper && window.innerWidth <= 968) {
+    const mobileProjectsSection = document.querySelector('.projects') as HTMLElement;
+    if (projectsWrapper && mobileProjectsSection && window.innerWidth <= 968) {
       let startX = 0;
       let startY = 0;
       let startScrollLeft = 0;
       let isHorizontalSwipe = false;
       let isPointerDragging = false;
+      let didDragProjects = false;
+      let activePointerId: number | null = null;
+
+      const getNearestProjectOffset = () => {
+        const slides = Array.from(projectsWrapper.querySelectorAll('.project-slide')) as HTMLElement[];
+        if (!slides.length) return projectsWrapper.scrollLeft;
+
+        return slides.reduce((nearest, slide) => {
+          const distance = Math.abs(slide.offsetLeft - projectsWrapper.scrollLeft);
+          const nearestDistance = Math.abs(nearest - projectsWrapper.scrollLeft);
+          return distance < nearestDistance ? slide.offsetLeft : nearest;
+        }, slides[0].offsetLeft);
+      };
+
+      const finishProjectsSwipe = () => {
+        if (activePointerId !== null && typeof mobileProjectsSection.releasePointerCapture === 'function') {
+          try {
+            mobileProjectsSection.releasePointerCapture(activePointerId);
+          } catch { /* Pointer capture may already be released. */ }
+        }
+        activePointerId = null;
+        isPointerDragging = false;
+        projectsWrapper.classList.remove('projects-dragging');
+
+        if (isHorizontalSwipe) {
+          projectsWrapper.scrollTo({ left: getNearestProjectOffset(), behavior: 'smooth' });
+          window.setTimeout(() => {
+            didDragProjects = false;
+          }, 250);
+        } else {
+          didDragProjects = false;
+        }
+      };
 
       const updateProjectsSwipe = (clientX: number, clientY: number, preventDefault: () => void) => {
         const deltaX = clientX - startX;
@@ -412,6 +446,8 @@ function App() {
 
         if (!isHorizontalSwipe && absX > 6 && absX > absY) {
           isHorizontalSwipe = true;
+          didDragProjects = true;
+          projectsWrapper.classList.add('projects-dragging');
         }
 
         if (!isHorizontalSwipe) return;
@@ -428,6 +464,7 @@ function App() {
         startY = touch.clientY;
         startScrollLeft = projectsWrapper.scrollLeft;
         isHorizontalSwipe = false;
+        didDragProjects = false;
       };
 
       const onProjectsTouchMove = (event: TouchEvent) => {
@@ -444,6 +481,13 @@ function App() {
         startScrollLeft = projectsWrapper.scrollLeft;
         isHorizontalSwipe = false;
         isPointerDragging = true;
+        didDragProjects = false;
+        activePointerId = event.pointerId;
+        if (typeof mobileProjectsSection.setPointerCapture === 'function') {
+          try {
+            mobileProjectsSection.setPointerCapture(event.pointerId);
+          } catch { /* Some browsers only allow pointer capture for primary active pointers. */ }
+        }
       };
 
       const onProjectsPointerMove = (event: PointerEvent) => {
@@ -451,25 +495,33 @@ function App() {
         updateProjectsSwipe(event.clientX, event.clientY, () => event.preventDefault());
       };
 
-      const onProjectsPointerEnd = () => {
-        isPointerDragging = false;
+      const onProjectsClick = (event: MouseEvent) => {
+        if (!didDragProjects) return;
+        event.preventDefault();
+        event.stopPropagation();
       };
 
-      projectsWrapper.addEventListener('touchstart', onProjectsTouchStart, { passive: true, capture: true });
-      projectsWrapper.addEventListener('touchmove', onProjectsTouchMove, { passive: false, capture: true });
-      projectsWrapper.addEventListener('pointerdown', onProjectsPointerDown, { passive: true, capture: true });
-      projectsWrapper.addEventListener('pointermove', onProjectsPointerMove, { passive: false, capture: true });
-      projectsWrapper.addEventListener('pointerup', onProjectsPointerEnd, { passive: true, capture: true });
-      projectsWrapper.addEventListener('pointercancel', onProjectsPointerEnd, { passive: true, capture: true });
-      projectsWrapper.addEventListener('pointerleave', onProjectsPointerEnd, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('touchstart', onProjectsTouchStart, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('touchmove', onProjectsTouchMove, { passive: false, capture: true });
+      mobileProjectsSection.addEventListener('touchend', finishProjectsSwipe, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('touchcancel', finishProjectsSwipe, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('pointerdown', onProjectsPointerDown, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('pointermove', onProjectsPointerMove, { passive: false, capture: true });
+      mobileProjectsSection.addEventListener('pointerup', finishProjectsSwipe, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('pointercancel', finishProjectsSwipe, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('pointerleave', finishProjectsSwipe, { passive: true, capture: true });
+      mobileProjectsSection.addEventListener('click', onProjectsClick, { capture: true });
       cleanupHandlers.push(() => {
-        projectsWrapper.removeEventListener('touchstart', onProjectsTouchStart, { capture: true });
-        projectsWrapper.removeEventListener('touchmove', onProjectsTouchMove, { capture: true });
-        projectsWrapper.removeEventListener('pointerdown', onProjectsPointerDown, { capture: true });
-        projectsWrapper.removeEventListener('pointermove', onProjectsPointerMove, { capture: true });
-        projectsWrapper.removeEventListener('pointerup', onProjectsPointerEnd, { capture: true });
-        projectsWrapper.removeEventListener('pointercancel', onProjectsPointerEnd, { capture: true });
-        projectsWrapper.removeEventListener('pointerleave', onProjectsPointerEnd, { capture: true });
+        mobileProjectsSection.removeEventListener('touchstart', onProjectsTouchStart, { capture: true });
+        mobileProjectsSection.removeEventListener('touchmove', onProjectsTouchMove, { capture: true });
+        mobileProjectsSection.removeEventListener('touchend', finishProjectsSwipe, { capture: true });
+        mobileProjectsSection.removeEventListener('touchcancel', finishProjectsSwipe, { capture: true });
+        mobileProjectsSection.removeEventListener('pointerdown', onProjectsPointerDown, { capture: true });
+        mobileProjectsSection.removeEventListener('pointermove', onProjectsPointerMove, { capture: true });
+        mobileProjectsSection.removeEventListener('pointerup', finishProjectsSwipe, { capture: true });
+        mobileProjectsSection.removeEventListener('pointercancel', finishProjectsSwipe, { capture: true });
+        mobileProjectsSection.removeEventListener('pointerleave', finishProjectsSwipe, { capture: true });
+        mobileProjectsSection.removeEventListener('click', onProjectsClick, { capture: true });
       });
     }
 

@@ -3353,6 +3353,12 @@ section {
     overscroll-behavior-x: contain;
     touch-action: pan-x;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  .projects-track-wrapper.projects-dragging {
+    scroll-snap-type: none !important;
+    scroll-behavior: auto;
   }
 
   .projects-track-wrapper::-webkit-scrollbar {
@@ -3386,6 +3392,7 @@ section {
     padding: 0 !important;
     display: block !important;
     scroll-snap-align: center;
+    scroll-snap-stop: always;
     opacity: 1 !important;
     transform: none !important;
   }
@@ -3398,6 +3405,13 @@ section {
     flex-direction: column !important;
     gap: 0.9rem !important;
     width: 100% !important;
+    touch-action: pan-x;
+  }
+
+  .project-slide,
+  .project-slide *,
+  .projects-header,
+  .projects-header * {
     touch-action: pan-x;
   }
 
