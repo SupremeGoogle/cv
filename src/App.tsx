@@ -396,6 +396,83 @@ function App() {
       });
     }
 
+    const projectsWrapper = document.querySelector('.projects-track-wrapper') as HTMLElement;
+    if (projectsWrapper && window.innerWidth <= 968) {
+      let startX = 0;
+      let startY = 0;
+      let startScrollLeft = 0;
+      let isHorizontalSwipe = false;
+      let isPointerDragging = false;
+
+      const updateProjectsSwipe = (clientX: number, clientY: number, preventDefault: () => void) => {
+        const deltaX = clientX - startX;
+        const deltaY = clientY - startY;
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        if (!isHorizontalSwipe && absX > 6 && absX > absY) {
+          isHorizontalSwipe = true;
+        }
+
+        if (!isHorizontalSwipe) return;
+
+        preventDefault();
+        projectsWrapper.scrollLeft = startScrollLeft - deltaX;
+      };
+
+      const onProjectsTouchStart = (event: TouchEvent) => {
+        const touch = event.touches[0];
+        if (!touch) return;
+
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startScrollLeft = projectsWrapper.scrollLeft;
+        isHorizontalSwipe = false;
+      };
+
+      const onProjectsTouchMove = (event: TouchEvent) => {
+        const touch = event.touches[0];
+        if (!touch) return;
+        updateProjectsSwipe(touch.clientX, touch.clientY, () => event.preventDefault());
+      };
+
+      const onProjectsPointerDown = (event: PointerEvent) => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+        startX = event.clientX;
+        startY = event.clientY;
+        startScrollLeft = projectsWrapper.scrollLeft;
+        isHorizontalSwipe = false;
+        isPointerDragging = true;
+      };
+
+      const onProjectsPointerMove = (event: PointerEvent) => {
+        if (!isPointerDragging) return;
+        updateProjectsSwipe(event.clientX, event.clientY, () => event.preventDefault());
+      };
+
+      const onProjectsPointerEnd = () => {
+        isPointerDragging = false;
+      };
+
+      projectsWrapper.addEventListener('touchstart', onProjectsTouchStart, { passive: true, capture: true });
+      projectsWrapper.addEventListener('touchmove', onProjectsTouchMove, { passive: false, capture: true });
+      projectsWrapper.addEventListener('pointerdown', onProjectsPointerDown, { passive: true, capture: true });
+      projectsWrapper.addEventListener('pointermove', onProjectsPointerMove, { passive: false, capture: true });
+      projectsWrapper.addEventListener('pointerup', onProjectsPointerEnd, { passive: true, capture: true });
+      projectsWrapper.addEventListener('pointercancel', onProjectsPointerEnd, { passive: true, capture: true });
+      projectsWrapper.addEventListener('pointerleave', onProjectsPointerEnd, { passive: true, capture: true });
+      cleanupHandlers.push(() => {
+        projectsWrapper.removeEventListener('touchstart', onProjectsTouchStart, { capture: true });
+        projectsWrapper.removeEventListener('touchmove', onProjectsTouchMove, { capture: true });
+        projectsWrapper.removeEventListener('pointerdown', onProjectsPointerDown, { capture: true });
+        projectsWrapper.removeEventListener('pointermove', onProjectsPointerMove, { capture: true });
+        projectsWrapper.removeEventListener('pointerup', onProjectsPointerEnd, { capture: true });
+        projectsWrapper.removeEventListener('pointercancel', onProjectsPointerEnd, { capture: true });
+        projectsWrapper.removeEventListener('pointerleave', onProjectsPointerEnd, { capture: true });
+      });
+    }
+
     // ── Mouse Follow & Interactions ──
     const moveM = (e: MouseEvent) => {
       const ring = document.querySelector('.cursor-ring') as HTMLElement;

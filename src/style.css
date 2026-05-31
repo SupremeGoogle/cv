@@ -3415,6 +3415,24 @@ section {
     touch-action: pan-x;
   }
 
+  .project-browser,
+  .browser-body,
+  .project-video-wrapper,
+  .project-video,
+  .project-img,
+  .mock-title,
+  .project-info {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .project-video,
+  .project-img {
+    pointer-events: none;
+    touch-action: pan-x;
+  }
+
   .project-browser:hover {
     transform: none;
   }
