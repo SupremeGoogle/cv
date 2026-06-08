@@ -22,13 +22,8 @@ const digitalProjects: DigitalProject[] = [
 
 type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
-// TODO: move this test key to a backend/env before production.
-const OPENAI_TEST_API_KEY = [
-  'sk',
-  '-proj-',
-  'Tq1ApBgI8OzGFSJlk6wIkUXUFqkQeJ09t2-ap51avm4nrgTPbyIutYGNcq6Vsx9Mlc9MFbfC_QT3BlbkFJ1dS47vvnpxrUNCJQzux1i6e5B5dKak9s4RpGWYW6eWZqamYtvrG_m_qaJnIq7xKiW6yhbOiQkA',
-].join('');
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || OPENAI_TEST_API_KEY;
+// TODO: move image generation to a backend route before production.
+const OPENAI_API_KEY = String(import.meta.env.VITE_OPENAI_API_KEY || '').trim();
 const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
 const OPENAI_IMAGE_MODEL = 'gpt-image-1.5';
 const OPENAI_IMAGE_QUALITY = 'high';
@@ -42,19 +37,19 @@ const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
-const WORKPLACE_AI_PROMPT = `Create one realistic final photograph by placing the man from the first input image into the workplace shown in the second input image.
+const WORKPLACE_AI_PROMPT = `Create one realistic final photo. Input 1 is the exact man reference. Input 2 is the user's target place.
 
-The first input image is the identity and body reference. Preserve the man's face, eyes, eyelids, eyebrows, nose, mouth, jawline, cheeks, skin tone, hairstyle, hairline, age, expression, black t-shirt, watch, arms, hands, and body proportions as close to the first image as possible. Do not redraw, beautify, average, age, de-age, change ethnicity, change facial proportions, or invent a similar-looking person. The final face must remain recognizably the same real person from the first image.
+Preserve the man's real identity from input 1: face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hair, age, black t-shirt, watch, hands, arms, and body proportions. Do not create a similar generic person.
 
-The second input image is the user's real workplace and must be treated as the target scene. Preserve its room layout, camera angle, perspective, walls, floor, windows, lighting direction, color temperature, furniture, decor, and photographic realism unless there is no usable workplace setup at all.
+Use input 2 as the main scene. Preserve its room, angle, perspective, lighting, colors, furniture, and camera quality.
 
-Before placing the man, inspect the second image for existing furniture. If the second image already contains a chair, office chair, armchair, couch, stool, bench, seat, desk, table, laptop, monitor, or visible work area, use that existing furniture. In this case insert only the man's body, clothes, head, arms, and hands into the existing scene. Do not bring the chair, desk, table, laptop, monitor, wall decor, or background from the first input image. Do not duplicate or replace the existing chair. Seat the man naturally on the chair that already exists in the second image, or place him beside the existing work area if that is more plausible.
+If input 2 already has a chair, sofa, stool, desk, table, laptop, monitor, or any usable work area, place only the man into that existing setup. He must sit on or stand near the existing furniture. Do not copy the chair, desk, monitors, wall, decor, or background from input 1.
 
-Only if the second image has no usable chair, no table or desk, and no visible work area, then bring the minimal necessary setup from the first input image together with the man: chair, desk/table, laptop, monitor, and working posture. Adapt that setup to the perspective and lighting of the second image.
+Only if input 2 has no usable seat, table, desk, or work area, move the man together with the minimal workplace setup from input 1: chair, desk/table, laptop and monitors. Adapt them to input 2 naturally.
 
-Blend the person into the target scene naturally. Match scale, body position, occlusion with furniture, contact shadows, cast shadows, reflections, depth of field, lens quality, noise, sharpness, and realism. Hands and arms should align believably with the existing chair/desk/table when those objects are present.
+Blend everything like one real photograph: correct scale, pose, shadows, contact shadows, occlusion, reflections, depth of field, noise, sharpness, and color temperature. Hands and arms must connect believably with the desk, laptop, chair, or table.
 
-Output only one natural final photo. Do not output a collage, split-screen, before/after view, sticker, poster, painting, cartoon, or UI mockup. Do not add extra people. Do not distort the face. Do not include labels, captions, borders, watermarks, or text.`;
+Output only the final natural photo. No collage, split screen, sticker, poster, cartoon, extra people, text, labels, borders, or watermark.`;
 
 const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
