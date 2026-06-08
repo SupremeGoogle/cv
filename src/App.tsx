@@ -22,15 +22,12 @@ const digitalProjects: DigitalProject[] = [
 
 type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
 
-// TODO: move image generation to a backend route before production.
-const OPENAI_API_KEY = String(import.meta.env.VITE_OPENAI_API_KEY || '').trim();
-const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
-const OPENAI_IMAGE_MODEL = 'gpt-image-1.5';
-const OPENAI_IMAGE_QUALITY = 'high';
-const OPENAI_INPUT_FIDELITY = 'high';
-const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 90000;
-const OPENAI_IMAGE_WIDTH = 1536;
-const OPENAI_IMAGE_HEIGHT = 1024;
+// Image editing is proxied through our own Vercel function (/api/edit-photo),
+// so the provider API key stays on the server and never reaches the browser.
+const IMAGE_EDIT_ENDPOINT = '/api/edit-photo';
+const IMAGE_REQUEST_TIMEOUT_MS = 90000;
+const IMAGE_WIDTH = 1536;
+const IMAGE_HEIGHT = 1024;
 const WORKPLACE_GENERATION_LIMIT = 2;
 const IP_LOOKUP_ENDPOINT = 'https://api.ipify.org?format=json';
 const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
@@ -56,6 +53,17 @@ const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) 
   reader.onload = () => resolve(String(reader.result));
   reader.onerror = () => reject(new Error('Не удалось прочитать изображение.'));
   reader.readAsDataURL(file);
+});
+
+const blobToBase64 = (blob: Blob) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = String(reader.result);
+    const comma = result.indexOf(',');
+    resolve(comma >= 0 ? result.slice(comma + 1) : result);
+  };
+  reader.onerror = () => reject(new Error('Не удалось обработать изображение.'));
+  reader.readAsDataURL(blob);
 });
 
 const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
@@ -90,8 +98,8 @@ const drawContain = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: 
 const createImageFile = async (src: string, filename: string, type: 'image/jpeg' | 'image/png' = 'image/jpeg') => {
   const image = await loadImage(src);
   const canvas = document.createElement('canvas');
-  canvas.width = OPENAI_IMAGE_WIDTH;
-  canvas.height = OPENAI_IMAGE_HEIGHT;
+  canvas.width = IMAGE_WIDTH;
+  canvas.height = IMAGE_HEIGHT;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
 
@@ -107,55 +115,8 @@ const createImageFile = async (src: string, filename: string, type: 'image/jpeg'
   });
 };
 
-const createIdentityMaskFile = async (src: string) => {
-  const image = await loadImage(src);
-  const canvas = document.createElement('canvas');
-  canvas.width = OPENAI_IMAGE_WIDTH;
-  canvas.height = OPENAI_IMAGE_HEIGHT;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const sourceRatio = image.naturalWidth / image.naturalHeight;
-  const targetRatio = canvas.width / canvas.height;
-  let imageWidth = canvas.width;
-  let imageHeight = canvas.height;
-  let imageX = 0;
-  let imageY = 0;
-
-  if (sourceRatio > targetRatio) {
-    imageHeight = canvas.width / sourceRatio;
-    imageY = (canvas.height - imageHeight) / 2;
-  } else {
-    imageWidth = canvas.height * sourceRatio;
-    imageX = (canvas.width - imageWidth) / 2;
-  }
-
-  const protectStart = imageX + imageWidth * 0.43;
-  const solidStart = imageX + imageWidth * 0.54;
-  const protectTop = imageY + imageHeight * 0.04;
-  const protectHeight = imageHeight * 0.94;
-
-  const feather = ctx.createLinearGradient(protectStart, 0, solidStart, 0);
-  feather.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  feather.addColorStop(1, 'rgba(0, 0, 0, 1)');
-  ctx.fillStyle = feather;
-  ctx.fillRect(protectStart, protectTop, solidStart - protectStart, protectHeight);
-
-  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-  ctx.fillRect(solidStart, protectTop, imageX + imageWidth - solidStart, protectHeight);
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(blob => {
-      if (blob) resolve(blob);
-      else reject(new Error('Не удалось подготовить маску для сохранения лица.'));
-    }, 'image/png');
-  });
-};
-
-const extractOpenAiError = (payload: unknown) => {
-  if (!payload) return 'OpenAI не смог сгенерировать изображение.';
+const extractApiError = (payload: unknown) => {
+  if (!payload) return 'Сервис не смог сгенерировать изображение.';
   if (typeof payload === 'string') return payload;
   if (typeof payload !== 'object') return String(payload);
 
@@ -587,79 +548,62 @@ function App() {
       setWorkplaceLimitReached(false);
       setWorkplaceResult(null);
 
-      if (!OPENAI_API_KEY) {
-        throw new Error('Не задан VITE_OPENAI_API_KEY для генерации изображения.');
-      }
-
       const limit = await reserveWorkplaceGeneration();
       if (!limit.allowed) {
         setWorkplaceLimitReached(true);
         throw new Error('На этот IP уже использованы 2 тестовые генерации.');
       }
 
-      const [meBlob, workspaceBlob, maskBlob] = await Promise.all([
+      const [meBlob, workspaceBlob] = await Promise.all([
         createImageFile(ME_REFERENCE_PATH, 'me.png', 'image/png'),
         createImageFile(workplacePreview, 'workspace.jpg'),
-        createIdentityMaskFile(ME_REFERENCE_PATH),
       ]);
 
-      const createEditPayload = (model: string) => {
-        const formData = new FormData();
-        formData.append('model', model);
-        formData.append('prompt', WORKPLACE_AI_PROMPT);
-        formData.append('image[]', meBlob, 'me.png');
-        formData.append('image[]', workspaceBlob, 'workspace.jpg');
-        formData.append('mask', maskBlob, 'identity-mask.png');
-        formData.append('size', `${OPENAI_IMAGE_WIDTH}x${OPENAI_IMAGE_HEIGHT}`);
-        formData.append('quality', OPENAI_IMAGE_QUALITY);
-        formData.append('input_fidelity', OPENAI_INPUT_FIDELITY);
-        formData.append('output_format', 'png');
-        formData.append('n', '1');
-        return formData;
-      };
+      const [meBase64, workspaceBase64] = await Promise.all([
+        blobToBase64(meBlob),
+        blobToBase64(workspaceBlob),
+      ]);
 
-      const requestEdit = async (model: string) => {
-        const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), OPENAI_IMAGE_REQUEST_TIMEOUT_MS);
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), IMAGE_REQUEST_TIMEOUT_MS);
+      let payload: any = null;
 
+      try {
+        const response = await fetch(IMAGE_EDIT_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: WORKPLACE_AI_PROMPT,
+            images: [
+              { mimeType: 'image/png', data: meBase64 },
+              { mimeType: 'image/jpeg', data: workspaceBase64 },
+            ],
+          }),
+          signal: controller.signal,
+        });
+
+        const rawText = await response.text();
         try {
-          const response = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${OPENAI_API_KEY}`,
-            },
-            body: createEditPayload(model),
-            signal: controller.signal,
-          });
+          payload = JSON.parse(rawText);
+        } catch { /* server should return JSON; keep payload null for readable fallback. */ }
 
-          const rawText = await response.text();
-          let payload: any = null;
-          try {
-            payload = JSON.parse(rawText);
-          } catch { /* OpenAI should return JSON; keep payload null for readable fallback. */ }
-
-          if (!response.ok) {
-            throw new Error(extractOpenAiError(payload));
-          }
-
-          return payload;
-        } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error(`${model} слишком долго отвечает. Попробуйте фото меньшего размера или повторите генерацию.`);
-          }
-          throw error;
-        } finally {
-          window.clearTimeout(timeout);
+        if (!response.ok) {
+          throw new Error(extractApiError(payload));
         }
-      };
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Генерация слишком долго отвечает. Попробуйте фото меньшего размера или повторите.');
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeout);
+      }
 
-      const payload = await requestEdit(OPENAI_IMAGE_MODEL);
-
-      const imageBase64 = payload?.data?.[0]?.b64_json;
+      const imageBase64 = payload?.image;
       if (imageBase64) {
-        setWorkplaceResult(`data:image/png;base64,${imageBase64}`);
+        setWorkplaceResult(`data:${payload?.mimeType || 'image/png'};base64,${imageBase64}`);
       } else {
-        throw new Error('OpenAI вернул ответ без изображения.');
+        throw new Error('Сервис вернул ответ без изображения.');
       }
 
       setWorkplaceStatus('done');
