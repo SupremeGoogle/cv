@@ -25,6 +25,23 @@ const extractGeminiError = (payload: any): string => {
   return 'Gemini не смог обработать изображение.';
 };
 
+// Detect "out of credits / quota exhausted" responses and turn them into a
+// friendly user-facing message instead of leaking the raw Google error text.
+const isOutOfCredits = (status: number, payload: any): boolean => {
+  if (status !== 429 && status !== 402) return false;
+  const raw = JSON.stringify(payload || '').toLowerCase();
+  return (
+    raw.includes('prepayment credits are depleted') ||
+    raw.includes('prepayment_credits') ||
+    raw.includes('quota exceeded') ||
+    raw.includes('billing') ||
+    raw.includes('insufficient')
+  );
+};
+
+const FRIENDLY_PAUSED_MESSAGE =
+  'AI-генерация временно на паузе. Я скоро её включу обратно — попробуйте чуть позже.';
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Метод не поддерживается. Используйте POST.' });
@@ -89,6 +106,10 @@ export default async function handler(req: any, res: any) {
     try { payload = JSON.parse(rawText); } catch { /* keep null for fallback */ }
 
     if (!geminiResponse.ok) {
+      if (isOutOfCredits(geminiResponse.status, payload)) {
+        res.status(503).json({ error: FRIENDLY_PAUSED_MESSAGE, paused: true });
+        return;
+      }
       res.status(geminiResponse.status).json({ error: extractGeminiError(payload) });
       return;
     }
