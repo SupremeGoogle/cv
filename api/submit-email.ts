@@ -1,8 +1,8 @@
 // Visitor leaves an email after waiting too long. We attach it to the request
 // and ping the admin in Telegram so they can mail the result later.
 
-import { kvGet, kvSet } from './_lib/kv';
-import { adminChatId, tgSendMessage } from './_lib/telegram';
+import { kvGet, kvSet } from './_lib/kv.js';
+import { adminChatId, tgSendMessage } from './_lib/telegram.js';
 
 type SubmitBody = { id?: string; email?: string };
 

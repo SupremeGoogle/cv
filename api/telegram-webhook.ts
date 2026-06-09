@@ -7,13 +7,13 @@
 //     the currently armed request, mark the request done. The visitor's next
 //     poll will pick it up.
 
-import { kvDel, kvGet, kvSet } from './_lib/kv';
+import { kvDel, kvGet, kvSet } from './_lib/kv.js';
 import {
   adminChatId,
   tgAnswerCallback,
   tgDownloadFileAsBase64,
   tgSendMessage,
-} from './_lib/telegram';
+} from './_lib/telegram.js';
 
 type StoredRequest = {
   id: string;

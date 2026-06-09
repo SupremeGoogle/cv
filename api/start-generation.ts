@@ -4,8 +4,8 @@
 // 3. We forward the photo to the admin on Telegram with an "Upload result" inline button.
 // 4. We return { requestId } so the frontend can start polling /api/check-status.
 
-import { kvSet } from './_lib/kv';
-import { adminChatId, tgSendPhotoBase64 } from './_lib/telegram';
+import { kvSet } from './_lib/kv.js';
+import { adminChatId, tgSendPhotoBase64 } from './_lib/telegram.js';
 
 const REQUEST_TTL_SECONDS = 60 * 60 * 24; // 1 day — plenty for a manual reply
 

@@ -1,7 +1,7 @@
 // Quick health check: which env vars are visible and whether KV+Telegram answer.
 // GET /api/health → JSON with all the diagnostic data we need to debug setup.
 
-import { kvEnvStatus, kvGet, kvSet, kvDel } from './_lib/kv';
+import { kvEnvStatus, kvGet, kvSet, kvDel } from './_lib/kv.js';
 
 export default async function handler(_req: any, res: any) {
   const envs = {

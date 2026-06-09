@@ -1,7 +1,7 @@
 // Lightweight polling endpoint. The frontend hits this every ~2s while waiting
 // for the admin to upload the generated image via Telegram.
 
-import { kvGet } from './_lib/kv';
+import { kvGet } from './_lib/kv.js';
 
 type StoredRequest = {
   id: string;
