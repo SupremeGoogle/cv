@@ -1,12 +1,32 @@
 // Tiny wrapper around Vercel KV / Upstash Redis REST API.
 // We talk to it with fetch — no SDK, no dependencies.
 
-const KV_URL = process.env.KV_REST_API_URL;
-const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+// Vercel marketplace may expose these env vars under different names depending
+// on which integration created them. Accept all common spellings so the user
+// doesn't need to rename anything manually.
+const KV_URL =
+  process.env.KV_REST_API_URL ||
+  process.env.UPSTASH_REDIS_REST_URL ||
+  process.env.REDIS_URL;
+const KV_TOKEN =
+  process.env.KV_REST_API_TOKEN ||
+  process.env.UPSTASH_REDIS_REST_TOKEN ||
+  process.env.REDIS_TOKEN;
+
+export const kvEnvStatus = () => ({
+  hasUrl: !!KV_URL,
+  hasToken: !!KV_TOKEN,
+  source:
+    process.env.KV_REST_API_URL ? 'KV_REST_API_*' :
+    process.env.UPSTASH_REDIS_REST_URL ? 'UPSTASH_REDIS_REST_*' :
+    process.env.REDIS_URL ? 'REDIS_*' : 'none',
+});
 
 const ensureKv = () => {
   if (!KV_URL || !KV_TOKEN) {
-    throw new Error('KV не настроен: отсутствуют KV_REST_API_URL / KV_REST_API_TOKEN.');
+    throw new Error(
+      'KV не настроен. Ожидаются KV_REST_API_URL/KV_REST_API_TOKEN либо UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN в переменных окружения Vercel.'
+    );
   }
 };
 

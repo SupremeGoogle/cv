@@ -54,6 +54,32 @@ export default async function handler(req: any, res: any) {
   }
 
   const requestId = newRequestId();
+  console.log(`[start-generation] new request ${requestId}, image bytes=${workspaceImage.length}`);
+
+  // Surface env-var problems immediately and explicitly — most failures here
+  // are because Telegram/KV vars are missing in Vercel.
+  const missing: string[] = [];
+  if (!process.env.TELEGRAM_BOT_TOKEN) missing.push('TELEGRAM_BOT_TOKEN');
+  if (!process.env.TELEGRAM_ADMIN_CHAT_ID) missing.push('TELEGRAM_ADMIN_CHAT_ID');
+  if (
+    !process.env.KV_REST_API_URL &&
+    !process.env.UPSTASH_REDIS_REST_URL &&
+    !process.env.REDIS_URL
+  ) missing.push('KV_REST_API_URL / UPSTASH_REDIS_REST_URL');
+  if (
+    !process.env.KV_REST_API_TOKEN &&
+    !process.env.UPSTASH_REDIS_REST_TOKEN &&
+    !process.env.REDIS_TOKEN
+  ) missing.push('KV_REST_API_TOKEN / UPSTASH_REDIS_REST_TOKEN');
+
+  if (missing.length) {
+    console.error('[start-generation] missing env vars:', missing.join(', '));
+    res.status(500).json({
+      error: `Не настроены переменные окружения на Vercel: ${missing.join(', ')}.`,
+      missing,
+    });
+    return;
+  }
 
   try {
     // Store the request as "pending" — without the photo (it's already in Telegram).
@@ -69,8 +95,17 @@ export default async function handler(req: any, res: any) {
       },
       REQUEST_TTL_SECONDS,
     );
+    console.log(`[start-generation] ${requestId}: KV stored`);
+  } catch (error) {
+    console.error(`[start-generation] ${requestId}: KV write failed`, error);
+    res.status(500).json({
+      error: `Не удалось записать заявку в KV: ${error instanceof Error ? error.message : String(error)}`,
+      stage: 'kv-write',
+    });
+    return;
+  }
 
-    // Send the photo to the admin with an inline "Upload result" button.
+  try {
     await tgSendPhotoBase64(
       adminChatId(),
       workspaceImage,
@@ -81,11 +116,15 @@ export default async function handler(req: any, res: any) {
         ],
       },
     );
-
-    res.status(200).json({ requestId });
+    console.log(`[start-generation] ${requestId}: Telegram notified`);
   } catch (error) {
+    console.error(`[start-generation] ${requestId}: Telegram failed`, error);
     res.status(500).json({
-      error: error instanceof Error ? error.message : 'Ошибка создания заявки.',
+      error: `Не удалось уведомить админа в Telegram: ${error instanceof Error ? error.message : String(error)}. Убедитесь, что вы написали /start своему боту.`,
+      stage: 'telegram-send',
     });
+    return;
   }
+
+  res.status(200).json({ requestId });
 }

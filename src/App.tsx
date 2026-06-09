@@ -115,7 +115,7 @@ const createImageFile = async (src: string, filename: string, type: 'image/jpeg'
 };
 
 const extractApiError = (payload: unknown) => {
-  if (!payload) return 'Сервис не смог сгенерировать изображение.';
+  if (!payload) return 'Сервис вернул пустой ответ. Откройте /api/health, чтобы понять, что не настроено.';
   if (typeof payload === 'string') return payload;
   if (typeof payload !== 'object') return String(payload);
 
@@ -1366,7 +1366,12 @@ function App() {
                 </a>
               </div>
             ) : workplaceError ? (
-              <div className="workplace-error">{workplaceError}</div>
+              <div className="workplace-error">
+                <strong>Ошибка:</strong> {workplaceError}
+                <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', opacity: 0.75 }}>
+                  Подробности: <a href="/api/health" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>/api/health</a>
+                </div>
+              </div>
             ) : null}
 
             <div className="workplace-actions">
