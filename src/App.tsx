@@ -20,35 +20,32 @@ const digitalProjects: DigitalProject[] = [
   { id: 11, name: 'Шляпный бутик', url: 'https://shlyapa-one.vercel.app', img: '/legacy/11.jpg', desc: 'Магазин головных уборов премиум-класса' },
 ];
 
-type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
+type WorkplaceAiStatus =
+  | 'idle'
+  | 'uploading'
+  | 'submitting'      // sending the photo to /api/start-generation
+  | 'generating'      // polling /api/check-status, still within the 40s window
+  | 'awaiting_email'  // 40s passed, ask for an email
+  | 'email_sending'   // submitting the email to /api/submit-email
+  | 'email_sent'      // confirmation that the email is saved
+  | 'done'
+  | 'error';
 
-// Image editing is proxied through our own Vercel function (/api/edit-photo),
-// so the provider API key stays on the server and never reaches the browser.
-const IMAGE_EDIT_ENDPOINT = '/api/edit-photo';
+const POLL_INTERVAL_MS = 2000;
+const ON_SITE_WAIT_MS = 40000; // after 40s of polling, switch to the "leave email" UI
+
+// New flow: the site uploads the workspace photo to /api/start-generation, then
+// polls /api/check-status. The admin (me) gets a Telegram notification, manually
+// generates the result in AI Studio and sends it back via the bot.
+const START_ENDPOINT = '/api/start-generation';
+const STATUS_ENDPOINT = '/api/check-status';
+const EMAIL_ENDPOINT = '/api/submit-email';
 const IMAGE_REQUEST_TIMEOUT_MS = 90000;
 const IMAGE_WIDTH = 1536;
 const IMAGE_HEIGHT = 1024;
 const WORKPLACE_GENERATION_LIMIT = 2;
 const IP_LOOKUP_ENDPOINT = 'https://api.ipify.org?format=json';
 const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
-const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
-const ME_REFERENCE_PATH = '/me/me.png';
-
-const WORKPLACE_AI_PROMPT = `Generate ONE brand-new photograph that looks like it was captured by a single camera in a single moment. This is not a montage.
-
-Input 1 is ONLY an identity reference — it tells you what the man looks like (face, hair, build, black t-shirt, watch). Do NOT copy, cut out, or paste pixels from Input 1. Re-draw and re-photograph this exact same man from scratch so he naturally belongs in the new scene. The final face must be unmistakably the same real person from Input 1 — same face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hairline, and age — but freshly rendered inside the scene, never a pasted cut-out.
-
-Input 2 is the target scene and the master reference for everything else: keep its room, camera angle, perspective, eye level, focal length, lighting direction, color temperature, shadows, and overall photographic look.
-
-Place the man INTO that scene as if he was really there when the photo was taken:
-- Match the scene's camera exactly: same perspective, lens look, depth of field, focus, film grain/noise, sharpness, and resolution. The man must share the SAME image quality and softness as the room — not crisper, not flatter, not higher-contrast.
-- Relight the man completely with the scene's light: same direction, color, and intensity. Add correct cast shadows and contact shadows where his body, hands, and arms touch the chair, desk, floor, or table.
-- Match his scale, pose, and eye level to the furniture and camera angle. If the scene already has a chair, sofa, stool, desk, or table, seat him on that existing furniture in a believable working pose. Do not import furniture or background from Input 1.
-- Hands and arms must have a clear, purposeful position. Rest both forearms naturally on the desk surface, and place his hands ON the actual tools that exist in the scene: one hand resting on the mouse with fingers gently curved over it, the other hand resting on the keyboard or flat on the desk. No hands hovering in empty space, no ambiguous or twisted wrist angles, no hands pressed awkwardly against the desk edge. Each hand must have exactly five correctly shaped fingers with anatomically natural proportions.
-
-Strictly avoid the "pasted sticker" look: no cut-out edges, no glow or halo around the man, no mismatched lighting or color, no floating, no double exposure, no flat overlay, no collage, no split screen, no two people, no text, labels, borders, or watermark. Avoid deformed hands, extra fingers, or fused fingers.
-
-Output only one seamless, natural, photorealistic final photo.`;
 
 const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
@@ -74,7 +71,7 @@ const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, rejec
     image.crossOrigin = 'anonymous';
   }
   image.onload = () => resolve(image);
-  image.onerror = () => reject(new Error(src === ME_REFERENCE_PATH ? `Не найдено фото для вставки. Положите файл сюда: ${ME_REFERENCE_PUBLIC_FILE} (в браузере путь будет ${ME_REFERENCE_PATH})` : 'Не удалось загрузить изображение.'));
+  image.onerror = () => reject(new Error('Не удалось загрузить изображение.'));
   image.src = src;
 });
 
@@ -219,7 +216,11 @@ function App() {
   const [workplaceResult, setWorkplaceResult] = useState<string | null>(null);
   const [workplaceError, setWorkplaceError] = useState('');
   const [workplaceLimitReached, setWorkplaceLimitReached] = useState(false);
+  const [workplaceEmail, setWorkplaceEmail] = useState('');
+  const [workplaceRequestId, setWorkplaceRequestId] = useState<string | null>(null);
   const workplaceInputRef = useRef<HTMLInputElement | null>(null);
+  // Tracks the active polling loop so we can cancel it when the modal closes or status changes.
+  const workplacePollAbortRef = useRef<{ aborted: boolean } | null>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -512,14 +513,19 @@ function App() {
   const closeWorkplaceModal = () => {
     setIsWorkplaceModalOpen(false);
     document.body.style.overflow = '';
+    // Stop any background polling — visitor walked away.
+    if (workplacePollAbortRef.current) workplacePollAbortRef.current.aborted = true;
   };
 
   const resetWorkplaceAi = () => {
+    if (workplacePollAbortRef.current) workplacePollAbortRef.current.aborted = true;
     setWorkplaceStatus('idle');
     setWorkplacePreview(null);
     setWorkplaceResult(null);
     setWorkplaceError('');
     setWorkplaceLimitReached(false);
+    setWorkplaceEmail('');
+    setWorkplaceRequestId(null);
     if (workplaceInputRef.current) workplaceInputRef.current.value = '';
   };
 
@@ -540,6 +546,33 @@ function App() {
     }
   };
 
+  // Polls /api/check-status every POLL_INTERVAL_MS. Resolves with the result
+  // image (data URL) if it arrives within the window, or null on timeout.
+  const pollForResult = async (
+    requestId: string,
+    deadlineMs: number,
+    abort: { aborted: boolean },
+  ): Promise<{ image: string; mimeType: string } | null> => {
+    while (!abort.aborted && Date.now() < deadlineMs) {
+      try {
+        const response = await fetch(`${STATUS_ENDPOINT}?id=${encodeURIComponent(requestId)}`, {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          const payload = await response.json();
+          if (payload?.status === 'done' && payload.image) {
+            return { image: payload.image, mimeType: payload.mimeType || 'image/jpeg' };
+          }
+        }
+      } catch {
+        // network blip — keep polling
+      }
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+    }
+    return null;
+  };
+
   const generateWorkplaceImage = async () => {
     if (!workplacePreview) {
       setWorkplaceStatus('error');
@@ -548,10 +581,11 @@ function App() {
     }
 
     try {
-      setWorkplaceStatus('generating');
+      setWorkplaceStatus('submitting');
       setWorkplaceError('');
       setWorkplaceLimitReached(false);
       setWorkplaceResult(null);
+      setWorkplaceRequestId(null);
 
       const limit = await reserveWorkplaceGeneration();
       if (!limit.allowed) {
@@ -559,62 +593,111 @@ function App() {
         throw new Error('На этот IP уже использованы 2 тестовые генерации.');
       }
 
-      const [meBlob, workspaceBlob] = await Promise.all([
-        createImageFile(ME_REFERENCE_PATH, 'me.png', 'image/png'),
-        createImageFile(workplacePreview, 'workspace.jpg'),
-      ]);
+      const workspaceBlob = await createImageFile(workplacePreview, 'workspace.jpg');
+      const workspaceBase64 = await blobToBase64(workspaceBlob);
 
-      const [meBase64, workspaceBase64] = await Promise.all([
-        blobToBase64(meBlob),
-        blobToBase64(workspaceBlob),
-      ]);
-
+      // 1. Kick off the request: server stores it in KV and pings the admin in Telegram.
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), IMAGE_REQUEST_TIMEOUT_MS);
-      let payload: any = null;
-
+      let startPayload: any = null;
       try {
-        const response = await fetch(IMAGE_EDIT_ENDPOINT, {
+        const response = await fetch(START_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            prompt: WORKPLACE_AI_PROMPT,
-            images: [
-              { mimeType: 'image/png', data: meBase64 },
-              { mimeType: 'image/jpeg', data: workspaceBase64 },
-            ],
+            workspaceImage: workspaceBase64,
+            workspaceMimeType: 'image/jpeg',
           }),
           signal: controller.signal,
         });
-
         const rawText = await response.text();
-        try {
-          payload = JSON.parse(rawText);
-        } catch { /* server should return JSON; keep payload null for readable fallback. */ }
-
+        try { startPayload = JSON.parse(rawText); } catch { /* fall through */ }
         if (!response.ok) {
-          throw new Error(extractApiError(payload));
+          throw new Error(extractApiError(startPayload));
         }
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Генерация слишком долго отвечает. Попробуйте фото меньшего размера или повторите.');
+          throw new Error('Сервер слишком долго отвечает. Попробуйте фото меньшего размера или повторите.');
         }
         throw error;
       } finally {
         window.clearTimeout(timeout);
       }
 
-      const imageBase64 = payload?.image;
-      if (imageBase64) {
-        setWorkplaceResult(`data:${payload?.mimeType || 'image/png'};base64,${imageBase64}`);
-      } else {
-        throw new Error('Сервис вернул ответ без изображения.');
+      const requestId: string = startPayload?.requestId;
+      if (!requestId) throw new Error('Сервер не вернул ID заявки.');
+      setWorkplaceRequestId(requestId);
+
+      // 2. Poll for up to ON_SITE_WAIT_MS. If a result arrives — show it. Otherwise
+      //    surface the email form.
+      setWorkplaceStatus('generating');
+      const abort = { aborted: false };
+      // Replace any previous polling loop.
+      if (workplacePollAbortRef.current) workplacePollAbortRef.current.aborted = true;
+      workplacePollAbortRef.current = abort;
+
+      const deadline = Date.now() + ON_SITE_WAIT_MS;
+      const result = await pollForResult(requestId, deadline, abort);
+
+      if (abort.aborted) return;
+
+      if (result) {
+        setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
+        setWorkplaceStatus('done');
+        return;
       }
 
-      setWorkplaceStatus('done');
+      // Timed out — but keep polling in the background, in case the admin replies soon.
+      setWorkplaceStatus('awaiting_email');
+      keepPollingInBackground(requestId, abort);
     } catch (error) {
       setWorkplaceStatus('error');
       setWorkplaceError(error instanceof Error ? error.message : 'Произошла ошибка генерации.');
+    }
+  };
+
+  // After the on-site 40-second window, we keep checking quietly. If the admin
+  // does reply while the visitor is still on the page, we still light up the
+  // result. After 10 more minutes we give up — the email path takes over.
+  const keepPollingInBackground = async (requestId: string, abort: { aborted: boolean }) => {
+    const longDeadline = Date.now() + 10 * 60 * 1000;
+    const result = await pollForResult(requestId, longDeadline, abort);
+    if (abort.aborted) return;
+    if (result) {
+      setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
+      setWorkplaceStatus('done');
+    }
+  };
+
+  const submitWorkplaceEmail = async () => {
+    if (!workplaceRequestId) {
+      setWorkplaceError('Не удалось определить заявку. Попробуйте сгенерировать заново.');
+      return;
+    }
+    const email = workplaceEmail.trim();
+    if (!email) {
+      setWorkplaceError('Введите email.');
+      return;
+    }
+
+    try {
+      setWorkplaceStatus('email_sending');
+      setWorkplaceError('');
+      const response = await fetch(EMAIL_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: workplaceRequestId, email }),
+      });
+      const rawText = await response.text();
+      let payload: any = null;
+      try { payload = JSON.parse(rawText); } catch { /* keep null */ }
+      if (!response.ok) {
+        throw new Error(extractApiError(payload));
+      }
+      setWorkplaceStatus('email_sent');
+    } catch (error) {
+      setWorkplaceStatus('awaiting_email');
+      setWorkplaceError(error instanceof Error ? error.message : 'Не удалось отправить email.');
     }
   };
 
@@ -1291,22 +1374,73 @@ function App() {
                 type="button"
                 className="btn-primary workplace-generate-btn"
                 onClick={generateWorkplaceImage}
-                disabled={!workplacePreview || workplaceStatus === 'uploading' || workplaceStatus === 'generating'}
+                disabled={
+                  !workplacePreview
+                  || workplaceStatus === 'uploading'
+                  || workplaceStatus === 'submitting'
+                  || workplaceStatus === 'generating'
+                  || workplaceStatus === 'awaiting_email'
+                  || workplaceStatus === 'email_sending'
+                  || workplaceStatus === 'email_sent'
+                }
               >
-                {workplaceStatus === 'generating' ? 'Перемещаюсь...' : 'Сгенерировать пример'}
+                {workplaceStatus === 'generating' || workplaceStatus === 'submitting'
+                  ? 'Перемещаюсь...'
+                  : 'Сгенерировать пример'}
               </button>
               <button type="button" className="btn-outline workplace-reset-btn" onClick={resetWorkplaceAi}>
                 Сбросить
               </button>
             </div>
 
-            {(workplaceStatus === 'uploading' || workplaceStatus === 'generating') && (
+            {(workplaceStatus === 'uploading'
+              || workplaceStatus === 'submitting'
+              || workplaceStatus === 'generating') && (
               <div className="workplace-loading">
                 <span></span>
                 <strong>
-                  {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'Перемещаюсь в ваш офис, подождите немного'}
+                  {workplaceStatus === 'uploading' && 'Загружаю фото...'}
+                  {workplaceStatus === 'submitting' && 'Отправляю заявку...'}
+                  {workplaceStatus === 'generating' && 'Перемещаюсь в ваш офис, подождите немного'}
                   {workplaceStatus === 'generating' && <i aria-hidden="true"></i>}
                 </strong>
+              </div>
+            )}
+
+            {workplaceStatus === 'awaiting_email' && (
+              <div className="workplace-email-form">
+                <div className="workplace-preview-label">Долго генерирую — оставьте почту</div>
+                <p>Заявку я уже принял. Пришлю готовое фото на вашу почту, как только закончу.</p>
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="your@email.com"
+                  value={workplaceEmail}
+                  onChange={event => setWorkplaceEmail(event.target.value)}
+                  className="workplace-email-input"
+                />
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={submitWorkplaceEmail}
+                  disabled={!workplaceEmail.trim()}
+                >
+                  Отправить почту
+                </button>
+              </div>
+            )}
+
+            {workplaceStatus === 'email_sending' && (
+              <div className="workplace-loading">
+                <span></span>
+                <strong>Сохраняю почту...</strong>
+              </div>
+            )}
+
+            {workplaceStatus === 'email_sent' && (
+              <div className="workplace-success">
+                ✅ Успешно — почта получена. Пришлю готовое фото в ближайшее время.
               </div>
             )}
 

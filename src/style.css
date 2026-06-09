@@ -1997,6 +1997,50 @@ section {
   color: #ffb4af;
 }
 
+.workplace-email-form {
+  margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(56, 189, 248, 0.10), rgba(52, 211, 153, 0.06)),
+    rgba(255, 255, 255, 0.04);
+}
+
+.workplace-email-form p {
+  margin: 0.45rem 0 1rem;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.workplace-email-input {
+  width: 100%;
+  margin-bottom: 0.85rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.workplace-email-input:focus {
+  border-color: var(--accent);
+}
+
+.workplace-success {
+  margin: 1rem 0;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid rgba(52, 211, 153, 0.34);
+  border-radius: 12px;
+  background: rgba(52, 211, 153, 0.10);
+  color: #a7f3d0;
+  font-weight: 500;
+}
+
 .workplace-limit-card {
   margin: 0 0 1rem;
   padding: 1.25rem;

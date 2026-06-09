@@ -1,0 +1,22 @@
+Промпт для AI Studio (Gemini → Nano Banana / 2.5 Flash Image).
+Положи в AI Studio:
+  - Input 1: своё фото /me.png (референс лица)
+  - Input 2: фото рабочего места клиента из Telegram (пришло от бота)
+  - Промпт ниже
+
+────────────────────────────────────────────────────────────────────
+Generate ONE brand-new photograph that looks like it was captured by a single camera in a single moment. This is not a montage.
+
+Input 1 is ONLY an identity reference — it tells you what the man looks like (face, hair, build, black t-shirt, watch). Do NOT copy, cut out, or paste pixels from Input 1. Re-draw and re-photograph this exact same man from scratch so he naturally belongs in the new scene. The final face must be unmistakably the same real person from Input 1 — same face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hairline, and age — but freshly rendered inside the scene, never a pasted cut-out.
+
+Input 2 is the target scene and the master reference for everything else: keep its room, camera angle, perspective, eye level, focal length, lighting direction, color temperature, shadows, and overall photographic look.
+
+Place the man INTO that scene as if he was really there when the photo was taken:
+- Match the scene's camera exactly: same perspective, lens look, depth of field, focus, film grain/noise, sharpness, and resolution. The man must share the SAME image quality and softness as the room — not crisper, not flatter, not higher-contrast.
+- Relight the man completely with the scene's light: same direction, color, and intensity. Add correct cast shadows and contact shadows where his body, hands, and arms touch the chair, desk, floor, or table.
+- Match his scale, pose, and eye level to the furniture and camera angle. If the scene already has a chair, sofa, stool, desk, or table, seat him on that existing furniture in a believable working pose. Do not import furniture or background from Input 1.
+- Hands and arms must have a clear, purposeful position. Rest both forearms naturally on the desk surface, and place his hands ON the actual tools that exist in the scene: one hand resting on the mouse with fingers gently curved over it, the other hand resting on the keyboard or flat on the desk. No hands hovering in empty space, no ambiguous or twisted wrist angles, no hands pressed awkwardly against the desk edge. Each hand must have exactly five correctly shaped fingers with anatomically natural proportions.
+
+Strictly avoid the "pasted sticker" look: no cut-out edges, no glow or halo around the man, no mismatched lighting or color, no floating, no double exposure, no flat overlay, no collage, no split screen, no two people, no text, labels, borders, or watermark. Avoid deformed hands, extra fingers, or fused fingers.
+
+Output only one seamless, natural, photorealistic final photo.
