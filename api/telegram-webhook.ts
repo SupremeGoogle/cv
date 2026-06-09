@@ -40,7 +40,18 @@ const readJsonBody = async (req: any): Promise<any> => {
 
 const fromAdmin = (chatIdLike: number | string | undefined): boolean => {
   if (chatIdLike == null) return false;
-  try { return String(chatIdLike) === adminChatId(); } catch { return false; }
+  try {
+    const expected = adminChatId().trim();
+    const got = String(chatIdLike).trim();
+    const match = expected === got;
+    if (!match) {
+      console.warn(`[webhook] fromAdmin mismatch: env="${expected}" got="${got}"`);
+    }
+    return match;
+  } catch (err) {
+    console.error('[webhook] fromAdmin threw:', err);
+    return false;
+  }
 };
 
 export default async function handler(req: any, res: any) {
@@ -57,11 +68,21 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
+  console.log('[webhook] update received:', JSON.stringify({
+    has_message: !!update.message,
+    has_callback_query: !!update.callback_query,
+    callback_data: update.callback_query?.data,
+    callback_from_id: update.callback_query?.from?.id,
+    message_from_id: update.message?.from?.id,
+    message_text: update.message?.text,
+    has_photo: !!update.message?.photo,
+  }));
+
   // Always 200 to Telegram — otherwise it will retry forever and hammer our function.
   try {
     await handleUpdate(update);
   } catch (err) {
-    console.error('telegram-webhook error:', err);
+    console.error('[webhook] handleUpdate threw:', err);
   }
   res.status(200).json({ ok: true });
 }
@@ -81,8 +102,10 @@ async function handleUpdate(update: any) {
 
     if (data.startsWith('upload:')) {
       const requestId = data.slice('upload:'.length);
+      console.log(`[webhook] upload callback for ${requestId}`);
       const stored = await kvGet<StoredRequest>(`req:${requestId}`);
       if (!stored) {
+        console.warn(`[webhook] request ${requestId} not in KV (expired or wrong env)`);
         await tgAnswerCallback(callbackId, 'Эта заявка уже истекла.');
         return;
       }
@@ -96,6 +119,7 @@ async function handleUpdate(update: any) {
         adminChatId(),
         `📥 Жду фото-результат для заявки <b>#${requestId}</b>.\n\nПросто пришли картинку сюда — я сохраню её и покажу клиенту на сайте.`,
       );
+      console.log(`[webhook] armed for ${requestId}, replied to admin`);
       return;
     }
 
