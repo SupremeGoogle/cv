@@ -34,19 +34,21 @@ const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
 const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
 const ME_REFERENCE_PATH = '/me/me.png';
 
-const WORKPLACE_AI_PROMPT = `Create one realistic final photo. Input 1 is the exact man reference. Input 2 is the user's target place.
+const WORKPLACE_AI_PROMPT = `Generate ONE brand-new photograph that looks like it was captured by a single camera in a single moment. This is not a montage.
 
-Preserve the man's real identity from input 1: face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hair, age, black t-shirt, watch, hands, arms, and body proportions. Do not create a similar generic person.
+Input 1 is ONLY an identity reference — it tells you what the man looks like (face, hair, build, black t-shirt, watch). Do NOT copy, cut out, or paste pixels from Input 1. Re-draw and re-photograph this exact same man from scratch so he naturally belongs in the new scene. The final face must be unmistakably the same real person from Input 1 — same face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hairline, and age — but freshly rendered inside the scene, never a pasted cut-out.
 
-Use input 2 as the main scene. Preserve its room, angle, perspective, lighting, colors, furniture, and camera quality.
+Input 2 is the target scene and the master reference for everything else: keep its room, camera angle, perspective, eye level, focal length, lighting direction, color temperature, shadows, and overall photographic look.
 
-If input 2 already has a chair, sofa, stool, desk, table, laptop, monitor, or any usable work area, place only the man into that existing setup. He must sit on or stand near the existing furniture. Do not copy the chair, desk, monitors, wall, decor, or background from input 1.
+Place the man INTO that scene as if he was really there when the photo was taken:
+- Match the scene's camera exactly: same perspective, lens look, depth of field, focus, film grain/noise, sharpness, and resolution. The man must share the SAME image quality and softness as the room — not crisper, not flatter, not higher-contrast.
+- Relight the man completely with the scene's light: same direction, color, and intensity. Add correct cast shadows and contact shadows where his body, hands, and arms touch the chair, desk, floor, or table.
+- Match his scale, pose, and eye level to the furniture and camera angle. If the scene already has a chair, sofa, stool, desk, or table, seat him on that existing furniture in a believable working pose. Do not import furniture or background from Input 1.
+- Hands and arms must have a clear, purposeful position. Rest both forearms naturally on the desk surface, and place his hands ON the actual tools that exist in the scene: one hand resting on the mouse with fingers gently curved over it, the other hand resting on the keyboard or flat on the desk. No hands hovering in empty space, no ambiguous or twisted wrist angles, no hands pressed awkwardly against the desk edge. Each hand must have exactly five correctly shaped fingers with anatomically natural proportions.
 
-Only if input 2 has no usable seat, table, desk, or work area, move the man together with the minimal workplace setup from input 1: chair, desk/table, laptop and monitors. Adapt them to input 2 naturally.
+Strictly avoid the "pasted sticker" look: no cut-out edges, no glow or halo around the man, no mismatched lighting or color, no floating, no double exposure, no flat overlay, no collage, no split screen, no two people, no text, labels, borders, or watermark. Avoid deformed hands, extra fingers, or fused fingers.
 
-Blend everything like one real photograph: correct scale, pose, shadows, contact shadows, occlusion, reflections, depth of field, noise, sharpness, and color temperature. Hands and arms must connect believably with the desk, laptop, chair, or table.
-
-Output only the final natural photo. No collage, split screen, sticker, poster, cartoon, extra people, text, labels, borders, or watermark.`;
+Output only one seamless, natural, photorealistic final photo.`;
 
 const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
@@ -149,6 +151,9 @@ const getClientIp = async () => {
 };
 
 const reserveWorkplaceGeneration = async () => {
+  // TEMP: per-IP limit disabled for testing. Remove the next line to restore the limit.
+  return { allowed: true, used: 0, ip: 'unlimited' };
+
   const ip = await getClientIp();
   const key = `${WORKPLACE_LIMIT_STORAGE_PREFIX}${ip}`;
   const current = Number(window.localStorage.getItem(key) || '0');
