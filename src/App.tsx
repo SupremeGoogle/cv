@@ -903,7 +903,10 @@ function App() {
                     <div className="exp-role">Разработчик (AI/ML)</div>
                     <div className="exp-company">Балтийский центр нейротехнологий и ИИ</div>
                   </div>
-                  <span className="exp-date">2024 — н.в.</span>
+                  <div className="exp-side">
+                    <span className="exp-date">2024 — н.в.</span>
+                    <PixelProjectArt variant="neural" />
+                  </div>
                 </div>
                 <p className="exp-desc">Разрабатываю интеллектуальные системы на базе AI, компьютерного зрения и анализа
                   цифрового контента. Полный цикл AI-разработки: сбор данных → датасеты → разметка → обучение → тестирование
@@ -925,7 +928,10 @@ function App() {
                     <div className="exp-role">Старший тьютор / Тьютор</div>
                     <div className="exp-company">KIBERone</div>
                   </div>
-                  <span className="exp-date">2021 — 2026</span>
+                  <div className="exp-side">
+                    <span className="exp-date">2021 — 2026</span>
+                    <PixelProjectArt variant="teach" />
+                  </div>
                 </div>
                 <p className="exp-desc">Преподавал детям 6–14 лет программирование и цифровые технологии. Последние 2 года
                   совмещал преподавание с ролью старшего тьютора: руководил академическими процессами, курировал команду,
@@ -1292,6 +1298,7 @@ function App() {
             <div className="edu-degree">ОНК Высоких технологий · Информационные системы и технологии</div>
             <div className="edu-dates">2021 — 2025</div>
             <span className="diploma-badge">✦ Красный диплом</span>
+            <PixelProjectArt variant="grad" />
           </div>
 
           <div className="certs-grid">
@@ -1324,6 +1331,7 @@ function App() {
           <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ nc -zv portfolio 8000</div>
           <h2 className="section-title">Свяжитесь <span data-value="со мной"></span></h2>
           <div className="contact-box">
+            <PixelProjectArt variant="signal" />
             <h3 className="contact-title">Готов к новым вызовам</h3>
             <p className="contact-sub">Для сотрудничества, предложений или профессионального общения — выберите любой удобный
               способ связи. Буду рад обсудить ваш проект!</p>

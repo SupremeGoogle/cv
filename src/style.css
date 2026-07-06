@@ -1212,6 +1212,46 @@ section {
   height: 100%;
 }
 
+/* Badge placements outside the projects track */
+.exp-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.edu-card {
+  position: relative;
+}
+
+.edu-card .pixel-art-badge {
+  position: absolute;
+  top: 26px;
+  right: 26px;
+  margin-left: 0;
+}
+
+.contact-box .pixel-art-badge {
+  margin: 0 auto 1.6rem;
+}
+
+@media (min-width: 581px) {
+  .edu-card .edu-name {
+    padding-right: 116px;
+  }
+}
+
+@media (max-width: 580px) {
+  .edu-card .pixel-art-badge {
+    position: static;
+    margin-top: 16px;
+  }
+
+  .exp-side {
+    align-items: flex-start;
+  }
+}
+
 .project-name {
   font-size: clamp(1.5rem, 3vw, 2.2rem);
   font-weight: 700;

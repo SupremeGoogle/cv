@@ -3,7 +3,9 @@
 // animated with namespaced CSS keyframes baked into each SVG. steps() timing
 // keeps the motion chunky, like an old handheld console.
 
-export type PixelArtVariant = 'uav' | 'monitor' | 'bots' | 'web';
+export type PixelArtVariant =
+  | 'uav' | 'monitor' | 'bots' | 'web'
+  | 'neural' | 'teach' | 'grad' | 'signal';
 
 const UavScene = () => (
   <svg viewBox="0 0 96 72" shapeRendering="crispEdges" aria-hidden="true" focusable="false">
@@ -196,11 +198,176 @@ const WebScene = () => (
   </svg>
 );
 
+const NeuralScene = () => (
+  <svg viewBox="0 0 96 72" shapeRendering="crispEdges" aria-hidden="true" focusable="false">
+    <style>{`
+      .pxa-neu-p { animation: pxa-neu-pulse 2.5s steps(1) infinite; }
+      @keyframes pxa-neu-pulse { 0%, 100% { opacity: 0.3; } 8%, 35% { opacity: 1; } 45% { opacity: 0.3; } }
+    `}</style>
+    <rect width="96" height="72" fill="#0A0A1A" />
+    {/* edges */}
+    <g stroke="#2E2E52" strokeWidth="1.5">
+      {[18, 36, 54].map(y1 => [10, 26, 42, 58].map(y2 => (
+        <line key={`a${y1}-${y2}`} x1="12" y1={y1} x2="48" y2={y2} />
+      )))}
+      {[10, 26, 42, 58].map(y1 => [26, 46].map(y2 => (
+        <line key={`b${y1}-${y2}`} x1="48" y1={y1} x2="84" y2={y2} />
+      )))}
+    </g>
+    {/* signal sweeping through the layers */}
+    <g className="pxa-neu-p" style={{ animationDelay: '0s' }} fill="#38BDF8">
+      <rect x="8" y="14" width="8" height="8" /><rect x="8" y="32" width="8" height="8" /><rect x="8" y="50" width="8" height="8" />
+    </g>
+    <g className="pxa-neu-p" style={{ animationDelay: '0.4s' }} stroke="#38BDF8" strokeWidth="1.5" opacity="0.3">
+      {[18, 36, 54].map(y1 => [10, 26, 42, 58].map(y2 => (
+        <line key={`c${y1}-${y2}`} x1="12" y1={y1} x2="48" y2={y2} />
+      )))}
+    </g>
+    <g className="pxa-neu-p" style={{ animationDelay: '0.8s' }} fill="#818CF8">
+      <rect x="44" y="6" width="8" height="8" /><rect x="44" y="22" width="8" height="8" />
+      <rect x="44" y="38" width="8" height="8" /><rect x="44" y="54" width="8" height="8" />
+    </g>
+    <g className="pxa-neu-p" style={{ animationDelay: '1.2s' }} stroke="#818CF8" strokeWidth="1.5" opacity="0.3">
+      {[10, 26, 42, 58].map(y1 => [26, 46].map(y2 => (
+        <line key={`d${y1}-${y2}`} x1="48" y1={y1} x2="84" y2={y2} />
+      )))}
+    </g>
+    <g className="pxa-neu-p" style={{ animationDelay: '1.6s' }} fill="#34D399">
+      <rect x="80" y="22" width="8" height="8" /><rect x="80" y="42" width="8" height="8" />
+    </g>
+  </svg>
+);
+
+const TeachScene = () => (
+  <svg viewBox="0 0 96 72" shapeRendering="crispEdges" aria-hidden="true" focusable="false">
+    <style>{`
+      .pxa-tea-chalk { transform-origin: 12px 0; animation: pxa-tea-chalk 5s steps(6) infinite; }
+      @keyframes pxa-tea-chalk { 0% { transform: scaleX(0); } 14% { transform: scaleX(1); } 90% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+      .pxa-tea-arm1 { animation: pxa-tea-arm 1.6s steps(1) infinite; }
+      .pxa-tea-arm2 { animation: pxa-tea-arm 1.6s steps(1) infinite reverse; }
+      @keyframes pxa-tea-arm { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+      .pxa-tea-hand { animation: pxa-tea-hand 4s steps(1) infinite; }
+      @keyframes pxa-tea-hand { 0%, 40% { opacity: 0; } 45%, 85% { opacity: 1; } 90%, 100% { opacity: 0; } }
+    `}</style>
+    <rect width="96" height="72" fill="#0A0A1A" />
+    {/* blackboard */}
+    <rect x="4" y="4" width="58" height="34" fill="#2E2E52" />
+    <rect x="6" y="6" width="54" height="30" fill="#123B2E" />
+    <g fill="#F0F0FF" opacity="0.85">
+      <rect className="pxa-tea-chalk" style={{ animationDelay: '0s' }} x="12" y="11" width="30" height="3" />
+      <rect className="pxa-tea-chalk" style={{ animationDelay: '0.5s' }} x="12" y="18" width="42" height="3" />
+      <rect className="pxa-tea-chalk" style={{ animationDelay: '1s' }} x="12" y="25" width="24" height="3" />
+    </g>
+    {/* teacher pointing at the board */}
+    <rect x="74" y="12" width="9" height="9" fill="#A0A0C0" />
+    <rect x="72" y="22" width="13" height="16" fill="#38BDF8" />
+    <rect className="pxa-tea-arm1" x="64" y="24" width="8" height="3" fill="#A0A0C0" />
+    <rect className="pxa-tea-arm2" x="64" y="30" width="8" height="3" fill="#A0A0C0" />
+    {/* students, one raising a hand */}
+    <g fill="#6868A0">
+      <rect x="12" y="52" width="8" height="8" /><rect x="9" y="60" width="14" height="8" />
+      <rect x="40" y="52" width="8" height="8" /><rect x="37" y="60" width="14" height="8" />
+      <rect x="68" y="52" width="8" height="8" /><rect x="65" y="60" width="14" height="8" />
+    </g>
+    <rect className="pxa-tea-hand" x="81" y="46" width="3" height="12" fill="#A0A0C0" />
+  </svg>
+);
+
+const GradScene = () => (
+  <svg viewBox="0 0 96 72" shapeRendering="crispEdges" aria-hidden="true" focusable="false">
+    <style>{`
+      .pxa-gra-tas { animation: pxa-gra-tas 1.8s steps(3) infinite alternate; }
+      @keyframes pxa-gra-tas { from { transform: translateX(0); } to { transform: translateX(7px); } }
+      .pxa-gra-dip { animation: pxa-gra-dip 1.4s steps(2) infinite alternate; }
+      @keyframes pxa-gra-dip { from { transform: translateY(0); } to { transform: translateY(3px); } }
+      .pxa-gra-s1 { animation: pxa-gra-spark 2.2s steps(1) infinite; }
+      .pxa-gra-s2 { animation: pxa-gra-spark 2.2s steps(1) 0.55s infinite; }
+      .pxa-gra-s3 { animation: pxa-gra-spark 2.2s steps(1) 1.1s infinite; }
+      .pxa-gra-s4 { animation: pxa-gra-spark 2.2s steps(1) 1.65s infinite; }
+      @keyframes pxa-gra-spark { 0%, 100% { opacity: 0.15; } 20%, 45% { opacity: 1; } }
+    `}</style>
+    <rect width="96" height="72" fill="#0A0A1A" />
+    {/* mortarboard */}
+    <rect x="24" y="14" width="48" height="6" fill="#F0F0FF" />
+    <rect x="30" y="20" width="36" height="3" fill="#A0A0C0" />
+    <rect x="38" y="23" width="20" height="9" fill="#6868A0" />
+    <rect x="46" y="11" width="4" height="3" fill="#34D399" />
+    {/* swinging tassel */}
+    <g className="pxa-gra-tas">
+      <rect x="68" y="20" width="2" height="7" fill="#FBBF24" />
+      <rect x="68" y="27" width="2" height="6" fill="#FBBF24" />
+      <rect x="66" y="33" width="6" height="5" fill="#FBBF24" />
+    </g>
+    {/* red diploma */}
+    <g className="pxa-gra-dip">
+      <rect x="34" y="50" width="28" height="8" fill="#F0F0FF" />
+      <rect x="44" y="50" width="8" height="8" fill="#F87171" />
+      <rect x="32" y="52" width="2" height="4" fill="#A0A0C0" />
+      <rect x="62" y="52" width="2" height="4" fill="#A0A0C0" />
+    </g>
+    {/* sparkles */}
+    <g fill="#34D399">
+      <rect className="pxa-gra-s1" x="12" y="12" width="3" height="3" />
+      <rect className="pxa-gra-s3" x="14" y="40" width="3" height="3" />
+    </g>
+    <g fill="#38BDF8">
+      <rect className="pxa-gra-s2" x="82" y="10" width="3" height="3" />
+      <rect className="pxa-gra-s4" x="80" y="44" width="3" height="3" />
+    </g>
+  </svg>
+);
+
+const SignalScene = () => (
+  <svg viewBox="0 0 96 72" shapeRendering="crispEdges" aria-hidden="true" focusable="false">
+    <style>{`
+      .pxa-sig-w1 { animation: pxa-sig-wave 1.8s steps(1) infinite; }
+      .pxa-sig-w2 { animation: pxa-sig-wave 1.8s steps(1) 0.3s infinite; }
+      .pxa-sig-w3 { animation: pxa-sig-wave 1.8s steps(1) 0.6s infinite; }
+      @keyframes pxa-sig-wave { 0%, 100% { opacity: 0.15; } 17%, 55% { opacity: 1; } }
+      .pxa-sig-plane { animation: pxa-sig-plane 3.2s steps(8) infinite; }
+      @keyframes pxa-sig-plane { 0% { transform: translate(0, 0); opacity: 1; } 80% { transform: translate(46px, -26px); opacity: 1; } 81%, 100% { transform: translate(46px, -26px); opacity: 0; } }
+      .pxa-sig-t1 { animation: pxa-sig-trail 3.2s steps(1) infinite; }
+      .pxa-sig-t2 { animation: pxa-sig-trail 3.2s steps(1) 0.5s infinite; }
+      .pxa-sig-t3 { animation: pxa-sig-trail 3.2s steps(1) 1s infinite; }
+      @keyframes pxa-sig-trail { 0%, 20% { opacity: 0; } 25%, 70% { opacity: 0.6; } 75%, 100% { opacity: 0; } }
+      .pxa-sig-seal { animation: pxa-sig-seal 1.4s steps(1) infinite; }
+      @keyframes pxa-sig-seal { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+    `}</style>
+    <rect width="96" height="72" fill="#0A0A1A" />
+    {/* envelope */}
+    <rect x="8" y="34" width="36" height="26" fill="#14324A" />
+    <rect x="8" y="34" width="36" height="3" fill="#1E4A6A" />
+    <rect x="12" y="37" width="28" height="3" fill="#1E4A6A" />
+    <rect x="18" y="40" width="16" height="3" fill="#1E4A6A" />
+    <rect x="24" y="43" width="4" height="3" fill="#1E4A6A" />
+    <rect className="pxa-sig-seal" x="24" y="50" width="4" height="4" fill="#34D399" />
+    {/* signal bars */}
+    <g fill="#34D399">
+      <rect className="pxa-sig-w1" x="58" y="50" width="7" height="10" />
+      <rect className="pxa-sig-w2" x="69" y="42" width="7" height="18" />
+      <rect className="pxa-sig-w3" x="80" y="32" width="7" height="28" />
+    </g>
+    {/* paper plane with trail */}
+    <g className="pxa-sig-plane">
+      <rect x="34" y="26" width="8" height="3" fill="#F0F0FF" />
+      <rect x="34" y="29" width="4" height="3" fill="#A0A0C0" />
+      <rect x="42" y="23" width="3" height="3" fill="#F0F0FF" />
+    </g>
+    <rect className="pxa-sig-t1" x="46" y="22" width="3" height="3" fill="#38BDF8" />
+    <rect className="pxa-sig-t2" x="58" y="15" width="3" height="3" fill="#38BDF8" />
+    <rect className="pxa-sig-t3" x="70" y="8" width="3" height="3" fill="#38BDF8" />
+  </svg>
+);
+
 const scenes = {
   uav: UavScene,
   monitor: MonitorScene,
   bots: BotsScene,
   web: WebScene,
+  neural: NeuralScene,
+  teach: TeachScene,
+  grad: GradScene,
+  signal: SignalScene,
 } satisfies Record<PixelArtVariant, () => unknown>;
 
 export default function PixelProjectArt({ variant }: { variant: PixelArtVariant }) {
