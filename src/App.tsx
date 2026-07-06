@@ -24,15 +24,18 @@ type WorkplaceAiStatus =
   | 'idle'
   | 'uploading'
   | 'submitting'      // sending the photo to /api/start-generation
-  | 'generating'      // polling /api/check-status, still within the 40s window
-  | 'awaiting_email'  // 40s passed, ask for an email
+  | 'generating'      // polling /api/check-status, first 60s window
+  | 'almost_done'     // 60s passed, give the admin another 15s with a softer message
+  | 'awaiting_email'  // 75s total, ask for an email
   | 'email_sending'   // submitting the email to /api/submit-email
   | 'email_sent'      // confirmation that the email is saved
   | 'done'
   | 'error';
 
 const POLL_INTERVAL_MS = 2000;
-const ON_SITE_WAIT_MS = 40000; // after 40s of polling, switch to the "leave email" UI
+// 60s of "generating" → 15s of "almost done" → email form.
+const ON_SITE_WAIT_MS = 60000;
+const ALMOST_DONE_EXTRA_MS = 15000;
 
 // New flow: the site uploads the workspace photo to /api/start-generation, then
 // polls /api/check-status. The admin (me) gets a Telegram notification, manually
@@ -41,8 +44,12 @@ const START_ENDPOINT = '/api/start-generation';
 const STATUS_ENDPOINT = '/api/check-status';
 const EMAIL_ENDPOINT = '/api/submit-email';
 const IMAGE_REQUEST_TIMEOUT_MS = 90000;
-const IMAGE_WIDTH = 1536;
-const IMAGE_HEIGHT = 1024;
+// 2048×1365 keeps a 3:2 photo aspect (most phone cameras) at near-original
+// detail. Combined with quality 0.95 below we land at roughly 0.7-1.2 MB —
+// well under the Vercel request body limit (~4.5 MB) even after base64.
+const IMAGE_WIDTH = 2048;
+const IMAGE_HEIGHT = 1365;
+const IMAGE_JPEG_QUALITY = 0.95;
 const WORKPLACE_GENERATION_LIMIT = 2;
 const IP_LOOKUP_ENDPOINT = 'https://api.ipify.org?format=json';
 const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
@@ -110,7 +117,7 @@ const createImageFile = async (src: string, filename: string, type: 'image/jpeg'
     canvas.toBlob(blob => {
       if (blob) resolve(blob);
       else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
-    }, type, type === 'image/jpeg' ? 0.9 : undefined);
+    }, type, type === 'image/jpeg' ? IMAGE_JPEG_QUALITY : undefined);
   });
 };
 
@@ -283,7 +290,7 @@ function App() {
        .to('.scroll-indicator', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
 
     // ── General Scroll Reveals ──
-    document.querySelectorAll('.section-label, .about-card, .exp-card, .bento-card, .edu-card, .cert-item, .workplace-cta, .contact-box').forEach(el => {
+    document.querySelectorAll('.section-label, .about-card, .exp-card, .bento-card, .edu-card, .cert-item, .workplace-cta, .contact-box, .skills-subtitle').forEach(el => {
       gsap.to(el, { opacity: 1, y: 0, duration: 0.8, scrollTrigger: { trigger: el, start: 'top 85%' } });
     });
 
@@ -636,8 +643,22 @@ function App() {
       if (workplacePollAbortRef.current) workplacePollAbortRef.current.aborted = true;
       workplacePollAbortRef.current = abort;
 
-      const deadline = Date.now() + ON_SITE_WAIT_MS;
-      const result = await pollForResult(requestId, deadline, abort);
+      // Phase 1: first 60 seconds with the regular "перемещаюсь" message.
+      const firstDeadline = Date.now() + ON_SITE_WAIT_MS;
+      let result = await pollForResult(requestId, firstDeadline, abort);
+
+      if (abort.aborted) return;
+
+      if (result) {
+        setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
+        setWorkplaceStatus('done');
+        return;
+      }
+
+      // Phase 2: another 15 seconds with a softer "almost done" message.
+      setWorkplaceStatus('almost_done');
+      const secondDeadline = Date.now() + ALMOST_DONE_EXTRA_MS;
+      result = await pollForResult(requestId, secondDeadline, abort);
 
       if (abort.aborted) return;
 
@@ -766,7 +787,7 @@ function App() {
 
                   <div className="hero-btns">
                     <a href="#projects" className="btn-primary">Портфолио</a>
-                    <a href="https://github.com/SupremeGoogle/" target="_blank" className="btn-outline">GitHub</a>
+                    <a href="https://github.com/SupremeGoogle/" target="_blank" rel="noopener noreferrer" className="btn-outline">GitHub</a>
                     <a href="mailto:gafarovakbar@mail.ru" className="btn-outline">Связаться</a>
                   </div>
                 </div>
@@ -1384,12 +1405,15 @@ function App() {
                   || workplaceStatus === 'uploading'
                   || workplaceStatus === 'submitting'
                   || workplaceStatus === 'generating'
+                  || workplaceStatus === 'almost_done'
                   || workplaceStatus === 'awaiting_email'
                   || workplaceStatus === 'email_sending'
                   || workplaceStatus === 'email_sent'
                 }
               >
-                {workplaceStatus === 'generating' || workplaceStatus === 'submitting'
+                {workplaceStatus === 'generating'
+                 || workplaceStatus === 'almost_done'
+                 || workplaceStatus === 'submitting'
                   ? 'Перемещаюсь...'
                   : 'Сгенерировать пример'}
               </button>
@@ -1463,7 +1487,7 @@ function App() {
       )}
 
       <footer className="footer">
-        <span>GA</span> · © 2025 Гафаров Акбар Маруфович
+        <span>GA</span> · © {new Date().getFullYear()} Гафаров Акбар Маруфович
       </footer>
 
       {/* ══════ MODAL ══════ */}

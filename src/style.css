@@ -2280,6 +2280,31 @@ section {
     display: none;
   }
 
+  /* Fullscreen menu opened by the hamburger — must live in the same
+     breakpoint as the hamburger itself (≤968px), otherwise the menu
+     can't open between 769 and 968px. The navbar's backdrop-filter makes
+     it the containing block for position: fixed, so inset: 0 would only
+     cover the navbar — size the overlay in viewport units instead. */
+  .nav-links.active {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--bg);
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    z-index: 1000;
+  }
+
+  .nav-links.active a {
+    font-size: 1.5rem;
+  }
+
   .hamburger {
     display: flex;
   }
@@ -2465,22 +2490,6 @@ section {
 }
 
 @media (max-width: 768px) {
-  .nav-links.active {
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    align-items: center;
-    justify-content: center;
-    gap: 2rem;
-    z-index: 1000;
-  }
-
-  .nav-links.active a {
-    font-size: 1.5rem;
-  }
-
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3859,5 +3868,43 @@ section {
 
   .workplace-actions {
     gap: 0.65rem;
+  }
+}
+
+/* ── Reduced motion: keep all reveal-animated content visible ── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .terminal-window,
+  .hero-greeting,
+  .hero-cmd,
+  .hero-title,
+  .hero-desc,
+  .hero-btns,
+  .hero-visual,
+  .scroll-indicator,
+  .section-label,
+  .section-title,
+  .skills-subtitle,
+  .about-card,
+  .exp-card,
+  .bento-card,
+  .edu-card,
+  .cert-item,
+  .stat-item,
+  .workplace-cta,
+  .contact-box {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
