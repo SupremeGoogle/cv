@@ -5,6 +5,7 @@ import './style.css'
 import OrbitingSkills from './components/ui/orbiting-skills'
 import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
 import DigitalProjectSphere, { type DigitalProject } from './components/ui/digital-project-sphere';
+import PixelProjectArt from './components/ui/pixel-project-art';
 
 const digitalProjects: DigitalProject[] = [
   { id: 1, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
@@ -1104,7 +1105,7 @@ function App() {
                   </div>
                 </div>
                 <div className="project-info">
-                  <div className="project-num"><span className="num-val">01</span> КОМПЬЮТЕРНОЕ ЗРЕНИЕ</div>
+                  <div className="project-num"><span className="num-val">01</span> КОМПЬЮТЕРНОЕ ЗРЕНИЕ<PixelProjectArt variant="uav" /></div>
                   <h3 className="project-name">Система распознавания техники для БПЛА</h3>
                   <p className="project-desc">Система компьютерного зрения для автоматического обнаружения наземной техники по
                     данным с беспилотников.</p>
@@ -1127,7 +1128,7 @@ function App() {
               <div className="project-ghost">MONITORING</div>
               <div className="project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
-                  <div className="project-num"><span className="num-val">02</span> AI АНАЛИЗ</div>
+                  <div className="project-num"><span className="num-val">02</span> AI АНАЛИЗ<PixelProjectArt variant="monitor" /></div>
                   <h3 className="project-name">Система мониторинга контента</h3>
                   <p className="project-desc">Интеллектуальная система выявления признаков продажи запрещённых веществ с
                     применением RAG-подходов.</p>
@@ -1183,7 +1184,7 @@ function App() {
                   </div>
                 </div>
                 <div className="project-info">
-                  <div className="project-num"><span className="num-val">03</span> АВТОМАТИЗАЦИЯ</div>
+                  <div className="project-num"><span className="num-val">03</span> АВТОМАТИЗАЦИЯ<PixelProjectArt variant="bots" /></div>
                   <h3 className="project-name">Telegram-боты для автоматизации</h3>
                   <p className="project-desc">Серия из 10+ Telegram-ботов для реальных бизнес-задач: налоговый вычет, учёт
                     медиафайлов, CRM-процессы.</p>
@@ -1210,7 +1211,7 @@ function App() {
               <div className="project-ghost">DIGITAL WEB</div>
               <div className="project-slide-content digital-project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
-                  <div className="project-num"><span className="num-val">04</span> WEB-РАЗРАБОТКА</div>
+                  <div className="project-num"><span className="num-val">04</span> WEB-РАЗРАБОТКА<PixelProjectArt variant="web" /></div>
                   <h3 className="project-name">Коммерческие digital-проекты</h3>
                   <p className="project-desc">Более 15 коммерческих сайтов и digital-решений для бизнеса Калининграда:
                     от лендингов до платформ с интеграцией и обработкой данных.</p>

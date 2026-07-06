@@ -1192,6 +1192,26 @@ section {
   font-weight: 700;
 }
 
+/* Pixel-art scene badge at the right edge of the num/category row */
+.pixel-art-badge {
+  margin-left: auto;
+  width: 96px;
+  height: 72px;
+  flex: 0 0 auto;
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0A0A1A;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 0 18px rgba(52, 211, 153, 0.06);
+}
+
+.pixel-art-badge svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .project-name {
   font-size: clamp(1.5rem, 3vw, 2.2rem);
   font-weight: 700;
