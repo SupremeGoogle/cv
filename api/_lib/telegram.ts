@@ -65,6 +65,36 @@ export const tgSendPhotoBase64 = async (
   return json.result;
 };
 
+// Send a base64 file as an uncompressed document — Telegram passes the bytes
+// through unchanged. Use this when the recipient needs original resolution
+// (sendPhoto re-compresses everything down to ~1280px).
+export const tgSendDocumentBase64 = async (
+  chatId: string | number,
+  base64: string,
+  filename: string,
+  caption: string,
+  replyMarkup?: unknown,
+) => {
+  ensureBot();
+  const buffer = Buffer.from(base64, 'base64');
+  const form = new FormData();
+  form.append('chat_id', String(chatId));
+  form.append('caption', caption);
+  form.append('parse_mode', 'HTML');
+  if (replyMarkup) form.append('reply_markup', JSON.stringify(replyMarkup));
+  form.append('document', new Blob([buffer]), filename);
+
+  const res = await fetch(`https://api.telegram.org/bot${TOKEN}/sendDocument`, {
+    method: 'POST',
+    body: form as any,
+  });
+  const json: any = await res.json();
+  if (!json?.ok) {
+    throw new Error(`Telegram sendDocument failed: ${json?.description || res.status}`);
+  }
+  return json.result;
+};
+
 // Download a file the user sent to the bot, return base64.
 export const tgDownloadFileAsBase64 = async (fileId: string): Promise<{ base64: string; mimeType: string }> => {
   ensureBot();

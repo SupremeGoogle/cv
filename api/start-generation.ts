@@ -5,7 +5,7 @@
 // 4. We return { requestId } so the frontend can start polling /api/check-status.
 
 import { kvSet } from './_lib/kv.js';
-import { adminChatId, tgSendPhotoBase64 } from './_lib/telegram.js';
+import { adminChatId, tgSendDocumentBase64 } from './_lib/telegram.js';
 
 const REQUEST_TTL_SECONDS = 60 * 60 * 24; // 1 day — plenty for a manual reply
 
@@ -106,10 +106,13 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    await tgSendPhotoBase64(
+    // sendDocument (not sendPhoto) — Telegram passes the file through without
+    // its usual 1280px re-compression. The admin needs full resolution for AI Studio.
+    await tgSendDocumentBase64(
       adminChatId(),
       workspaceImage,
-      `🆕 <b>Новая заявка #${requestId}</b>\n\nКто-то загрузил фото рабочего места на сайте.\nСгенерируй результат в AI Studio и пришли его боту, нажав кнопку ниже.`,
+      `workspace-${requestId}.jpg`,
+      `🆕 <b>Новая заявка #${requestId}</b>\n\nКто-то загрузил фото рабочего места на сайте.\nСгенерируй результат в AI Studio и пришли его боту, нажав кнопку ниже.\n\n💡 <i>Совет: тоже присылай готовое фото как «файл» (через скрепку → File), а не как Photo — иначе Telegram сожмёт качество.</i>`,
       {
         inline_keyboard: [
           [{ text: '📤 Загрузить готовое фото', callback_data: `upload:${requestId}` }],
