@@ -1004,30 +1004,36 @@ section {
   padding: 0 5vw;
 }
 
+@media (min-width: 969px) {
+  .projects-track-wrapper {
+    margin-top: 1.5rem;
+  }
+}
+
 /* Project slide */
 .project-slide {
   position: relative;
-  min-height: 85vh;
-  width: 110vw;
-  max-width: 2000px;
+  min-height: 76vh;
+  width: 92vw;
+  max-width: 1440px;
   display: flex;
   align-items: center;
   padding-top: 0;
-  margin-right: 15vw;
-  padding-left: 4rem;
-  padding-right: 4rem;
+  margin-right: 6vw;
+  padding-left: 3rem;
+  padding-right: 3rem;
   opacity: 1;
   /* handled in JS */
   transform: none;
 }
 
 .project-slide-standard {
-  width: 140vw;
-  min-height: 85vh;
+  width: 92vw;
+  min-height: 76vh;
 }
 
 .project-slide-standard .browser-body {
-  min-height: 480px;
+  min-height: 420px;
 }
 
 .project-slide-standard .project-video-wrapper {
@@ -1058,8 +1064,8 @@ section {
 
 .project-slide-content {
   display: grid;
-  grid-template-columns: 1.5fr 0.5fr;
-  gap: 8rem;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3.5rem;
   align-items: center;
   width: 100%;
   position: relative;
@@ -1192,15 +1198,16 @@ section {
   font-weight: 700;
 }
 
-/* Pixel-art scene badge at the right edge of the num/category row */
+/* Pixel-art scene badge at the right edge of the num/category row.
+   144x108 = exact 1.5x of the 96x72 pixel grid, so pixels stay crisp. */
 .pixel-art-badge {
   margin-left: auto;
-  width: 96px;
-  height: 72px;
+  width: 144px;
+  height: 108px;
   flex: 0 0 auto;
   display: block;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   background: #0A0A1A;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 0 18px rgba(52, 211, 153, 0.06);
@@ -1231,13 +1238,27 @@ section {
   margin-left: 0;
 }
 
+@media (max-width: 968px) {
+  .pixel-art-badge {
+    width: 96px;
+    height: 72px;
+    border-radius: 10px;
+  }
+}
+
 .contact-box .pixel-art-badge {
   margin: 0 auto 1.6rem;
 }
 
 @media (min-width: 581px) {
   .edu-card .edu-name {
-    padding-right: 116px;
+    padding-right: 168px;
+  }
+}
+
+@media (min-width: 581px) and (max-width: 968px) {
+  .edu-card .edu-name {
+    padding-right: 120px;
   }
 }
 
@@ -2249,12 +2270,12 @@ section {
 /* ── Responsive ── */
 @media (max-width: 1400px) {
   .project-slide {
-    width: 90vw;
+    width: 92vw;
     margin-right: 5vw;
   }
 
   .project-slide-content {
-    gap: 4rem;
+    gap: 3rem;
   }
 }
 
@@ -2690,8 +2711,8 @@ section {
 }
 
 .digital-project-slide-content {
-  grid-template-columns: 0.68fr 1.32fr;
-  gap: 3rem;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 2.5rem;
 }
 
 .digital-project-list {
