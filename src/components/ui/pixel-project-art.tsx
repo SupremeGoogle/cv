@@ -240,35 +240,49 @@ const NeuralScene = () => (
 const TeachScene = () => (
   <svg viewBox="0 0 96 72" shapeRendering="crispEdges" aria-hidden="true" focusable="false">
     <style>{`
-      .pxa-tea-chalk { transform-origin: 12px 0; animation: pxa-tea-chalk 5s steps(6) infinite; }
-      @keyframes pxa-tea-chalk { 0% { transform: scaleX(0); } 14% { transform: scaleX(1); } 90% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+      .pxa-tea-code { transform-origin: 13px 0; animation: pxa-tea-code 5s steps(6) infinite; }
+      @keyframes pxa-tea-code { 0% { transform: scaleX(0); } 14% { transform: scaleX(1); } 90% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+      .pxa-tea-cursor { animation: pxa-tea-cursor 0.9s steps(1) infinite; }
+      @keyframes pxa-tea-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       .pxa-tea-arm1 { animation: pxa-tea-arm 1.6s steps(1) infinite; }
       .pxa-tea-arm2 { animation: pxa-tea-arm 1.6s steps(1) infinite reverse; }
       @keyframes pxa-tea-arm { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-      .pxa-tea-hand { animation: pxa-tea-hand 4s steps(1) infinite; }
-      @keyframes pxa-tea-hand { 0%, 40% { opacity: 0; } 45%, 85% { opacity: 1; } 90%, 100% { opacity: 0; } }
+      .pxa-tea-hand { animation: pxa-tea-hand 4.5s steps(1) infinite; }
+      @keyframes pxa-tea-hand { 0%, 55% { opacity: 0; } 60%, 92% { opacity: 1; } 96%, 100% { opacity: 0; } }
+      .pxa-tea-star { animation: pxa-tea-star 4.5s steps(2) infinite; }
+      @keyframes pxa-tea-star {
+        0%, 12% { opacity: 0; transform: translateY(5px); }
+        16%, 42% { opacity: 1; transform: translateY(0); }
+        48%, 100% { opacity: 0; transform: translateY(-4px); }
+      }
     `}</style>
     <rect width="96" height="72" fill="#0A0A1A" />
-    {/* blackboard */}
-    <rect x="4" y="4" width="60" height="36" fill="#2E2E52" />
-    <rect x="7" y="7" width="54" height="30" fill="#123B2E" />
-    <g fill="#F0F0FF" opacity="0.9">
-      <rect className="pxa-tea-chalk" style={{ animationDelay: '0s' }} x="12" y="12" width="32" height="4" />
-      <rect className="pxa-tea-chalk" style={{ animationDelay: '0.5s' }} x="12" y="20" width="44" height="4" />
-      <rect className="pxa-tea-chalk" style={{ animationDelay: '1s' }} x="12" y="28" width="26" height="4" />
-    </g>
-    {/* teacher pointing at the board */}
-    <rect x="76" y="8" width="11" height="11" fill="#A0A0C0" />
-    <rect x="73" y="20" width="17" height="20" fill="#38BDF8" />
-    <rect className="pxa-tea-arm1" x="64" y="23" width="9" height="4" fill="#A0A0C0" />
-    <rect className="pxa-tea-arm2" x="64" y="31" width="9" height="4" fill="#A0A0C0" />
-    {/* students, one raising a hand */}
+    {/* big screen with code being typed */}
+    <rect x="4" y="4" width="62" height="36" fill="#2E2E52" />
+    <rect x="7" y="7" width="56" height="30" fill="#0E0E24" />
+    <rect className="pxa-tea-code" style={{ animationDelay: '0s' }} x="13" y="11" width="26" height="4" fill="#818CF8" />
+    <rect className="pxa-tea-code" style={{ animationDelay: '0.5s' }} x="19" y="18" width="32" height="4" fill="#38BDF8" />
+    <rect className="pxa-tea-code" style={{ animationDelay: '1s' }} x="19" y="25" width="22" height="4" fill="#34D399" />
+    <rect className="pxa-tea-cursor" x="44" y="25" width="4" height="4" fill="#F0F0FF" />
+    {/* teacher pointing at the screen */}
+    <rect x="78" y="8" width="11" height="11" fill="#A0A0C0" />
+    <rect x="75" y="20" width="17" height="20" fill="#38BDF8" />
+    <rect className="pxa-tea-arm1" x="66" y="23" width="9" height="4" fill="#A0A0C0" />
+    <rect className="pxa-tea-arm2" x="66" y="31" width="9" height="4" fill="#A0A0C0" />
+    {/* students: one levels up with a star, one raises a hand */}
     <g fill="#6868A0">
       <rect x="11" y="50" width="10" height="10" /><rect x="7" y="60" width="18" height="10" />
       <rect x="39" y="50" width="10" height="10" /><rect x="35" y="60" width="18" height="10" />
       <rect x="67" y="50" width="10" height="10" /><rect x="63" y="60" width="18" height="10" />
     </g>
-    <rect className="pxa-tea-hand" x="80" y="42" width="4" height="12" fill="#A0A0C0" />
+    <g className="pxa-tea-star" fill="#FBBF24">
+      <rect x="42" y="38" width="4" height="4" />
+      <rect x="38" y="42" width="4" height="4" />
+      <rect x="42" y="42" width="4" height="4" />
+      <rect x="46" y="42" width="4" height="4" />
+      <rect x="42" y="46" width="4" height="4" />
+    </g>
+    <rect className="pxa-tea-hand" x="23" y="41" width="4" height="11" fill="#A0A0C0" />
   </svg>
 );
 
