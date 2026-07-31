@@ -42,8 +42,17 @@ const ALMOST_DONE_EXTRA_MS = 15000;
 // polls /api/check-status. The admin (me) gets a Telegram notification, manually
 // generates the result in AI Studio and sends it back via the bot.
 const START_ENDPOINT = '/api/start-generation';
+const GENERATE_ENDPOINT = '/api/generate';
 const STATUS_ENDPOINT = '/api/check-status';
 const EMAIL_ENDPOINT = '/api/submit-email';
+// Identity reference shipped with the site; glued next to the visitor's photo
+// before the request goes to the image model.
+const REFERENCE_FACE_URL = '/reference-face.jpg';
+// Both panels of the two-panel sheet share this height and keep their own
+// aspect ratio; the scene panel is capped so the sheet can't grow unbounded.
+const COMPOSITE_PANEL_HEIGHT = 1024;
+const COMPOSITE_MAX_SCENE_WIDTH = 1536;
+const COMPOSITE_SEAM = 6;
 const IMAGE_REQUEST_TIMEOUT_MS = 90000;
 // 2048×1365 keeps a 3:2 photo aspect (most phone cameras) at near-original
 // detail. Combined with quality 0.95 below we land at roughly 0.7-1.2 MB —
@@ -119,6 +128,51 @@ const createImageFile = async (src: string, filename: string, type: 'image/jpeg'
       if (blob) resolve(blob);
       else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
     }, type, type === 'image/jpeg' ? IMAGE_JPEG_QUALITY : undefined);
+  });
+};
+
+// Glue the identity reference and the visitor's scene into one side-by-side
+// image. DeepInfra's edits endpoint accepts a single file, so this two-panel
+// sheet is how the model gets both inputs — api/_lib/prompt.ts explains the
+// layout to the model and tells it to return only the right-hand panel.
+const createCompositeImage = async (workspaceDataUrl: string) => {
+  const [reference, workspace] = await Promise.all([
+    loadImage(REFERENCE_FACE_URL),
+    loadImage(workspaceDataUrl),
+  ]);
+
+  // Both panels share a height and keep their own aspect ratio. Padding either
+  // one into a square would waste roughly a third of the pixels the model gets
+  // to look at — and the scene panel is where detail matters most.
+  const panelWidth = (image: HTMLImageElement, max: number) => {
+    const ratio = image.naturalWidth / image.naturalHeight;
+    return Math.max(1, Math.min(max, Math.round(COMPOSITE_PANEL_HEIGHT * ratio)));
+  };
+  const referenceWidth = panelWidth(reference, COMPOSITE_PANEL_HEIGHT);
+  const workspaceWidth = panelWidth(workspace, COMPOSITE_MAX_SCENE_WIDTH);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = referenceWidth + COMPOSITE_SEAM + workspaceWidth;
+  canvas.height = COMPOSITE_PANEL_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawContain(ctx, reference, 0, 0, referenceWidth, canvas.height);
+  drawContain(ctx, workspace, referenceWidth + COMPOSITE_SEAM, 0, workspaceWidth, canvas.height);
+
+  // A hard seam helps the model read this as two separate panels rather than
+  // one wide room.
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(referenceWidth, 0, COMPOSITE_SEAM, canvas.height);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      blob => (blob ? resolve(blob) : reject(new Error('Не удалось собрать изображение для генерации.'))),
+      'image/jpeg',
+      IMAGE_JPEG_QUALITY,
+    );
   });
 };
 
@@ -635,6 +689,28 @@ function App() {
       const requestId: string = startPayload?.requestId;
       if (!requestId) throw new Error('Сервер не вернул ID заявки.');
       setWorkplaceRequestId(requestId);
+
+      // 1b. Kick off automatic generation. Deliberately not awaited: the polling
+      //     loop below is what surfaces the result, and every failure mode here
+      //     (no token, spent budget, model error) just means the admin answers
+      //     by hand — which /api/start-generation has already set up.
+      void (async () => {
+        try {
+          const compositeBlob = await createCompositeImage(workplacePreview);
+          const compositeBase64 = await blobToBase64(compositeBlob);
+          const response = await fetch(GENERATE_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId, compositeImage: compositeBase64 }),
+          });
+          const payload = await response.json().catch(() => null);
+          if (!payload?.generated) {
+            console.info('[workplace] авто-генерация недоступна, ждём ручную:', payload?.reason);
+          }
+        } catch (error) {
+          console.warn('[workplace] авто-генерация не запустилась:', error);
+        }
+      })();
 
       // 2. Poll for up to ON_SITE_WAIT_MS. If a result arrives — show it. Otherwise
       //    surface the email form.

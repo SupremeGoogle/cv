@@ -2,9 +2,12 @@
 // GET /api/health → JSON with all the diagnostic data we need to debug setup.
 
 import { kvEnvStatus, kvGet, kvSet, kvDel } from './_lib/kv.js';
+import { deepinfraEnvStatus } from './_lib/deepinfra.js';
+import { globalDailyLimit, perIpDailyLimit } from './_lib/limits.js';
 
 export default async function handler(_req: any, res: any) {
   const envs = {
+    DEEPINFRA_TOKEN: !!process.env.DEEPINFRA_TOKEN,
     TELEGRAM_BOT_TOKEN: !!process.env.TELEGRAM_BOT_TOKEN,
     TELEGRAM_ADMIN_CHAT_ID: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
     KV_REST_API_URL: !!process.env.KV_REST_API_URL,
@@ -50,5 +53,10 @@ export default async function handler(_req: any, res: any) {
     kv: kvCheck,
     telegram: telegramCheck,
     adminChatIdSet: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
+    autoGeneration: {
+      ...deepinfraEnvStatus(),
+      perIpDailyLimit: perIpDailyLimit(),
+      globalDailyLimit: globalDailyLimit(),
+    },
   });
 }

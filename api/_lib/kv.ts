@@ -74,3 +74,32 @@ export const kvDel = async (key: string) => {
   const url = `${KV_URL}/del/${encodeURIComponent(key)}`;
   await fetch(url, { method: 'POST', headers: headers() });
 };
+
+/**
+ * Atomically increment a counter and return its new value. Used for rate limits,
+ * where a read-modify-write cycle would let concurrent requests overwrite each
+ * other. The TTL is applied on the first increment so counters expire on their own.
+ */
+export const kvIncr = async (key: string, ttlSeconds: number): Promise<number> => {
+  ensureKv();
+  const res = await fetch(`${KV_URL}/incr/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: headers(),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`KV incr failed (${res.status}): ${text}`);
+  }
+  const data = await res.json();
+  const value = Number(data?.result ?? 0);
+
+  // First hit on this key — give it an expiry so old days clean themselves up.
+  if (value === 1) {
+    await fetch(`${KV_URL}/expire/${encodeURIComponent(key)}/${ttlSeconds}`, {
+      method: 'POST',
+      headers: headers(),
+    }).catch(() => { /* a counter without TTL is survivable, don't fail the request */ });
+  }
+
+  return value;
+};

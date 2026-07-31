@@ -22,6 +22,7 @@ type StoredRequest = {
   email: string | null;
   resultImage: string | null;
   resultMimeType: string | null;
+  source?: 'auto' | 'manual';
 };
 
 const PENDING_KEY = 'admin:pending';   // which requestId the admin is about to reply to
@@ -109,15 +110,16 @@ async function handleUpdate(update: any) {
         await tgAnswerCallback(callbackId, 'Эта заявка уже истекла.');
         return;
       }
-      if (stored.status === 'done') {
-        await tgAnswerCallback(callbackId, 'По этой заявке уже отправлен результат.');
-        return;
-      }
+      // A finished request can still be re-armed: that is how a bad automatic
+      // generation gets replaced by a hand-made one.
+      const isReplacement = stored.status === 'done';
       await kvSet(PENDING_KEY, { requestId, armedAt: Date.now() }, PENDING_TTL);
-      await tgAnswerCallback(callbackId, 'Готов принять фото.');
+      await tgAnswerCallback(callbackId, isReplacement ? 'Жду фото на замену.' : 'Готов принять фото.');
       await tgSendMessage(
         adminChatId(),
-        `📥 Жду фото-результат для заявки <b>#${requestId}</b>.\n\nПросто пришли картинку сюда — я сохраню её и покажу клиенту на сайте.`,
+        isReplacement
+          ? `♻️ Жду фото на <b>замену</b> для заявки <b>#${requestId}</b>.\n\nПришли картинку сюда — она перезапишет автоматический результат. Если клиент ещё на сайте, он увидит новое фото.`
+          : `📥 Жду фото-результат для заявки <b>#${requestId}</b>.\n\nПросто пришли картинку сюда — я сохраню её и покажу клиенту на сайте.`,
       );
       console.log(`[webhook] armed for ${requestId}, replied to admin`);
       return;
@@ -178,11 +180,13 @@ async function handleUpdate(update: any) {
     return;
   }
 
+  const wasAuto = stored.status === 'done' && stored.source === 'auto';
   const updated: StoredRequest = {
     ...stored,
     status: 'done',
     resultImage: downloaded.base64,
     resultMimeType: downloaded.mimeType,
+    source: 'manual',
   };
   await kvSet(`req:${pending.requestId}`, updated);
   await kvDel(PENDING_KEY);
@@ -193,6 +197,8 @@ async function handleUpdate(update: any) {
 
   await tgSendMessage(
     message.chat.id,
-    `✅ Результат для заявки <b>#${pending.requestId}</b> сохранён. Если клиент ещё на сайте — он увидит фото в ближайшие секунды.${emailLine}`,
+    wasAuto
+      ? `✅ Автоматический результат для заявки <b>#${pending.requestId}</b> заменён твоим фото. Если клиент ещё на сайте — он увидит новое фото в ближайшие секунды.${emailLine}`
+      : `✅ Результат для заявки <b>#${pending.requestId}</b> сохранён. Если клиент ещё на сайте — он увидит фото в ближайшие секунды.${emailLine}`,
   );
 }
