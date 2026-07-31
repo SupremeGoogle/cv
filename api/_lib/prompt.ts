@@ -10,9 +10,11 @@
 // which is tuned for Nano Banana and already handles the hard parts: re-drawing
 // rather than pasting, relighting, contact shadows, hands.
 
-export const WORKPLACE_PROMPT = `The attached image is a two-panel reference sheet, NOT the final composition. The LEFT panel is an identity reference of a man. The RIGHT panel is a target scene photograph.
+export const WORKPLACE_PROMPT = `CRITICAL OUTPUT RULE, READ FIRST: the attached image is a two-panel WORKING SHEET, not a picture to edit. A thick black vertical bar splits it. Everything LEFT of that bar is a private identity reference that MUST NOT appear in your output in any form. Everything RIGHT of that bar is the only scene you may output.
 
-Generate ONE brand-new photograph of the RIGHT panel's scene with the man from the LEFT panel naturally present in it. Output ONLY that single scene photograph, at the RIGHT panel's aspect ratio. Never output a two-panel image, a side-by-side, a split screen, a collage, or any part of the left panel's background.
+Your output is a single photograph of the RIGHT-hand scene alone, cropped exactly at the black bar, with the same width-to-height proportions as that right panel. The output must contain NO black bar, NO left panel, NO portrait inset, NO second image, NO split screen, NO side-by-side, NO collage, NO border, and exactly ONE person. If your result still shows two panels, you have failed the task — re-frame to the right panel only.
+
+The LEFT panel tells you what the man looks like. The RIGHT panel is the room he must appear in. Generate ONE brand-new photograph of that room with this man naturally present in it.
 
 The LEFT panel is ONLY an identity reference — it tells you what the man looks like (face, hair, build, black t-shirt, watch). Do NOT copy, cut out, or paste pixels from it. Re-draw and re-photograph this exact same man from scratch so he naturally belongs in the new scene. The final face must be unmistakably the same real person — same face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hairline, and age — but freshly rendered inside the scene, never a pasted cut-out.
 

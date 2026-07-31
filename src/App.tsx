@@ -6,9 +6,9 @@ import OrbitingSkills from './components/ui/orbiting-skills'
 import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
 import DigitalProjectSphere, { type DigitalProject } from './components/ui/digital-project-sphere';
 import PixelProjectArt from './components/ui/pixel-project-art';
-import GridDistortion from './components/ui/GridDistortion';
 import CardSwap, { Card } from './components/ui/CardSwap';
 import Folder from './components/ui/Folder';
+import ProfileCard from './components/ui/ProfileCard';
 
 const digitalProjects: DigitalProject[] = [
   { id: 1, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
@@ -50,7 +50,7 @@ const STATUS_ENDPOINT = '/api/check-status';
 const EMAIL_ENDPOINT = '/api/submit-email';
 // Identity reference shipped with the site; glued next to the visitor's photo
 // before the request goes to the image model.
-const REFERENCE_FACE_URL = '/reference-face.jpg';
+const REFERENCE_FACE_URL = '/me2.jpg';
 // Both panels of the two-panel sheet share this height and keep their own
 // aspect ratio; the scene panel is capped so the sheet can't grow unbounded.
 const COMPOSITE_PANEL_HEIGHT = 1024;
@@ -138,6 +138,40 @@ const createImageFile = async (src: string, filename: string, type: 'image/jpeg'
 // image. DeepInfra's edits endpoint accepts a single file, so this two-panel
 // sheet is how the model gets both inputs — api/_lib/prompt.ts explains the
 // layout to the model and tells it to return only the right-hand panel.
+// Safety net for the two-panel sheet: the model is told to return only the
+// right-hand scene, but it sometimes hands back the whole sheet with the
+// identity reference still glued to the left. When the result comes back far
+// wider than the scene it was built from, chop that left panel off.
+const cropAwayReferencePanel = async (
+  resultDataUrl: string,
+  referenceFraction: number,
+  sceneAspect: number,
+): Promise<string> => {
+  try {
+    const image = await loadImage(resultDataUrl);
+    const resultAspect = image.naturalWidth / image.naturalHeight;
+
+    // A correct result matches the scene's proportions. Only step in when the
+    // result is clearly wider, which is the signature of the sheet coming back.
+    if (resultAspect < sceneAspect * 1.25) return resultDataUrl;
+
+    const cropX = Math.round(image.naturalWidth * referenceFraction);
+    const cropWidth = image.naturalWidth - cropX;
+    if (cropWidth < 32) return resultDataUrl;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = cropWidth;
+    canvas.height = image.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return resultDataUrl;
+
+    ctx.drawImage(image, cropX, 0, cropWidth, image.naturalHeight, 0, 0, cropWidth, image.naturalHeight);
+    return canvas.toDataURL('image/jpeg', 0.95);
+  } catch {
+    return resultDataUrl;
+  }
+};
+
 const createCompositeImage = async (workspaceDataUrl: string) => {
   const [reference, workspace] = await Promise.all([
     loadImage(REFERENCE_FACE_URL),
@@ -170,13 +204,21 @@ const createCompositeImage = async (workspaceDataUrl: string) => {
   ctx.fillStyle = '#000000';
   ctx.fillRect(referenceWidth, 0, COMPOSITE_SEAM, canvas.height);
 
-  return new Promise<Blob>((resolve, reject) => {
+  const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
-      blob => (blob ? resolve(blob) : reject(new Error('Не удалось собрать изображение для генерации.'))),
+      b => (b ? resolve(b) : reject(new Error('Не удалось собрать изображение для генерации.'))),
       'image/jpeg',
       IMAGE_JPEG_QUALITY,
     );
   });
+
+  // Geometry travels with the sheet so the result can be un-glued if the model
+  // hands the whole thing back — see cropAwayReferencePanel.
+  return {
+    blob,
+    referenceFraction: (referenceWidth + COMPOSITE_SEAM) / canvas.width,
+    sceneAspect: workspaceWidth / canvas.height,
+  };
 };
 
 const extractApiError = (payload: unknown) => {
@@ -286,6 +328,9 @@ function App() {
   const workplaceInputRef = useRef<HTMLInputElement | null>(null);
   // Tracks the active polling loop so we can cancel it when the modal closes or status changes.
   const workplacePollAbortRef = useRef<{ aborted: boolean } | null>(null);
+  // Proportions of the two-panel sheet, used to un-glue a result that came back
+  // with the identity reference still attached.
+  const compositeGeometryRef = useRef<{ referenceFraction: number; sceneAspect: number } | null>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -638,6 +683,13 @@ function App() {
     return null;
   };
 
+  const normalizeResult = async (result: { image: string; mimeType: string }) => {
+    const dataUrl = `data:${result.mimeType};base64,${result.image}`;
+    const geometry = compositeGeometryRef.current;
+    if (!geometry) return dataUrl;
+    return cropAwayReferencePanel(dataUrl, geometry.referenceFraction, geometry.sceneAspect);
+  };
+
   const generateWorkplaceImage = async () => {
     if (!workplacePreview) {
       setWorkplaceStatus('error');
@@ -699,8 +751,12 @@ function App() {
       //     by hand — which /api/start-generation has already set up.
       void (async () => {
         try {
-          const compositeBlob = await createCompositeImage(workplacePreview);
-          const compositeBase64 = await blobToBase64(compositeBlob);
+          const composite = await createCompositeImage(workplacePreview);
+          compositeGeometryRef.current = {
+            referenceFraction: composite.referenceFraction,
+            sceneAspect: composite.sceneAspect,
+          };
+          const compositeBase64 = await blobToBase64(composite.blob);
           const response = await fetch(GENERATE_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -730,7 +786,7 @@ function App() {
       if (abort.aborted) return;
 
       if (result) {
-        setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
+        setWorkplaceResult(await normalizeResult(result));
         setWorkplaceStatus('done');
         return;
       }
@@ -743,7 +799,7 @@ function App() {
       if (abort.aborted) return;
 
       if (result) {
-        setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
+        setWorkplaceResult(await normalizeResult(result));
         setWorkplaceStatus('done');
         return;
       }
@@ -827,9 +883,9 @@ function App() {
 
       {/* ══════ HERO ══════ */}
       <section className="hero" id="hero">
-        <div className="hero-distortion">
-          <GridDistortion imageSrc="/hero-bg.jpg" grid={14} mouse={0.12} strength={0.16} relaxation={0.91} />
-        </div>
+        <video autoPlay loop muted playsInline id="hero-video">
+          <source src="/ezgif-40e95fbedf42a49f.mp4" type="video/mp4" />
+        </video>
         <div className="hero-video-overlay"></div>
         <div className="container">
           <div className="hero-content">
@@ -951,7 +1007,7 @@ function App() {
           <div className="stats-folder">
             <div className="stats-folder-slot">
               <Folder
-                size={2.6}
+                size={2.1}
                 color="#34D399"
                 items={[
                   { value: '4+', label: 'Лет в IT и обучении' },
@@ -1044,16 +1100,6 @@ function App() {
           <p className="skills-subtitle">Работаю в трёх направлениях: компьютерное зрение, автоматизация и данные.
             Что-то знаю глубже, что-то ещё изучаю — но берусь только за то, что могу довести до конца.</p>
           <div className="skills-swap-layout">
-            <div className="skills-swap-copy">
-              <h3>Чем я занимаюсь</h3>
-              <p>Участвую в полном цикле: от сбора данных до запуска. Где-то делаю сам, где-то работаю
-                в команде — и стараюсь, чтобы результатом можно было пользоваться без меня.</p>
-              <ul className="skills-swap-list">
-                <li>Довожу задачи до рабочего состояния, а не до демо</li>
-                <li>Пишу так, чтобы разобрался и другой человек: документация, Docker, понятная структура</li>
-                <li>Стараюсь объяснять решения простым языком — привычка из преподавания</li>
-              </ul>
-            </div>
             <div className="skills-swap-stage">
               <CardSwap width={440} height={330} cardDistance={54} verticalDistance={62} delay={4200} pauseOnHover easing="elastic">
                 <Card customClass="skill-card">
@@ -1216,18 +1262,18 @@ function App() {
                   <p className="project-desc">Серия из 10+ Telegram-ботов для реальных бизнес-задач: налоговый вычет, учёт
                     медиафайлов, CRM-процессы.</p>
                   <ul className="project-tasks">
-                    <li><strong>@kiberoneKLD_bot</strong> — CRM, рассылки, заявки</li>
-                    <li><strong>@etagi_kaliningrad_bot</strong> — CRM, умные ссылки</li>
-                    <li><strong>@AZTmoto_bot</strong> — Рассылки и каталог магазина</li>
-                    <li><strong>@Dreamcars39_bot</strong> — Управление бронированием</li>
-                    <li><strong>@kibernalog_bot</strong> — Генератор документов</li>
-                    <li><strong>@KIBERoneVisor_bot</strong> — Контроль качества чатов</li>
-                    <li><strong>@allinterior_bot</strong> — ИИ-консультант по дизайну</li>
+                    <li><a href="https://t.me/kiberoneKLD_bot" target="_blank" rel="noopener noreferrer" className="project-bot-link"><strong>@kiberoneKLD_bot</strong></a> — CRM, рассылки, онлайн-запись</li>
+                    <li><a href="https://t.me/AZTmoto_bot" target="_blank" rel="noopener noreferrer" className="project-bot-link"><strong>@AZTmoto_bot</strong></a> — Каталог, рассылки</li>
+                    <li><a href="https://t.me/Dreamcars39_bot" target="_blank" rel="noopener noreferrer" className="project-bot-link"><strong>@Dreamcars39_bot</strong></a> — Бронирование авто</li>
+                    <li><a href="https://t.me/veri_x_bot" target="_blank" rel="noopener noreferrer" className="project-bot-link"><strong>@veri_x_bot</strong></a> — Экосистема VeriX &amp; Автоматизация</li>
+                    <li><a href="https://t.me/KIBERoneVisor_bot" target="_blank" rel="noopener noreferrer" className="project-bot-link"><strong>@KIBERoneVisor_bot</strong></a> — Мониторинг родительских чатов</li>
                   </ul>
                   <div className="tags">
                     <span className="tag">Python</span>
                     <span className="tag-blue tag">Telegram Bot API</span>
-                    <span className="tag-blue tag">SQL</span>
+                    <span className="tag-purple tag">Aiogram</span>
+                    <span className="tag-blue tag">PostgreSQL</span>
+                    <span className="tag-purple tag">Docker</span>
                   </div>
                 </div>
               </div>
@@ -1240,8 +1286,7 @@ function App() {
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
                   <div className="project-num"><span className="num-val">04</span> WEB-РАЗРАБОТКА<PixelProjectArt variant="web" /></div>
                   <h3 className="project-name">Коммерческие digital-проекты</h3>
-                  <p className="project-desc">Более 15 коммерческих сайтов и digital-решений для бизнеса Калининграда:
-                    от лендингов до платформ с интеграцией и обработкой данных.</p>
+                  <p className="project-desc">Более 15 коммерческих сайтов и digital-решений для бизнеса Калининграда — от лендингов до многофункциональных платформ с CRM-интеграцией.</p>
                   <ul className="project-tasks digital-project-list">
                     {digitalProjects.map(project => (
                       <li key={project.id}>
@@ -1253,10 +1298,13 @@ function App() {
                     ))}
                   </ul>
                   <div className="tags">
-                    <span className="tag-blue tag">HTML</span>
-                    <span className="tag-blue tag">CSS</span>
-                    <span className="tag">Python</span>
-                    <span className="tag-blue tag">SQL</span>
+                    <span className="tag-purple tag">Next.js</span>
+                    <span className="tag-blue tag">Node.js</span>
+                    <span className="tag-blue tag">Vercel</span>
+                    <span className="tag-purple tag">FastAPI</span>
+                    <span className="tag-blue tag">Cloudflare</span>
+                    <span className="tag">TypeScript</span>
+                    <span className="tag-blue tag">PostgreSQL</span>
                   </div>
                 </div>
                 <div className="project-browser" style={{ direction: 'ltr' }}>
@@ -1371,6 +1419,18 @@ function App() {
             <button className="workplace-modal-close" type="button" onClick={closeWorkplaceModal} aria-label="Закрыть">
               &times;
             </button>
+            <div className="workplace-profile">
+              <ProfileCard
+                avatarUrl="/me2.jpg"
+                name="Гафаров Акбар"
+                title="AI/ML Engineer"
+                handle="supremeHn"
+                status="Открыт к предложениям"
+                contactText="Написать"
+                onContactClick={() => window.open('https://t.me/supremeHn', '_blank', 'noopener,noreferrer')}
+              />
+            </div>
+
             <div className="workplace-modal-header">
               <div className="workplace-modal-kicker">AI workplace preview</div>
               <h3 id="workplace-modal-title">Попробуйте меня на своём рабочем месте</h3>

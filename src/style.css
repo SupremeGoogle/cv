@@ -4006,10 +4006,8 @@ section {
 
 /* ── Skills: CardSwap layout ── */
 .skills-swap-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 560px);
-  gap: 3rem;
-  align-items: center;
+  display: flex;
+  justify-content: center;
   margin-top: 2.5rem;
 }
 
@@ -4049,18 +4047,22 @@ section {
 /* CardSwap positions itself absolutely against its nearest positioned parent. */
 .skills-swap-stage {
   position: relative;
-  min-height: 460px;
+  width: min(100%, 620px);
+  min-height: 520px;
 }
 
 .skill-card {
-  background: rgba(12, 12, 30, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  padding: 1.6rem 1.7rem;
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(52, 211, 153, 0.14), transparent 55%),
+    radial-gradient(120% 100% at 100% 100%, rgba(129, 140, 248, 0.16), transparent 55%),
+    rgba(10, 10, 26, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  padding: 1.7rem 1.8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+  gap: 0.75rem;
+  box-shadow: 0 34px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .skill-card-head {
@@ -4131,17 +4133,18 @@ section {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  height: 420px;
+  height: 340px;
   width: 100%;
 }
 
 .stats-folder-hint {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-dim);
-  margin-top: 1.6rem;
+  margin-top: 0.4rem;
+  opacity: 0.55;
 }
 
 /* Papers are rendered inside a 2.6x-scaled folder, so these sizes are in
@@ -4158,17 +4161,17 @@ section {
 
 .stat-paper b {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  color: #0A0A1A;
+  color: #F0F0FF;
   line-height: 1;
 }
 
 .stat-paper i {
   font-style: normal;
-  font-size: 4.4px;
+  font-size: 4.6px;
   line-height: 1.25;
-  color: #3A3A55;
+  color: #A0A0C0;
   max-width: 92%;
 }
 
@@ -4197,5 +4200,35 @@ section {
   .stat-folder {
     height: 84px;
     margin-bottom: 1.2rem;
+  }
+}
+
+/* Dark papers: the default white sheets blew out the dark section. */
+.stats-folder .paper,
+.stats-folder .paper:nth-child(2),
+.stats-folder .paper:nth-child(3),
+.stats-folder .paper:nth-child(4) {
+  background: #16163a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+}
+
+/* ProfileCard inside the workplace modal */
+.workplace-profile {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.6rem;
+}
+
+/* The card lays its children out with grid + aspect-ratio, so it needs a real
+   height — `auto` collapses it to zero. */
+.workplace-profile .pc-card {
+  height: 330px;
+  max-height: none;
+}
+
+@media (max-width: 580px) {
+  .workplace-profile .pc-card {
+    height: 260px;
   }
 }
