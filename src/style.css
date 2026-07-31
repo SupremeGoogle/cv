@@ -2428,7 +2428,7 @@ section {
     scroll-snap-type: x mandatory;
     scroll-padding-inline: 1rem;
     overscroll-behavior-x: contain;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -3491,7 +3491,7 @@ section {
     scroll-padding-inline: 1rem;
     scroll-snap-type: none !important;
     overscroll-behavior-x: contain;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: auto;
   }
@@ -3544,13 +3544,13 @@ section {
     flex-direction: column !important;
     gap: 0.9rem !important;
     width: 100% !important;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
   }
 
   .project-slide,
   .project-slide *,
   .projects-header {
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
   }
 
   .project-slide-content > * {
@@ -3564,7 +3564,7 @@ section {
     border-radius: 12px;
     opacity: 1;
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.38);
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
   }
 
   .project-browser,
@@ -3582,7 +3582,7 @@ section {
   .project-video,
   .project-img {
     pointer-events: none;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
   }
 
   .project-browser:hover {
@@ -3591,7 +3591,7 @@ section {
 
   .project-info {
     order: 2;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
   }
 
   .project-ghost {
@@ -3832,7 +3832,7 @@ section {
     margin-left: calc(50% - 50vw) !important;
     margin-right: calc(50% - 50vw) !important;
     padding-inline: 0.75rem !important;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
   }
 
   .projects-scroll-hint {
@@ -4419,7 +4419,7 @@ section {
     right: auto;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) scale(0.68);
+    transform: translate(-50%, -50%);
     transform-origin: center center;
   }
 
@@ -4487,7 +4487,7 @@ section {
   }
 
   .skills-swap-stage .card-swap-container {
-    transform: translate(-50%, -50%) scale(0.52);
+    transform: translate(-50%, -50%) scale(0.94);
   }
 
   .skills-swap-stage {
@@ -4553,5 +4553,145 @@ section {
 
   .workplace-modal-content .workplace-profile .pc-card {
     height: 175px;
+  }
+}
+
+/* The four papers fan out ~570px wide at size 2.1 — nearly 200px past a 375px
+   screen. Scaling alone would shrink the numbers to nothing, so the fan is
+   tightened into more of an overlapping hand and the scale drops only a little. */
+@media (max-width: 640px) {
+  .stats-folder-slot > div {
+    transform: scale(1.6) !important;
+  }
+
+  .stats-folder .folder.open .paper:nth-child(1) {
+    transform: translate(-108%, -58%) rotateZ(-16deg);
+  }
+
+  .stats-folder .folder.open .paper:nth-child(2) {
+    transform: translate(-62%, -88%) rotateZ(-6deg);
+  }
+
+  .stats-folder .folder.open .paper:nth-child(3) {
+    transform: translate(-14%, -88%) rotateZ(6deg);
+  }
+
+  .stats-folder .folder.open .paper:nth-child(4) {
+    transform: translate(32%, -58%) rotateZ(16deg);
+  }
+}
+
+@media (max-width: 400px) {
+  .stats-folder-slot > div {
+    transform: scale(1.42) !important;
+  }
+}
+
+/* ── Competency cards: one accent per card ── */
+.skill-card-ai { --card-accent: #34D399; --card-accent-soft: rgba(52, 211, 153, 0.16); }
+.skill-card-auto { --card-accent: #38BDF8; --card-accent-soft: rgba(56, 189, 248, 0.16); }
+.skill-card-infra { --card-accent: #818CF8; --card-accent-soft: rgba(129, 140, 248, 0.16); }
+
+.skill-card {
+  border-color: color-mix(in srgb, var(--card-accent, #34D399) 38%, transparent);
+  background:
+    radial-gradient(130% 100% at 0% 0%, var(--card-accent-soft, rgba(52, 211, 153, 0.16)), transparent 58%),
+    radial-gradient(120% 100% at 100% 100%, rgba(129, 140, 248, 0.14), transparent 55%),
+    rgba(10, 10, 26, 0.96);
+}
+
+.skill-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(90deg, var(--card-accent, #34D399), transparent 85%);
+}
+
+.skill-card-index {
+  color: var(--card-accent, #34D399);
+}
+
+.skill-card-tag {
+  color: color-mix(in srgb, var(--card-accent, #34D399) 75%, #ffffff);
+}
+
+.skill-card h4 {
+  color: #FFFFFF;
+}
+
+/* Tags carried a flat grey border and read as disabled chips. */
+.skill-card-pills span {
+  color: color-mix(in srgb, var(--card-accent, #34D399) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--card-accent, #34D399) 45%, transparent);
+  background: var(--card-accent-soft, rgba(52, 211, 153, 0.16));
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .skill-card {
+    padding: 1.35rem 1.4rem;
+    gap: 0.6rem;
+  }
+
+  .skill-card h4 {
+    font-size: 1.22rem;
+  }
+
+  .skill-card p {
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .skill-card-pills span {
+    font-size: 0.76rem;
+    padding: 6px 12px;
+  }
+
+  .skills-swap-stage {
+    min-height: 430px;
+  }
+}
+
+/* ── Projects on touch devices ── */
+@media (max-width: 968px) {
+  /* The slides are mostly filled by a video, an iframe or a WebGL canvas, and
+     each of those swallows the touch before the scroller sees it — which is why
+     swiping only worked on the thin strip of text. Nothing inside needs to be
+     tappable on a phone: the same links live in the list underneath. */
+  .projects-track-wrapper video,
+  .projects-track-wrapper iframe,
+  .projects-track-wrapper canvas,
+  .projects-track-wrapper .digital-orbit-showcase,
+  .projects-track-wrapper .project-img {
+    pointer-events: none;
+  }
+
+  /* Buttons that must stay usable. */
+  .projects-track-wrapper .cert-btn,
+  .projects-track-wrapper .iframe-back-btn,
+  .projects-track-wrapper .project-bot-link {
+    pointer-events: auto;
+  }
+
+  /* Title and the swipe hint were landing on top of each other. */
+  .projects-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.9rem;
+  }
+
+  .projects-scroll-hint {
+    display: inline-flex !important;
+    position: static;
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-mid);
+    background: rgba(255, 255, 255, 0.03);
   }
 }

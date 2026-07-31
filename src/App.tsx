@@ -320,6 +320,12 @@ class ScrambleText {
 function App() {
   const [isBooting, setIsBooting] = useState(true);
   const [statsFolderOpen, setStatsFolderOpen] = useState(false);
+  // CardSwap is sized in pixels, so the phone layout comes from props rather
+  // than a CSS scale — scaling shrank the text while the stack's own offsets
+  // still pushed the back cards off the right edge.
+  const [isNarrow, setIsNarrow] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches,
+  );
   const statsFolderRef = useRef<HTMLDivElement | null>(null);
   const [selectedDigitalProject, setSelectedDigitalProject] = useState<DigitalProject | null>(null);
   const [isWorkplaceModalOpen, setIsWorkplaceModalOpen] = useState(false);
@@ -342,6 +348,13 @@ function App() {
   useEffect(() => {
     const timer = window.setTimeout(() => setIsBooting(false), 2000);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const sync = () => setIsNarrow(mq.matches);
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
   }, []);
 
   // The stats folder opens itself once it is properly on screen.
@@ -1053,8 +1066,15 @@ function App() {
             Что-то знаю глубже, что-то ещё изучаю — но берусь только за то, что могу довести до конца.</p>
           <div className="skills-swap-layout">
             <div className="skills-swap-stage">
-              <CardSwap width={440} height={330} cardDistance={54} verticalDistance={62} delay={4200} easing="elastic">
-                <Card customClass="skill-card">
+              <CardSwap
+                width={isNarrow ? 320 : 440}
+                height={isNarrow ? 320 : 330}
+                cardDistance={isNarrow ? 22 : 54}
+                verticalDistance={isNarrow ? 30 : 62}
+                delay={4200}
+                easing="elastic"
+              >
+                <Card customClass="skill-card skill-card-ai">
                   <div className="skill-card-head">
                     <span className="skill-card-index">01</span>
                     <span className="skill-card-tag">AI / Computer Vision</span>
@@ -1066,7 +1086,7 @@ function App() {
                     <span>PyTorch</span><span>YOLO</span><span>OpenCV</span><span>RAG</span>
                   </div>
                 </Card>
-                <Card customClass="skill-card">
+                <Card customClass="skill-card skill-card-auto">
                   <div className="skill-card-head">
                     <span className="skill-card-index">02</span>
                     <span className="skill-card-tag">Автоматизация</span>
@@ -1078,7 +1098,7 @@ function App() {
                     <span>Python</span><span>Telegram API</span><span>CI/CD</span><span>Docker</span>
                   </div>
                 </Card>
-                <Card customClass="skill-card">
+                <Card customClass="skill-card skill-card-infra">
                   <div className="skill-card-head">
                     <span className="skill-card-index">03</span>
                     <span className="skill-card-tag">Инфраструктура</span>
