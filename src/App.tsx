@@ -430,31 +430,7 @@ function App() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // ── Particle System ──
-    const initParticles = () => {
-      const canvas = document.getElementById('particles-canvas') as HTMLCanvasElement;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const particles: any[] = [];
-      const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-      window.addEventListener('resize', resize);
-      resize();
 
-      class P {
-        x = Math.random() * canvas.width; y = Math.random() * canvas.height;
-        s = Math.random() * 2 + 0.5; sx = (Math.random() - 0.5) * 0.4; sy = (Math.random() - 0.5) * 0.4;
-        o = Math.random() * 0.5 + 0.2; c = Math.random() > 0.5 ? '#34D399' : '#38BDF8';
-        u() { this.x += this.sx; this.y += this.sy; if (this.x < 0 || this.x > canvas.width) this.sx *= -1; if (this.y < 0 || this.y > canvas.height) this.sy *= -1; }
-        d() { if (!ctx) return; ctx.beginPath(); ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2); ctx.fillStyle = this.c; ctx.globalAlpha = this.o; ctx.fill(); }
-      }
-      for (let i = 0; i < 70; i++) particles.push(new P());
-      let aid: number;
-      const anim = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.u(); p.d(); }); aid = requestAnimationFrame(anim); };
-      anim();
-      return () => { window.removeEventListener('resize', resize); cancelAnimationFrame(aid); };
-    };
-    const cp = initParticles();
 
     // ── Visibility Setup ──
     gsap.set('.terminal-window, .hero-greeting, .hero-cmd, .hero-title, .hero-desc, .hero-btns, .hero-visual, .scroll-indicator, .contact-box', { opacity: 0, y: 30 });
@@ -591,7 +567,7 @@ function App() {
     let typeTimeout = setTimeout(type, 1500);
 
     return () => {
-      if (cp) cp();
+      // if (cp) cp();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('mousemove', moveM);
       clearTimeout(typeTimeout);
@@ -745,7 +721,7 @@ function App() {
 
   return (
     <>
-      <canvas id="particles-canvas"></canvas>
+      {/* <canvas id="particles-canvas"></canvas> */}
       <div id="progress-bar"></div>
       <TargetCursor targetSelector=".cursor-target, button, a, .project-browser, .dp-card, .bento-card, .btn-primary, .btn-outline, .tag" spinDuration={2.5} parallaxOn={true} hideDefaultCursor={true} cursorColor="#ffffff" cursorColorOnTarget="#34D399" />
             
@@ -776,7 +752,8 @@ function App() {
             colors={['#A6C8FF', '#5227FF', '#FF9FFC']}
             backgroundColor="#0A0A1A"
             speed={1}
-            streakCount={8}
+            dpr={1}
+            streakCount={2}
             streakWidth={1}
             streakLength={1}
             glow={1}
