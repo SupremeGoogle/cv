@@ -8,6 +8,7 @@
 //     poll will pick it up.
 
 import { kvDel, kvGet, kvSet } from './_lib/kv.js';
+import { isFromTelegram } from './_lib/guard.js';
 import {
   adminChatId,
   tgAnswerCallback,
@@ -58,6 +59,15 @@ const fromAdmin = (chatIdLike: number | string | undefined): boolean => {
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.status(200).end();
+    return;
+  }
+
+  // Only Telegram knows the secret we handed to setWebhook. Without this check
+  // anyone could POST a hand-written "update" claiming to be from the admin and
+  // drive the whole flow — arm a request, then upload any image as the result.
+  if (!isFromTelegram(req)) {
+    console.warn('[webhook] rejected update without a valid secret token');
+    res.status(401).json({ ok: false });
     return;
   }
 
