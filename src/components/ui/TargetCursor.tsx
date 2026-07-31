@@ -1,7 +1,7 @@
 // React Bits TargetCursor, typed for this project.
 // A spinning bracket cursor that snaps around any .cursor-target element.
 
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { gsap } from 'gsap';
 import './TargetCursor.css';
 
@@ -63,14 +63,30 @@ const TargetCursor = ({
   const tickerFnRef = useRef<(() => void) | null>(null);
   const activeStrengthRef = useRef({ current: 0 });
 
-  const isMobile = useMemo(() => {
+  // A bracket cursor only makes sense where there is a real pointer to attach it
+  // to. `(pointer: coarse)` is the direct question — the old check demanded both
+  // touch AND a narrow window, so a touch tablet wider than 768px still got a
+  // cursor it could never move. Kept live so rotating a device or plugging in a
+  // mouse is picked up rather than frozen at first render.
+  const [isTouchDevice, setIsTouchDevice] = useState(() => {
     if (typeof window === 'undefined') return false;
-    const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallScreen = window.innerWidth <= 768;
-    const ua = (navigator.userAgent || '').toLowerCase();
-    const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
-    return (hasTouchScreen && isSmallScreen) || mobileRegex.test(ua);
+    return window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 968;
+  });
+
+  useEffect(() => {
+    const coarse = window.matchMedia('(pointer: coarse)');
+    const narrow = window.matchMedia('(max-width: 968px)');
+    const sync = () => setIsTouchDevice(coarse.matches || narrow.matches);
+    coarse.addEventListener('change', sync);
+    narrow.addEventListener('change', sync);
+    sync();
+    return () => {
+      coarse.removeEventListener('change', sync);
+      narrow.removeEventListener('change', sync);
+    };
   }, []);
+
+  const isMobile = isTouchDevice;
 
   const constants = useMemo(() => ({ borderWidth: 3, cornerSize: 12 }), []);
 
