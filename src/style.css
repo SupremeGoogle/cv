@@ -4898,3 +4898,45 @@ section {
     height: 280px;
   }
 }
+
+/* ── Projects header on phones ──
+   Four separate media queries were setting display/flex-direction/gap on this
+   header, so which one won depended on order rather than intent. One block
+   states it outright: title first, hint underneath, never side by side and
+   never overlapping. */
+@media (max-width: 968px) {
+  .projects .projects-header {
+    display: block !important;
+    margin-bottom: 1.1rem;
+  }
+
+  .projects .projects-header-left {
+    display: block;
+    width: 100%;
+  }
+
+  .projects .projects-header-left .section-title {
+    margin: 0 0 0.85rem !important;
+    line-height: 1.15;
+  }
+
+  .projects .projects-scroll-hint {
+    display: flex !important;
+    position: static !important;
+    float: none;
+    clear: both;
+    width: 100%;
+    justify-content: center;
+    margin: 0 !important;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.09em;
+    line-height: 1.3;
+    white-space: normal;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-mid);
+  }
+}
