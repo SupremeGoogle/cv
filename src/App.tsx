@@ -826,9 +826,12 @@ function App() {
                     <li><a href="https://t.me/allinterior_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@allinterior_bot</strong></a> — ИИ-консультант по интерьеру</li>
                   </ul>
                   <div className="tags">
-                    <span className="tag">Python</span>
+                    <span className="tag-blue tag">Node.js</span>
+                    <span className="tag">TypeScript</span>
+                    <span className="tag-purple tag">FastAPI</span>
                     <span className="tag-blue tag">Telegram Bot API</span>
-                    <span className="tag-blue tag">SQL</span>
+                    <span className="tag-blue tag">Cloudflare</span>
+                    <span className="tag-purple tag">Vercel</span>
                   </div>
                 </div>
               </div>
@@ -854,10 +857,13 @@ function App() {
                     ))}
                   </ul>
                   <div className="tags">
-                    <span className="tag-blue tag">HTML</span>
-                    <span className="tag-blue tag">CSS</span>
-                    <span className="tag">Python</span>
-                    <span className="tag-blue tag">SQL</span>
+                    <span className="tag-purple tag">Next.js</span>
+                    <span className="tag-blue tag">Node.js</span>
+                    <span className="tag-blue tag">Vercel</span>
+                    <span className="tag-purple tag">FastAPI</span>
+                    <span className="tag-blue tag">Cloudflare</span>
+                    <span className="tag">TypeScript</span>
+                    <span className="tag-blue tag">PostgreSQL</span>
                   </div>
                 </div>
                 <div className="project-browser" style={{ direction: 'ltr' }}>
