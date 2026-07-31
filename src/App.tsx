@@ -368,11 +368,16 @@ function App() {
           observer.disconnect();
         }
       },
-      { threshold: 0.55 },
+      // On a phone the folder used to pop open the moment its top edge appeared.
+      // Shrinking the observation band to the middle of the screen and asking for
+      // most of the block inside it holds the reveal until it is properly in view —
+      // but the numbers have to stay reachable, so the band is not so narrow that
+      // a 430px block can never satisfy it.
+      { threshold: isNarrow ? 0.9 : 0.55, rootMargin: isNarrow ? '-15% 0px -15% 0px' : '0px' },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [isNarrow]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -1131,6 +1136,7 @@ function App() {
           <div className="projects-track">
             {/* Project 1 */}
             <div className="project-slide project-slide-standard">
+              <div className="project-swipe-layer" aria-hidden="true" />
               <div className="project-ghost">UAV VISION</div>
               <div className="project-slide-content">
                 <div className="project-browser">
@@ -1170,6 +1176,7 @@ function App() {
 
             {/* Project 2 */}
             <div className="project-slide project-slide-standard">
+              <div className="project-swipe-layer" aria-hidden="true" />
               <div className="project-ghost">MONITORING</div>
               <div className="project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
@@ -1207,6 +1214,7 @@ function App() {
 
             {/* Project 3 */}
             <div className="project-slide project-slide-standard">
+              <div className="project-swipe-layer" aria-hidden="true" />
               <div className="project-ghost">TELEGRAM</div>
               <div className="project-slide-content">
                 <div className="project-browser">
@@ -1253,6 +1261,7 @@ function App() {
 
             {/* Project 4 */}
             <div className="project-slide project-slide-standard">
+              <div className="project-swipe-layer" aria-hidden="true" />
               <div className="project-ghost">DIGITAL WEB</div>
               <div className="project-slide-content digital-project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
@@ -1409,7 +1418,6 @@ function App() {
               className="workplace-file-input"
               type="file"
               accept="image/*"
-              capture="environment"
               onChange={event => handleWorkplaceFile(event.target.files?.[0])}
             />
 

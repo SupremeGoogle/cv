@@ -4793,3 +4793,48 @@ section {
     pointer-events: auto;
   }
 }
+
+/* ── Swipe layer over each project slide ──
+   Making the browser mock pointer-inert was not enough: touches fell through
+   to elements that were not the scroller. This layer is a plain child of the
+   scroll container covering the whole slide, so a drag anywhere on the card is
+   handled by the scroller itself. Desktop keeps it out of the way entirely. */
+.project-swipe-layer {
+  display: none;
+}
+
+@media (max-width: 968px) {
+  .project-slide {
+    position: relative;
+  }
+
+  .project-swipe-layer {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: transparent;
+    touch-action: pan-x pan-y;
+  }
+
+  /* Links in the text column still need to be tappable, so they sit above it. */
+  .project-slide .project-info {
+    position: relative;
+    z-index: 6;
+  }
+
+  /* Bigger stat cards now that they sit in a 2x2 board. */
+  .stats-folder-slot > div {
+    transform: scale(1.85) !important;
+  }
+
+  .stats-folder-slot {
+    height: 430px;
+  }
+}
+
+@media (max-width: 400px) {
+  .stats-folder-slot > div {
+    transform: scale(1.62) !important;
+  }
+}
