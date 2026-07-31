@@ -1,0 +1,19 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="exp_g1" cx="85%" cy="20%" r="65%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="exp_g2" cx="15%" cy="80%" r="55%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1440" height="900" fill="#080C14" />
+  <rect width="1440" height="900" fill="url(#exp_g1)" />
+  <rect width="1440" height="900" fill="url(#exp_g2)" />
+  <!-- Diagonal glass streams -->
+  <path d="M-100 200 L1540 700" stroke="rgba(168, 85, 247, 0.1)" stroke-width="2" stroke-dasharray="10 15" />
+  <path d="M-100 350 L1540 850" stroke="rgba(52, 211, 153, 0.08)" stroke-width="2" stroke-dasharray="8 12" />
+  <rect x="900" y="100" width="300" height="300" rx="40" fill="rgba(168, 85, 247, 0.03)" stroke="rgba(168, 85, 247, 0.12)" stroke-width="1.5" transform="rotate(15 1050 250)" />
+</svg>
