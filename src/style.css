@@ -2998,3 +2998,10 @@ section {
   color: var(--accent);
   transform: translateX(-2px);
 }
+
+/* Hide legacy custom cursor elements */
+.cursor-ring, .cursor-dot {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

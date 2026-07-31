@@ -172,7 +172,7 @@ function App() {
     const cp = initParticles();
 
     // ── Visibility Setup ──
-    gsap.set('.terminal-window, .hero-greeting, .hero-cmd, .hero-title, .hero-desc, .hero-btns, .hero-avatar-wrapper, .scroll-indicator, .contact-box', { opacity: 0, y: 30 });
+    gsap.set('.terminal-window, .hero-greeting, .hero-cmd, .hero-title, .hero-desc, .hero-btns, .hero-visual, .scroll-indicator, .contact-box', { opacity: 0, y: 30 });
     gsap.set('.hero-title', { x: -30, y: 0 }); // Override for title slide-in
 
     // ── Scroll Events ──
@@ -199,7 +199,7 @@ function App() {
        .to('.hero-title', { opacity: 1, x: 0, duration: 0.6 }, '-=0.4')
        .to('.hero-desc', { opacity: 1, y: 0, duration: 0.6 }, '-=0.3')
        .to('.hero-btns', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2')
-       .to('.hero-avatar-wrapper', { opacity: 1, scale: 1, duration: 1, ease: 'power2.out' }, '-=0.8')
+       .to('.hero-visual', { opacity: 1, scale: 1, duration: 1, ease: 'power2.out' }, '-=0.8')
        .to('.scroll-indicator', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
 
     // ── General Scroll Reveals ──
@@ -337,9 +337,7 @@ function App() {
       <canvas id="particles-canvas"></canvas>
       <div id="progress-bar"></div>
       <TargetCursor targetSelector=".cursor-target, button, a, .project-browser, .dp-card, .bento-card, .btn-primary, .btn-outline, .tag" spinDuration={2.5} parallaxOn={true} hideDefaultCursor={true} cursorColor="#ffffff" cursorColorOnTarget="#34D399" />
-      <div className="cursor-ring"></div>
-      <div className="cursor-dot"></div>
-
+            
       {/* ══════ NAV ══════ */}
       <nav className="navbar" id="navbar">
         <a href="#hero" className="nav-logo">GA<span>.</span></a>
@@ -405,7 +403,7 @@ function App() {
               </div>
             </div>
 
-            <div className="hero-visual hidden md:flex">
+            <div className="hero-visual flex">
               <OrbitingSkills />
             </div>
           </div>
