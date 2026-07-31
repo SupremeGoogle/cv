@@ -822,12 +822,11 @@ function App() {
                     <li><a href="https://t.me/KIBERoneVisor_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@KIBERoneVisor_bot</strong></a> — Мониторинг родительских чатов</li>
                                       </ul>
                   <div className="tags">
-                    <span className="tag-blue tag">Node.js</span>
-                    <span className="tag">TypeScript</span>
-                    <span className="tag-purple tag">FastAPI</span>
+                    <span className="tag">Python</span>
                     <span className="tag-blue tag">Telegram Bot API</span>
-                    <span className="tag-blue tag">Cloudflare</span>
-                    <span className="tag-purple tag">Vercel</span>
+                    <span className="tag-purple tag">Aiogram</span>
+                    <span className="tag-blue tag">PostgreSQL</span>
+                    <span className="tag-purple tag">Docker</span>
                   </div>
                 </div>
               </div>

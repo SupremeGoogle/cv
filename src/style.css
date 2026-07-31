@@ -1952,9 +1952,7 @@ section {
     flex-direction: column;
     text-align: left;
   }
-  .hero-visual {
-    display: none !important;
-  }
+  
   .terminal-window {
     max-width: 100%;
     border-radius: 12px;
@@ -3004,4 +3002,92 @@ section {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+/* Hero Visual Orbiting Skills - Desktop Visible, Mobile Hidden */
+.hero-visual {
+  position: relative;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  min-height: 480px;
+  width: 100%;
+  max-width: 550px;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 10;
+}
+
+@media (max-width: 767px) {
+  .hero-visual {
+    display: none !important;
+  }
+}
+
+/* ══════ GLASSMORPHISM SECTION BACKGROUNDS & DECORATIONS ══════ */
+.glass-section-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.glass-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  animation: floatOrb 12s ease-in-out infinite alternate;
+}
+
+.glass-orb-cyan {
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.4) 0%, rgba(6, 182, 212, 0.1) 70%);
+}
+
+.glass-orb-purple {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, rgba(139, 92, 246, 0.1) 70%);
+}
+
+.glass-orb-blue {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, rgba(59, 130, 246, 0.1) 70%);
+}
+
+@keyframes floatOrb {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(40px, 30px) scale(1.15);
+  }
+}
+
+/* Glassmorphism Card Enhancements */
+.about-card,
+.exp-card-inner,
+.bento-card,
+.edu-card,
+.cert-item,
+.contact-box,
+.terminal-window {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.about-card:hover,
+.exp-card-inner:hover,
+.bento-card:hover,
+.edu-card:hover,
+.cert-item:hover,
+.contact-box:hover {
+  border-color: rgba(52, 211, 153, 0.3) !important;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(52, 211, 153, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-4px) !important;
 }
