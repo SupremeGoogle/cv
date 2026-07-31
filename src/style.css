@@ -4213,21 +4213,59 @@ section {
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
 }
 
-/* ProfileCard inside the workplace modal */
+/* ProfileCard sits to the left of the upload zone inside the modal. */
+.workplace-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: stretch;
+  margin-bottom: 1.2rem;
+}
+
 .workplace-profile {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.6rem;
 }
 
 /* The card lays its children out with grid + aspect-ratio, so it needs a real
    height — `auto` collapses it to zero. */
 .workplace-profile .pc-card {
-  height: 330px;
+  height: 300px;
   max-height: none;
 }
 
-@media (max-width: 580px) {
+/* Upstream drops the name at `top: 3em`, which lands on the face once the card
+   is this short. Pin the name block to the top instead and give the portrait
+   room underneath. */
+.workplace-profile .pc-details {
+  top: 0.9em;
+}
+
+.workplace-profile .pc-details h3 {
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.workplace-profile .pc-details p {
+  font-size: 0.76rem;
+  top: -2px;
+}
+
+.workplace-profile .pc-avatar-content .avatar {
+  width: 92%;
+  left: 54%;
+}
+
+.workplace-intro .workplace-upload-zone {
+  margin: 0;
+  height: 100%;
+}
+
+@media (max-width: 720px) {
+  .workplace-intro {
+    grid-template-columns: 1fr;
+  }
+
   .workplace-profile .pc-card {
     height: 260px;
   }

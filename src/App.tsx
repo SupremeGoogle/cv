@@ -9,6 +9,7 @@ import PixelProjectArt from './components/ui/pixel-project-art';
 import CardSwap, { Card } from './components/ui/CardSwap';
 import Folder from './components/ui/Folder';
 import ProfileCard from './components/ui/ProfileCard';
+import TargetCursor from './components/ui/TargetCursor';
 
 const digitalProjects: DigitalProject[] = [
   { id: 1, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
@@ -554,15 +555,6 @@ function App() {
     }
 
     // ── Mouse Follow & Interactions ──
-    const moveM = (e: MouseEvent) => {
-      const ring = document.querySelector('.cursor-ring') as HTMLElement;
-      const dot = document.querySelector('.cursor-dot') as HTMLElement;
-      if (ring && dot) { 
-        gsap.to(ring, { x: e.clientX - 16, y: e.clientY - 16, duration: 0.15, overwrite: 'auto' });
-        gsap.to(dot, { x: e.clientX - 2, y: e.clientY - 2, duration: 0, overwrite: 'auto' });
-      }
-    };
-    window.addEventListener('mousemove', moveM);
 
     // Tilt Effect
     document.querySelectorAll('.bento-card, .about-card, .project-browser').forEach(card => {
@@ -591,7 +583,6 @@ function App() {
     return () => {
       if (cp) cp();
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('mousemove', moveM);
       clearTimeout(typeTimeout);
       cleanupHandlers.forEach(cleanup => cleanup());
       ScrollTrigger.getAll().forEach(t => t.kill());
@@ -862,8 +853,7 @@ function App() {
     <>
       <canvas id="particles-canvas"></canvas>
       <div id="progress-bar"></div>
-      <div className="cursor-ring"></div>
-      <div className="cursor-dot"></div>
+      <TargetCursor targetSelector=".cursor-target" spinDuration={2} cursorColor="#34D399" cursorColorOnTarget="#38BDF8" />
 
       {/* ══════ NAV ══════ */}
       <nav className="navbar" id="navbar">
@@ -875,7 +865,7 @@ function App() {
           <a href="#skills" onClick={() => document.querySelector('.nav-links')?.classList.remove('active')}>Навыки</a>
           <a href="#education" onClick={() => document.querySelector('.nav-links')?.classList.remove('active')}>Образование</a>
         </div>
-        <a href="#contact" className="nav-cta">Связаться</a>
+        <a href="#contact" className="nav-cta cursor-target">Связаться</a>
         <div className="hamburger" onClick={handleNavToggle}>
           <span></span><span></span><span></span>
         </div>
@@ -922,9 +912,9 @@ function App() {
                   </p>
 
                   <div className="hero-btns">
-                    <a href="#projects" className="btn-primary">Портфолио</a>
-                    <a href="https://github.com/SupremeGoogle/" target="_blank" rel="noopener noreferrer" className="btn-outline">GitHub</a>
-                    <a href="mailto:gafarovakbar@mail.ru" className="btn-outline">Связаться</a>
+                    <a href="#projects" className="btn-primary cursor-target">Портфолио</a>
+                    <a href="https://github.com/SupremeGoogle/" target="_blank" rel="noopener noreferrer" className="btn-outline cursor-target">GitHub</a>
+                    <a href="mailto:gafarovakbar@mail.ru" className="btn-outline cursor-target">Связаться</a>
                   </div>
                 </div>
               </div>
@@ -1405,8 +1395,8 @@ function App() {
             <p className="contact-sub">Для сотрудничества, предложений или профессионального общения — выберите любой удобный
               способ связи. Буду рад обсудить ваш проект!</p>
             <div className="contact-links">
-              <a href="mailto:gafarovakbar@mail.ru" className="btn-primary">Email</a>
-              <a href="https://t.me/supremeHn" target="_blank" rel="noopener noreferrer" className="btn-outline">Telegram</a>
+              <a href="mailto:gafarovakbar@mail.ru" className="btn-primary cursor-target">Email</a>
+              <a href="https://t.me/supremeHn" target="_blank" rel="noopener noreferrer" className="btn-outline cursor-target">Telegram</a>
             </div>
           </div>
         </div>
@@ -1419,18 +1409,6 @@ function App() {
             <button className="workplace-modal-close" type="button" onClick={closeWorkplaceModal} aria-label="Закрыть">
               &times;
             </button>
-            <div className="workplace-profile">
-              <ProfileCard
-                avatarUrl="/me2.jpg"
-                name="Гафаров Акбар"
-                title="AI/ML Engineer"
-                handle="supremeHn"
-                status="Открыт к предложениям"
-                contactText="Написать"
-                onContactClick={() => window.open('https://t.me/supremeHn', '_blank', 'noopener,noreferrer')}
-              />
-            </div>
-
             <div className="workplace-modal-header">
               <div className="workplace-modal-kicker">AI workplace preview</div>
               <h3 id="workplace-modal-title">Попробуйте меня на своём рабочем месте</h3>
@@ -1446,15 +1424,28 @@ function App() {
               onChange={event => handleWorkplaceFile(event.target.files?.[0])}
             />
 
-            <button
-              type="button"
-              className="workplace-upload-zone"
-              onClick={() => workplaceInputRef.current?.click()}
-            >
-              <span className="workplace-upload-icon">+</span>
-              <strong>{workplacePreview ? 'Заменить фото рабочего места' : 'Снять или загрузить фото рабочего места'}</strong>
-              <small>JPG, PNG или фото с камеры</small>
-            </button>
+            <div className="workplace-intro">
+              <div className="workplace-profile">
+                <ProfileCard
+                  avatarUrl="/me2.jpg"
+                  name="Гафаров Акбар"
+                  title="AI/ML Engineer"
+                  handle="supremeHn"
+                  status="Открыт к предложениям"
+                  contactText="Написать"
+                  onContactClick={() => window.open('https://t.me/supremeHn', '_blank', 'noopener,noreferrer')}
+                />
+              </div>
+              <button
+                type="button"
+                className="workplace-upload-zone cursor-target"
+                onClick={() => workplaceInputRef.current?.click()}
+              >
+                <span className="workplace-upload-icon">+</span>
+                <strong>{workplacePreview ? 'Заменить фото рабочего места' : 'Снять или загрузить фото рабочего места'}</strong>
+                <small>JPG, PNG или фото с камеры</small>
+              </button>
+            </div>
 
             <div className="workplace-preview-grid">
               <div className="workplace-preview-card">
@@ -1472,7 +1463,7 @@ function App() {
                 <div className="workplace-limit-kicker">Лимит теста исчерпан</div>
                 <h4>Больше нельзя генерировать с этого IP</h4>
                 <p>Но мы можем сделать живую фотографию и обсудить задачу лично.</p>
-                <a href="#contact" className="btn-primary" onClick={closeWorkplaceModal}>
+                <a href="#contact" className="btn-primary cursor-target" onClick={closeWorkplaceModal}>
                   Связаться со мной
                 </a>
               </div>
@@ -1541,7 +1532,7 @@ function App() {
                 />
                 <button
                   type="button"
-                  className="btn-primary"
+                  className="btn-primary cursor-target"
                   onClick={submitWorkplaceEmail}
                   disabled={!workplaceEmail.trim()}
                 >
