@@ -6,6 +6,7 @@ import OrbitingSkills from './components/ui/orbiting-skills'
 import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
 import SphereImageGrid from './components/ui/img-sphere';
 import TargetCursor from './components/ui/TargetCursor';
+import PixelProjectArt from './components/ui/pixel-project-art';
 
 export type DigitalProject = {
   id: number;
@@ -513,7 +514,7 @@ function App() {
                     <div className="exp-role">Разработчик (AI/ML)</div>
                     <div className="exp-company">Балтийский центр нейротехнологий и ИИ</div>
                   </div>
-                  <span className="exp-date">2024 — н.в.</span>
+                  <div className="exp-side"><span className="exp-date">2024 — н.в.</span><PixelProjectArt variant="neural" /></div>
                 </div>
                 <p className="exp-desc">Разрабатываю интеллектуальные системы на базе AI, компьютерного зрения и анализа
                   цифрового контента. Полный цикл AI-разработки: сбор данных → датасеты → разметка → обучение → тестирование
@@ -535,7 +536,7 @@ function App() {
                     <div className="exp-role">Старший тьютор / Тьютор</div>
                     <div className="exp-company">KIBERone</div>
                   </div>
-                  <span className="exp-date">2021 — 2026</span>
+                  <div className="exp-side"><span className="exp-date">2021 — 2026</span><PixelProjectArt variant="teach" /></div>
                 </div>
                 <p className="exp-desc">Преподавал детям 6–14 лет программирование и цифровые технологии. Последние 2 года
                   совмещал преподавание с ролью старшего тьютора: руководил академическими процессами, курировал команду,
@@ -725,7 +726,7 @@ function App() {
                   </div>
                 </div>
                 <div className="project-info">
-                  <div className="project-num"><span className="num-val">01</span> КОМПЬЮТЕРНОЕ ЗРЕНИЕ</div>
+                  <div className="project-num"><span className="num-val">01</span> КОМПЬЮТЕРНОЕ ЗРЕНИЕ<PixelProjectArt variant="uav" /></div>
                   <h3 className="project-name">Система распознавания техники для БПЛА</h3>
                   <p className="project-desc">Система компьютерного зрения для автоматического обнаружения наземной техники по
                     данным с беспилотников.</p>
@@ -748,7 +749,7 @@ function App() {
               <div className="project-ghost">MONITORING</div>
               <div className="project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
-                  <div className="project-num"><span className="num-val">02</span> AI АНАЛИЗ</div>
+                  <div className="project-num"><span className="num-val">02</span> AI АНАЛИЗ<PixelProjectArt variant="monitor" /></div>
                   <h3 className="project-name">Система мониторинга контента</h3>
                   <p className="project-desc">Интеллектуальная система выявления признаков продажи запрещённых веществ с
                     применением RAG-подходов.</p>
@@ -810,7 +811,7 @@ function App() {
                   </div>
                 </div>
                 <div className="project-info">
-                  <div className="project-num"><span className="num-val">03</span> АВТОМАТИЗАЦИЯ</div>
+                  <div className="project-num"><span className="num-val">03</span> АВТОМАТИЗАЦИЯ<PixelProjectArt variant="bots" /></div>
                   <h3 className="project-name">Telegram-боты для автоматизации</h3>
                   <p className="project-desc">Серия из 10+ Telegram-ботов для реальных бизнес-задач: налоговый вычет, учёт
                     медиафайлов, CRM-процессы.</p>
@@ -837,7 +838,7 @@ function App() {
               <div className="project-ghost">DIGITAL WEB</div>
               <div className="project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
-                  <div className="project-num"><span className="num-val">04</span> WEB-РАЗРАБОТКА</div>
+                  <div className="project-num"><span className="num-val">04</span> WEB-РАЗРАБОТКА<PixelProjectArt variant="web" /></div>
                   <h3 className="project-name">Коммерческие digital-проекты</h3>
                   <p className="project-desc">Более 15 коммерческих сайтов и digital-решений для бизнеса Калининграда — от лендингов до многофункциональных платформ с CRM-интеграцией.</p>
                   <ul className="project-tasks text-[0.8rem] md:text-sm" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '10px' }}>
@@ -923,7 +924,7 @@ function App() {
             <div className="edu-name">Балтийский федеральный университет имени Иммануила Канта</div>
             <div className="edu-degree">ОНК Высоких технологий · Информационные системы и технологии</div>
             <div className="edu-dates">2021 — 2026</div>
-            <span className="diploma-badge">✦ Красный диплом</span>
+            <span className="diploma-badge">✦ Красный диплом</span><PixelProjectArt variant="grad" />
           </div>
 
           <div className="certs-grid">
@@ -942,7 +943,7 @@ function App() {
         <div className="container">
           <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ nc -zv portfolio 8000</div>
           <h2 className="section-title">Свяжитесь <span data-value="со мной"></span></h2>
-          <div className="contact-box">
+          <div className="contact-box"><PixelProjectArt variant="signal" />
             <h3 className="contact-title">Готов к новым вызовам</h3>
             <p className="contact-sub">Для сотрудничества, предложений или профессионального общения — выберите любой удобный
               способ связи. Буду рад обсудить ваш проект!</p>

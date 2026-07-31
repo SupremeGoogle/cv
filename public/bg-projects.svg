@@ -1,13 +1,35 @@
 <svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="pj_g1" cx="30%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#34D399" stop-opacity="0.16" />
+    <radialGradient id="pj_g1" cx="30%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#080C14" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="pj_g2" cx="75%" cy="75%" r="60%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.18" />
       <stop offset="100%" stop-color="#080C14" stop-opacity="0" />
     </radialGradient>
   </defs>
+
   <rect width="1440" height="900" fill="#080C14" />
   <rect width="1440" height="900" fill="url(#pj_g1)" />
-  <!-- Futuristic Glass Cards Background -->
-  <rect x="150" y="150" width="450" height="280" rx="24" fill="rgba(52, 211, 153, 0.03)" stroke="rgba(52, 211, 153, 0.12)" stroke-width="1.5" transform="rotate(-6 375 290)" />
-  <rect x="800" y="350" width="500" height="320" rx="24" fill="rgba(56, 189, 248, 0.03)" stroke="rgba(56, 189, 248, 0.12)" stroke-width="1.5" transform="rotate(8 1050 510)" />
+  <rect width="1440" height="900" fill="url(#pj_g2)" />
+
+  <g opacity="0.16">
+    <!-- Floating Browser Window Left -->
+    <rect x="100" y="140" width="380" height="240" rx="16" fill="none" stroke="#34D399" stroke-width="2"/>
+    <line x1="100" y1="180" x2="480" y2="180" stroke="#34D399" stroke-width="1.5"/>
+    <circle cx="130" cy="160" r="5" fill="#FF5F56"/>
+    <circle cx="150" cy="160" r="5" fill="#FFBD2E"/>
+    <circle cx="170" cy="160" r="5" fill="#27C93F"/>
+    <rect x="200" y="152" width="160" height="16" rx="8" fill="rgba(52, 211, 153, 0.3)"/>
+
+    <!-- Telegram Paper Plane Icon Right -->
+    <g transform="translate(1080, 180) scale(1.8)">
+      <path d="M 90 10 L 10 50 L 45 65 L 75 30 L 45 75 L 85 95 Z" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Mobile Device Mockup Center Right -->
+    <rect x="1120" y="450" width="200" height="360" rx="28" fill="none" stroke="#38BDF8" stroke-width="2"/>
+    <line x1="1180" y1="470" x2="1260" y2="470" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+  </g>
 </svg>

@@ -1,19 +1,39 @@
 <svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="exp_g1" cx="85%" cy="20%" r="65%">
-      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.18" />
-      <stop offset="100%" stop-color="#0F172A" stop-opacity="0" />
+    <radialGradient id="ex_g1" cx="80%" cy="25%" r="70%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#080C14" stop-opacity="0" />
     </radialGradient>
-    <radialGradient id="exp_g2" cx="15%" cy="80%" r="55%">
-      <stop offset="0%" stop-color="#34D399" stop-opacity="0.12" />
-      <stop offset="100%" stop-color="#0F172A" stop-opacity="0" />
+    <radialGradient id="ex_g2" cx="20%" cy="80%" r="60%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#080C14" stop-opacity="0" />
     </radialGradient>
   </defs>
+
   <rect width="1440" height="900" fill="#080C14" />
-  <rect width="1440" height="900" fill="url(#exp_g1)" />
-  <rect width="1440" height="900" fill="url(#exp_g2)" />
-  <!-- Diagonal glass streams -->
-  <path d="M-100 200 L1540 700" stroke="rgba(168, 85, 247, 0.1)" stroke-width="2" stroke-dasharray="10 15" />
-  <path d="M-100 350 L1540 850" stroke="rgba(52, 211, 153, 0.08)" stroke-width="2" stroke-dasharray="8 12" />
-  <rect x="900" y="100" width="300" height="300" rx="40" fill="rgba(168, 85, 247, 0.03)" stroke="rgba(168, 85, 247, 0.12)" stroke-width="1.5" transform="rotate(15 1050 250)" />
+  <rect width="1440" height="900" fill="url(#ex_g1)" />
+  <rect width="1440" height="900" fill="url(#ex_g2)" />
+
+  <g opacity="0.18">
+    <!-- Server Rack Illustration Right -->
+    <rect x="1100" y="150" width="220" height="380" rx="16" stroke="#A855F7" stroke-width="2" fill="none"/>
+    <line x1="1120" y1="210" x2="1300" y2="210" stroke="#A855F7" stroke-width="2"/>
+    <line x1="1120" y1="270" x2="1300" y2="270" stroke="#A855F7" stroke-width="2"/>
+    <line x1="1120" y1="330" x2="1300" y2="330" stroke="#A855F7" stroke-width="2"/>
+    <line x1="1120" y1="390" x2="1300" y2="390" stroke="#A855F7" stroke-width="2"/>
+    <line x1="1120" y1="450" x2="1300" y2="450" stroke="#A855F7" stroke-width="2"/>
+    <circle cx="1140" cy="180" r="4" fill="#34D399"/>
+    <circle cx="1160" cy="180" r="4" fill="#38BDF8"/>
+    <circle cx="1180" cy="180" r="4" fill="#A855F7"/>
+
+    <!-- Timeline Stepper Left -->
+    <path d="M 180 150 L 180 750" stroke="#34D399" stroke-width="2" stroke-dasharray="8 8"/>
+    <circle cx="180" cy="220" r="12" fill="#080C14" stroke="#34D399" stroke-width="2"/>
+    <circle cx="180" cy="450" r="12" fill="#080C14" stroke="#A855F7" stroke-width="2"/>
+    <circle cx="180" cy="680" r="12" fill="#080C14" stroke="#38BDF8" stroke-width="2"/>
+
+    <!-- Connection Waves -->
+    <path d="M 180 220 Q 500 100, 1100 180" fill="none" stroke="rgba(52, 211, 153, 0.4)" stroke-width="1.5"/>
+    <path d="M 180 450 Q 600 500, 1100 450" fill="none" stroke="rgba(168, 85, 247, 0.4)" stroke-width="1.5"/>
+  </g>
 </svg>
