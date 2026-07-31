@@ -4990,3 +4990,27 @@ section {
     pointer-events: none !important;
   }
 }
+
+/* ── Project lists must show every entry ──
+   Two earlier mobile rules capped these at 150px / 135px with an inner
+   scrollbar, so slide 03 cut its last bot in half and slide 04 hid most of the
+   sites. The inner scroller also fought the horizontal drag. There is plenty of
+   vertical room in a slide — let the lists run their full length. */
+@media (max-width: 968px) {
+  .projects-track-wrapper .project-tasks,
+  .projects-track-wrapper .digital-project-list {
+    max-height: none !important;
+    overflow-y: visible !important;
+    padding-right: 0;
+  }
+
+  /* The wrapper sizes itself to the tallest slide, so nothing gets clipped. */
+  .projects-track-wrapper {
+    height: auto !important;
+    overflow-y: visible !important;
+  }
+
+  .projects-track-wrapper .project-slide {
+    height: auto;
+  }
+}
