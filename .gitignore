@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Secrets — never commit. .env.example is the only tracked env file
+# and must contain empty placeholders, never real values.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets.json
+.vercel
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
