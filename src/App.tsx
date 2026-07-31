@@ -7,7 +7,7 @@ import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
 import SphereImageGrid from './components/ui/img-sphere';
 import TargetCursor from './components/ui/TargetCursor';
 import PixelProjectArt from './components/ui/pixel-project-art';
-import Lightfall from './components/ui/Lightfall';
+import GridDistortion from './components/ui/GridDistortion';
 export type DigitalProject = {
   id: number;
   name: string;
@@ -748,23 +748,12 @@ function App() {
         </video>
         <div className="hero-video-overlay"></div> */}
         <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: -1 }}>
-          <Lightfall
-            colors={['#A6C8FF', '#5227FF', '#FF9FFC']}
-            backgroundColor="#0A0A1A"
-            speed={1}
-            dpr={1}
-            streakCount={2}
-            streakWidth={1}
-            streakLength={1}
-            glow={1}
-            density={1}
-            twinkle={1}
-            zoom={2}
-            backgroundGlow={1}
-            opacity={1}
-            mouseInteraction={true}
-            mouseStrength={1}
-            mouseRadius={0.6}
+          <GridDistortion
+            imageSrc="https://picsum.photos/1920/1080?grayscale"
+            grid={10}
+            mouse={0.1}
+            strength={0.15}
+            relaxation={0.9}
           />
         </div>
 
