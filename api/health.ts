@@ -27,7 +27,15 @@ export default async function handler(_req: any, res: any) {
     await kvDel(probe);
     kvCheck = { ok: true, roundtrip: back };
   } catch (error) {
-    kvCheck = { ok: false, error: error instanceof Error ? error.message : String(error) };
+    // Node wraps connection problems as a bare "fetch failed"; the cause code
+    // (ENOTFOUND, ECONNREFUSED, CERT_*) is what actually names the problem.
+    const cause: any = (error as any)?.cause;
+    kvCheck = {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      causeCode: cause?.code || cause?.name || null,
+      causeMessage: typeof cause?.message === 'string' ? cause.message.slice(0, 200) : null,
+    };
   }
 
   // Telegram getMe — verifies the token without spamming the admin chat.

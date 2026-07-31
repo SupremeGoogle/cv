@@ -20,6 +20,14 @@ export const kvEnvStatus = () => ({
     process.env.KV_REST_API_URL ? 'KV_REST_API_*' :
     process.env.UPSTASH_REDIS_REST_URL ? 'UPSTASH_REDIS_REST_*' :
     process.env.REDIS_URL ? 'REDIS_*' : 'none',
+  // Protocol only — never the host or credentials. This is the one thing that
+  // distinguishes "the store is gone" from "we were handed a redis:// URL,
+  // which fetch() can never talk to".
+  protocol: (() => {
+    if (!KV_URL) return null;
+    const match = /^([a-z][a-z0-9+.-]*):/i.exec(KV_URL);
+    return match ? match[1].toLowerCase() : 'none';
+  })(),
 });
 
 const ensureKv = () => {
