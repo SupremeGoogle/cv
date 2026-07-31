@@ -78,31 +78,38 @@ export const keepGeneratedHalf = (resultBase64: string, sceneBase64?: string): S
   if (!result) return { base64: resultBase64, action: 'untouched' };
 
   const scene = sceneBase64 ? decode(sceneBase64) : null;
-  const resultAspect = result.width / result.height;
-  const sceneAspect = scene ? scene.width / scene.height : null;
-
-  // A correct answer matches the scene's proportions. Only a noticeably wider
-  // image is worth splitting; a 4:3 reply to a 4:3 scene is left alone.
-  const looksLikeSheet = sceneAspect ? resultAspect > sceneAspect * 1.25 : resultAspect > 1.7;
-  if (!looksLikeSheet) return { base64: resultBase64, action: 'untouched' };
-
   const half = Math.floor(result.width / 2);
+
   if (!scene) {
-    // No reference to compare against: the sheet is built with the scene on the
-    // right, so that is the better guess.
-    return { base64: cropToJpeg(result, result.width - half, half), action: 'kept-right' };
+    // Nothing to compare against. Only a very wide answer is worth guessing at,
+    // and the sheet puts the scene on the right.
+    const resultAspect = result.width / result.height;
+    return resultAspect > 1.7
+      ? { base64: cropToJpeg(result, result.width - half, half), action: 'kept-right' }
+      : { base64: resultBase64, action: 'untouched' };
   }
 
+  // Aspect ratio is not a reliable tell. When both panels show the same room the
+  // sheet reads as one wide photograph, and a 1.5 answer to a 1.33 scene slips
+  // under any sensible width threshold — that is exactly the case that shipped
+  // a two-panel photo to the visitor. Decide on content instead: if one half is
+  // near-identical to the scene we sent and the other clearly is not, the answer
+  // is a sheet no matter its proportions.
   const sceneThumb = thumbnail(scene, 0, scene.width);
   const leftDiff = meanAbsDiff(thumbnail(result, 0, half), sceneThumb);
   const rightDiff = meanAbsDiff(thumbnail(result, result.width - half, half), sceneThumb);
 
-  // The halves must actually differ for the comparison to mean anything.
-  if (Math.abs(leftDiff - rightDiff) < 3) {
-    return { base64: resultBase64, action: 'undecided' };
+  const echoed = Math.min(leftDiff, rightDiff);
+  const generated = Math.max(leftDiff, rightDiff);
+
+  // One half is a copy of the input, the other is not. Both thresholds must hold
+  // so a genuine single photo — where both halves differ from the scene by a
+  // similar amount — is never cut in two.
+  const isSheet = echoed < 8 && generated > echoed * 2.5 && generated - echoed > 6;
+  if (!isSheet) {
+    return { base64: resultBase64, action: echoed < 8 || generated - echoed > 6 ? 'undecided' : 'untouched' };
   }
 
-  // The half that resembles the input is the untouched copy — keep the other.
   return leftDiff > rightDiff
     ? { base64: cropToJpeg(result, 0, half), action: 'kept-left' }
     : { base64: cropToJpeg(result, result.width - half, half), action: 'kept-right' };

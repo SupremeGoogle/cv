@@ -122,27 +122,39 @@ export const generateWorkplacePhoto = async (
   if (!token) throw new Error('DEEPINFRA_TOKEN не задан в переменных окружения.');
 
   if (input.referenceBase64 && input.sceneBase64) {
-    try {
-      const result = await postEdit(
-        [
-          { name: 'image[]', base64: input.referenceBase64, filename: 'reference.jpg' },
-          { name: 'image[]', base64: input.sceneBase64, filename: 'scene.jpg' },
-        ],
-        MULTI_IMAGE_PROMPT,
-        size,
-        token,
-      );
-      return { ...result, mode: 'multi' };
-    } catch (error) {
-      const status = (error as { status?: number }).status;
-      // Only a rejection of the request shape is worth retrying differently.
-      // A timeout or a 5xx would just burn another 50 seconds.
-      if (status && status >= 400 && status < 500) {
-        console.warn(`[deepinfra] multi-image rejected (${status}), falling back to the composite sheet`);
-      } else {
+    // Providers disagree on how a multi-image edit is spelled: OpenAI takes
+    // repeated `image[]`, others take a plain repeated `image`. Try both before
+    // giving up on separate files, because the glued sheet is what makes the
+    // model answer with two panels in the first place.
+    const shapes: { label: string; field: string }[] = [
+      { label: 'image[]', field: 'image[]' },
+      { label: 'image', field: 'image' },
+    ];
+
+    for (const shape of shapes) {
+      try {
+        const result = await postEdit(
+          [
+            { name: shape.field, base64: input.referenceBase64, filename: 'reference.jpg' },
+            { name: shape.field, base64: input.sceneBase64, filename: 'scene.jpg' },
+          ],
+          MULTI_IMAGE_PROMPT,
+          size,
+          token,
+        );
+        return { ...result, mode: 'multi' };
+      } catch (error) {
+        const status = (error as { status?: number }).status;
+        // Only a rejection of the request shape is worth another attempt. A
+        // timeout or a 5xx would just burn another 50 seconds.
+        if (status && status >= 400 && status < 500) {
+          console.warn(`[deepinfra] multi-image as "${shape.label}" rejected (${status}): ${(error as Error).message}`);
+          continue;
+        }
         throw error;
       }
     }
+    console.warn('[deepinfra] no multi-image shape accepted, falling back to the composite sheet');
   }
 
   const result = await postEdit(
