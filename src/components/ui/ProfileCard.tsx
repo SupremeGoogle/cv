@@ -33,6 +33,8 @@ type ProfileCardProps = {
   status?: string;
   contactText?: string;
   showUserInfo?: boolean;
+  /** Skip lazy-loading — the card is visible the moment the modal opens. */
+  eager?: boolean;
   onContactClick?: () => void;
 };
 
@@ -51,6 +53,7 @@ const ProfileCardComponent = ({
   status = 'Открыт к предложениям',
   contactText = 'Связаться',
   showUserInfo = true,
+  eager = false,
   onContactClick,
 }: ProfileCardProps) => {
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -218,7 +221,7 @@ const ProfileCardComponent = ({
           <div className="pc-inside">
             <div className="pc-glare" />
             <div className="pc-content pc-avatar-content">
-              <img className="avatar" src={avatarUrl} alt={`${name} avatar`} loading="lazy" />
+              <img className="avatar" src={avatarUrl} alt={`${name} avatar`} loading={eager ? 'eager' : 'lazy'} decoding={eager ? 'sync' : 'async'} />
               {showUserInfo && (
                 <div className="pc-user-info">
                   <div className="pc-user-details">

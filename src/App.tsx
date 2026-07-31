@@ -1344,7 +1344,7 @@ function App() {
 
           <div className="certs-grid">
             <div className="cert-item">Диплом о профессиональной подготовке: специалист по ИИ</div>
-            <div className="cert-item">Сертифицированный педагог HISTES</div>
+            <div className="cert-item">Сертифицированный педагог</div>
             <div className="cert-item">Сертификаты онлайн-курсов (Stepik и др.)</div>
             <div className="cert-item">Наставник первокурсников БФУ</div>
             <div className="cert-item">Победитель международной олимпиады по арифметике</div>
@@ -1440,6 +1440,9 @@ function App() {
                   handle="supremeHn"
                   contactText="Написать"
                   showUserInfo={false}
+                  enableTilt={false}
+                  eager
+                  className="pc-code-bg"
                   onContactClick={() => window.open('https://t.me/supremeHn', '_blank', 'noopener,noreferrer')}
                 />
               </div>

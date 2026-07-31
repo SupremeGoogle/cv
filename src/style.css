@@ -4695,3 +4695,101 @@ section {
     background: rgba(255, 255, 255, 0.03);
   }
 }
+
+/* ── ProfileCard: drifting code symbols instead of the holo glare ── */
+.pc-code-bg .pc-glare,
+.pc-code-bg .pc-shine {
+  display: none;
+}
+
+.pc-code-bg .pc-inside {
+  background-color: #0B0B1E;
+  background-image: none;
+}
+
+/* The symbols live on their own layer under the portrait and slide diagonally. */
+.pc-code-bg .pc-inside::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ctext x='10' y='34' font-family='monospace' font-size='19' fill='%2334D399' fill-opacity='0.20'%3E%26lt;/%26gt;%3C/text%3E%3Ctext x='66' y='86' font-family='monospace' font-size='19' fill='%2338BDF8' fill-opacity='0.16'%3E%26lt;/%26gt;%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 120px 120px;
+  animation: pc-code-drift 22s linear infinite;
+  pointer-events: none;
+}
+
+.pc-code-bg .pc-avatar-content,
+.pc-code-bg .pc-content:not(.pc-avatar-content) {
+  z-index: 2;
+  mix-blend-mode: normal;
+}
+
+@keyframes pc-code-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-120px, -120px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-code-bg .pc-inside::before {
+    animation: none;
+  }
+}
+
+/* ── Stats papers: a 2×2 board on phones ── */
+@media (max-width: 640px) {
+  /* Four papers fanned side by side cannot all stay legible at this width —
+     they covered each other's numbers. Equal boxes in two rows instead. */
+  .stats-folder .paper,
+  .stats-folder .paper:nth-child(2),
+  .stats-folder .paper:nth-child(3),
+  .stats-folder .paper:nth-child(4) {
+    width: 76%;
+    height: 58%;
+  }
+
+  /* The open state also rewrites height for papers 2-4 upstream, which threw the
+     rows out of line — pin it here so all four boxes stay identical. */
+  .stats-folder .folder.open .paper:nth-child(1) {
+    transform: translate(-108%, -185%) rotateZ(-5deg);
+    height: 58%;
+  }
+
+  .stats-folder .folder.open .paper:nth-child(2) {
+    transform: translate(6%, -185%) rotateZ(5deg);
+    height: 58%;
+  }
+
+  .stats-folder .folder.open .paper:nth-child(3) {
+    transform: translate(-108%, -72%) rotateZ(-3deg);
+    height: 58%;
+  }
+
+  .stats-folder .folder.open .paper:nth-child(4) {
+    transform: translate(6%, -72%) rotateZ(3deg);
+    height: 58%;
+  }
+
+  .stats-folder-slot {
+    height: 400px;
+  }
+}
+
+/* ── Projects: the whole slide must be grabbable, not just its edges ── */
+@media (max-width: 968px) {
+  /* Everything inside the browser mock is decoration on a phone, and each
+     interactive child (canvas, iframe, orbital timeline) was eating the touch
+     before the scroller saw it. Turn the whole subtree inert, then hand the
+     few real controls their events back. */
+  .projects-track-wrapper .project-browser,
+  .projects-track-wrapper .project-browser * {
+    pointer-events: none;
+  }
+
+  .projects-track-wrapper .cert-btn,
+  .projects-track-wrapper .iframe-back-btn,
+  .projects-track-wrapper .browser-url-text {
+    pointer-events: auto;
+  }
+}
