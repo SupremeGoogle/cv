@@ -38,6 +38,7 @@
 }
 
 .folder.open .paper:nth-child(2) {
+  transition-delay: 0.09s;
   transform: translate(-78%, -104%) rotateZ(-7deg);
   height: 80%;
 }
@@ -47,6 +48,7 @@
 }
 
 .folder.open .paper:nth-child(3) {
+  transition-delay: 0.18s;
   transform: translate(-4%, -104%) rotateZ(7deg);
   height: 80%;
 }
@@ -56,6 +58,7 @@
 }
 
 .folder.open .paper:nth-child(4) {
+  transition-delay: 0.27s;
   transform: translate(66%, -62%) rotateZ(20deg);
   height: 80%;
 }
@@ -102,7 +105,7 @@
   height: 80%;
   background: var(--paper-1);
   border-radius: 10px;
-  transition: all 0.3s ease-in-out;
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1), height 0.85s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,7 +137,7 @@
   background: var(--folder-color);
   border-radius: 5px 10px 10px 10px;
   transform-origin: bottom;
-  transition: all 0.3s ease-in-out;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .folder:focus-visible {

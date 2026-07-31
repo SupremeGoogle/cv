@@ -4049,11 +4049,25 @@ section {
   color: var(--accent);
 }
 
-/* CardSwap positions itself absolutely against its nearest positioned parent. */
+/* CardSwap anchors itself to the bottom-right of its parent and then pushes
+   further out with translate(5%, 20%) — inside a centred stage that left a wide
+   empty gutter on the left and dropped the stack far below the section. Centre
+   it instead and size the stage to the stack's real bounding box: a 440x330
+   card plus the 54/62 offsets of the two cards behind it. */
 .skills-swap-stage {
   position: relative;
-  width: min(100%, 620px);
-  min-height: 520px;
+  width: min(100%, 580px);
+  min-height: 470px;
+}
+
+.skills-swap-stage .card-swap-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
 }
 
 .skill-card {
@@ -4836,5 +4850,51 @@ section {
 @media (max-width: 400px) {
   .stats-folder-slot > div {
     transform: scale(1.62) !important;
+  }
+}
+
+/* ── Manual drag on the projects track (mobile) ── */
+@media (max-width: 968px) {
+  /* pan-y hands vertical gestures back to the page while reserving horizontal
+     ones for the JS drag, so the browser and the handler never fight over the
+     same swipe. */
+  .projects-track-wrapper {
+    touch-action: pan-y !important;
+    scroll-behavior: auto;
+  }
+
+  /* Snap points pull against a drag in progress; re-enabled on release, where
+     the handler settles on the nearest slide itself. */
+  .projects-track-wrapper.projects-dragging {
+    scroll-snap-type: none !important;
+  }
+
+  .projects-track-wrapper.projects-dragging * {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  /* The layer must sit above the browser mock — an iframe or canvas swallows
+     pointer events entirely, so there has to be something inert on top of it. */
+  .project-swipe-layer {
+    z-index: 5;
+  }
+}
+
+/* The slot reserved 300px of headroom above the folder while the open 2x2 board
+   only needs about 170 — the rest was dead space before the block. */
+@media (max-width: 968px) {
+  .stats-folder {
+    margin-top: 1.5rem;
+  }
+
+  .stats-folder-slot {
+    height: 310px;
+  }
+}
+
+@media (max-width: 400px) {
+  .stats-folder-slot {
+    height: 280px;
   }
 }

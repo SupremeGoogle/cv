@@ -373,7 +373,7 @@ function App() {
       // most of the block inside it holds the reveal until it is properly in view —
       // but the numbers have to stay reachable, so the band is not so narrow that
       // a 430px block can never satisfy it.
-      { threshold: isNarrow ? 0.9 : 0.55, rootMargin: isNarrow ? '-15% 0px -15% 0px' : '0px' },
+      { threshold: isNarrow ? 0.9 : 0.75, rootMargin: isNarrow ? '-15% 0px -15% 0px' : '-12% 0px -12% 0px' },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -515,10 +515,116 @@ function App() {
       });
     }
 
-    // Mobile projects used to be driven by a hand-rolled touch handler that set
-    // scrollLeft directly. That killed the browser's fling momentum, so reaching
-    // slide 2 took several swipes. Native scrolling plus the CSS scroll-snap
-    // does it in one.
+    // ── Mobile projects: drag anywhere on a slide ──
+    // Native scrolling cannot be relied on here. Each slide is largely covered
+    // by an iframe or a WebGL canvas, and those consume pointer events outright
+    // — nothing reaches the scroll container, whatever the CSS says. So the drag
+    // is driven by hand, listening in the capture phase on the wrapper (plus the
+    // transparent .project-swipe-layer, which gives the iframes something inert
+    // on top of them to be grabbed through).
+    //
+    // The previous hand-rolled version was removed for having no fling: it set
+    // scrollLeft and stopped dead on release, so reaching slide 2 took several
+    // swipes. This one carries velocity and then settles on the nearest slide.
+    const projectsWrapper = document.querySelector('.projects-track-wrapper') as HTMLElement | null;
+    if (projectsWrapper && window.innerWidth <= 968) {
+      let pointerId: number | null = null;
+      let startX = 0;
+      let startY = 0;
+      let startScroll = 0;
+      let lastX = 0;
+      let lastTime = 0;
+      let velocity = 0;
+      let axis: 'undecided' | 'x' | 'y' = 'undecided';
+      let momentumRaf = 0;
+
+      const slideWidth = () => {
+        const slide = projectsWrapper.querySelector('.project-slide') as HTMLElement | null;
+        if (!slide) return projectsWrapper.clientWidth;
+        const gap = parseFloat(getComputedStyle(projectsWrapper.querySelector('.projects-track') as HTMLElement).gap) || 0;
+        return slide.getBoundingClientRect().width + gap;
+      };
+
+      const snapToNearest = () => {
+        const step = slideWidth();
+        if (!step) return;
+        const target = Math.round(projectsWrapper.scrollLeft / step) * step;
+        projectsWrapper.scrollTo({ left: target, behavior: 'smooth' });
+      };
+
+      const runMomentum = () => {
+        velocity *= 0.94;
+        if (Math.abs(velocity) < 0.4) {
+          cancelAnimationFrame(momentumRaf);
+          momentumRaf = 0;
+          snapToNearest();
+          return;
+        }
+        projectsWrapper.scrollLeft -= velocity;
+        momentumRaf = requestAnimationFrame(runMomentum);
+      };
+
+      const onPointerDown = (event: PointerEvent) => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        cancelAnimationFrame(momentumRaf);
+        momentumRaf = 0;
+        pointerId = event.pointerId;
+        startX = lastX = event.clientX;
+        startY = event.clientY;
+        startScroll = projectsWrapper.scrollLeft;
+        lastTime = event.timeStamp;
+        velocity = 0;
+        axis = 'undecided';
+      };
+
+      const onPointerMove = (event: PointerEvent) => {
+        if (pointerId !== event.pointerId) return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+
+        // Let a clearly vertical gesture scroll the page instead of the track.
+        if (axis === 'undecided') {
+          if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+          axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+          if (axis === 'y') {
+            pointerId = null;
+            return;
+          }
+          projectsWrapper.classList.add('projects-dragging');
+        }
+
+        const dt = event.timeStamp - lastTime;
+        if (dt > 0) velocity = ((event.clientX - lastX) / dt) * 16;
+        lastX = event.clientX;
+        lastTime = event.timeStamp;
+
+        projectsWrapper.scrollLeft = startScroll - dx;
+        if (event.cancelable) event.preventDefault();
+      };
+
+      const onPointerUp = (event: PointerEvent) => {
+        if (pointerId !== event.pointerId) return;
+        pointerId = null;
+        projectsWrapper.classList.remove('projects-dragging');
+        if (axis !== 'x') return;
+        if (Math.abs(velocity) > 1) momentumRaf = requestAnimationFrame(runMomentum);
+        else snapToNearest();
+      };
+
+      const opts = { capture: true, passive: false } as AddEventListenerOptions;
+      projectsWrapper.addEventListener('pointerdown', onPointerDown, opts);
+      projectsWrapper.addEventListener('pointermove', onPointerMove, opts);
+      projectsWrapper.addEventListener('pointerup', onPointerUp, opts);
+      projectsWrapper.addEventListener('pointercancel', onPointerUp, opts);
+
+      cleanupHandlers.push(() => {
+        cancelAnimationFrame(momentumRaf);
+        projectsWrapper.removeEventListener('pointerdown', onPointerDown, opts);
+        projectsWrapper.removeEventListener('pointermove', onPointerMove, opts);
+        projectsWrapper.removeEventListener('pointerup', onPointerUp, opts);
+        projectsWrapper.removeEventListener('pointercancel', onPointerUp, opts);
+      });
+    }
 
     // ── Mouse Follow & Interactions ──
 
@@ -1280,7 +1386,6 @@ function App() {
                   </ul>
                   <div className="tags">
                     <span className="tag-purple tag">Next.js</span>
-                    <span className="tag-blue tag">Node.js</span>
                     <span className="tag-blue tag">Vercel</span>
                     <span className="tag-purple tag">FastAPI</span>
                     <span className="tag-blue tag">Cloudflare</span>
