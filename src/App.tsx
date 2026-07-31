@@ -872,114 +872,80 @@ function App() {
           <h2 className="section-title">Мои <span data-value="Компетенции"></span></h2>
           <p className="skills-subtitle">Fullstack-инженер и архитектор цифровых сервисов. Экспертные знания Next.js, Node.js, React, Python и AI-технологий. Создаю высоконагруженные веб-приложения и масштабируемые системы.</p>
           <div className="bento-grid-custom">
-            <div className="bento-card top-left">
+            <div className="bento-card">
               <div className="bento-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="3" y1="9" x2="21" y2="9"></line>
                   <line x1="9" y1="21" x2="9" y2="9"></line>
                 </svg>
               </div>
-              <h3>Fullstack & Web Architecture</h3>
-              <p>Разработка современнейших приложений на <strong>Next.js</strong> (App Router, SSR, Server Components) и <strong>Node.js</strong>. Проектирование REST/GraphQL API, микросервисов и отзывчивых веб-интерфейсов.</p>
+              <h3>Fullstack & AI Systems</h3>
+              <p>Проектирование и запуск масштабируемых веб-платформ, SaaS-сервисов и личных кабинетов с интегрированным ИИ. Помогаю бизнесу сокращать время выхода на рынок (Time-to-Market) и надежно работать при высоких нагрузках.</p>
               <div className="bento-pills">
                 <span className="bento-pill">Next.js</span>
-                <span className="bento-pill">Node.js</span>
                 <span className="bento-pill">React</span>
                 <span className="bento-pill">TypeScript</span>
-                <span className="bento-pill">Fullstack</span>
-              </div>
-              <div className="bento-decoration dek-window hidden md:block">
-                <div className="code-window">
-                  <div className="code-window-bar"><span></span><span></span><span></span></div>
-                  <div className="code-window-body">
-                    <div className="code-line"><span className="bracket">&lt;&gt;</span>
-                      <div className="bar p" style={{ width: '100px' }}></div>
-                    </div>
-                    <div className="code-line">
-                      <div className="bar g" style={{ width: '180px' }}></div>
-                    </div>
-                    <div className="code-line">
-                      <div className="bar g" style={{ width: '140px' }}></div>
-                    </div>
-                    <div className="code-line">
-                      <div className="bar g" style={{ width: '160px' }}></div>
-                    </div>
-                  </div>
-                </div>
+                <span className="bento-pill">Node.js</span>
+                <span className="bento-pill">AI</span>
               </div>
             </div>
-            <div className="bento-card bottom-left">
+
+            <div className="bento-card">
               <div className="bento-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-                  <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-                  <path d="M2 2l7.586 7.586"></path>
-                  <circle cx="11" cy="11" r="2"></circle>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path>
+                  <rect x="4" y="8" width="16" height="12" rx="2"></rect>
+                  <path d="M2 14h2M20 14h2"></path>
+                  <line x1="9" y1="13" x2="9" y2="13.01"></line>
+                  <line x1="15" y1="13" x2="15" y2="13.01"></line>
                 </svg>
               </div>
-              <h3>Автоматизация и Боты</h3>
-              <p>Разработка Telegram-ботов для бизнеса, CRM-автоматизация и цифровизация повторяющихся задач для оптимизации
-                рабочих процессов.</p>
+              <h3>AI Automation</h3>
+              <p>Создание автономных AI-ассистентов, Telegram-экосистем и сквозных автоматизаций. Заменяют рутинные операции, снижают операционные издержки и обрабатывают 80%+ обращений клиентов 24/7 без участия человека.</p>
               <div className="bento-pills">
                 <span className="bento-pill">Python</span>
-                <span className="bento-pill">Docker</span>
                 <span className="bento-pill">Telegram API</span>
-                <span className="bento-pill">CI/CD</span>
-              </div>
-              <div className="bento-decoration dek-orbit hidden md:block">
-                <div className="orbit-deco">
-                  <div className="orbit-ring"></div>
-                  <div className="orbit-center">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)"
-                      strokeWidth="2">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                    </svg>
-                  </div>
-                  <div className="orbit-dot"></div>
-                  <div className="orbit-dot"></div>
-                  <div className="orbit-dot"></div>
-                </div>
+                <span className="bento-pill">LLM</span>
+                <span className="bento-pill">Automation</span>
+                <span className="bento-pill">Docker</span>
               </div>
             </div>
-            <div className="bento-card right-tall">
+
+            <div className="bento-card">
               <div className="bento-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
                   <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
                   <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
                 </svg>
               </div>
-              <h3>Инфраструктура и БД</h3>
-              <p>Проектирование логики хранения данных в PostgreSQL, контейнеризация приложений в Docker и работа с сетевыми
-                протоколами.</p>
-              <div className="bento-decoration dek-progress hidden md:block">
-                <div className="progress-decoration">
-                  <div className="prog-row"><span className="bracket">{">_"}</span>
-                    <div className="prog-bar-track">
-                      <div className="prog-bar-fill" style={{ width: '40%' }}></div>
-                    </div>
-                  </div>
-                  <div className="prog-row"><span className="bracket">{">_"}</span>
-                    <div className="prog-bar-track">
-                      <div className="prog-bar-fill" style={{ width: '65%' }}></div>
-                    </div>
-                  </div>
-                  <div className="prog-row"><span className="bracket">{">_"}</span>
-                    <div className="prog-bar-track">
-                      <div className="prog-bar-fill" style={{ width: '80%' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bento-pills bento-pills-bottom">
-                <span className="bento-pill">SQL</span>
+              <h3>Backend & Infrastructure</h3>
+              <p>Проектирование надежной серверной архитектуры, отказоустойчивых API и баз данных. Настройка контейнеризации, мониторинга и CI/CD для стабильной работы сервисов (99.9% uptime) под любой нагрузкой.</p>
+              <div className="bento-pills">
                 <span className="bento-pill">PostgreSQL</span>
                 <span className="bento-pill">Docker</span>
-                <span className="bento-pill">CRM API</span>
+                <span className="bento-pill">REST API</span>
+                <span className="bento-pill">Linux</span>
+                <span className="bento-pill">CI/CD</span>
+              </div>
+            </div>
+
+            <div className="bento-card">
+              <div className="bento-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <h3>AI Engineering</h3>
+              <p>Интеграция передовых языковых моделей (LLM) и RAG-систем в реальные бизнес-продукты. Превращаю корпоративные базы знаний и документы в умных ассистентов с высокой точностью ответов без "галлюцинаций".</p>
+              <div className="bento-pills">
+                <span className="bento-pill">OpenAI</span>
+                <span className="bento-pill">Claude</span>
+                <span className="bento-pill">Gemini</span>
+                <span className="bento-pill">RAG</span>
+                <span className="bento-pill">LLM</span>
               </div>
             </div>
           </div>

@@ -1271,8 +1271,7 @@ section {
 
 .bento-grid-custom {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  grid-template-rows: auto auto;
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
 }
 
@@ -1287,6 +1286,8 @@ section {
   transition: all 0.4s ease;
   opacity: 0;
   transform: translateY(40px);
+  display: flex;
+  flex-direction: column;
 }
 
 .bento-card:hover {
@@ -1295,28 +1296,9 @@ section {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(52, 211, 153, 0.08);
 }
 
-.bento-card.top-left {
-  grid-column: 1;
-  grid-row: 1;
-  min-height: 300px;
-}
-
-.bento-card.bottom-left {
-  grid-column: 1;
-  grid-row: 2;
-  min-height: 300px;
-}
-
-.bento-card.right-tall {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  display: flex;
-  flex-direction: column;
-}
-
-.bento-pills-bottom {
+.bento-pills {
   margin-top: auto;
-  padding-top: 2rem;
+  padding-top: 1.5rem;
 }
 
 /* Card icon */
