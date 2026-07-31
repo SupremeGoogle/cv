@@ -7,7 +7,7 @@ import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
 import SphereImageGrid from './components/ui/img-sphere';
 import TargetCursor from './components/ui/TargetCursor';
 
-type WebProject = {
+export type DigitalProject = {
   id: number;
   name: string;
   url: string;
@@ -15,7 +15,9 @@ type WebProject = {
   desc: string;
 };
 
-const digitalProjects: DigitalProject[] = [
+export type WebProject = DigitalProject;
+
+const digitalProjects: WebProject[] = [
   { id: 1, name: 'verix.tj', url: 'https://verix.tj', img: '/legacy/1.jpg', desc: 'Инновационная сервисная экосистема и цифровой хаб (Next.js & Node.js Fullstack)' },
   { id: 2, name: 'Стальное Основание', url: 'https://stalnoe-osnovanie.ru', img: '/legacy/2.jpg', desc: 'Платформа производственной компании и металлоконструкций' },
   { id: 3, name: 'Crown Shine Detailing', url: 'https://crownshinedetailing.com', img: '/legacy/3.jpg', desc: 'Студия премиального детейлинга и ухода за авто' },
