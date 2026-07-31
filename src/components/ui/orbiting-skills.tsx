@@ -2,7 +2,7 @@
 import React, { useEffect, useState, memo } from 'react';
 
 // --- Type Definitions ---
-type IconType = 'html' | 'css' | 'python' | 'react' | 'sql' | 'ml';
+type IconType = 'nextjs' | 'nodejs' | 'python' | 'react' | 'sql' | 'ml';
 
 type GlowColor = 'cyan' | 'purple';
 
@@ -34,30 +34,40 @@ interface GlowingOrbitPathProps {
 
 // --- Improved SVG Icon Components ---
 const iconComponents: Record<IconType, { component: () => React.JSX.Element; color: string }> = {
-  html: {
+  nextjs: {
     component: () => (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-        <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z" fill="#E34F26"/>
+      <svg viewBox="0 0 128 128" fill="none" className="w-full h-full">
+        <circle cx="64" cy="64" r="64" fill="#000000"/>
+        <path d="M107.5 113.8L47.2 36H36v56h12V52.8l52 66.8c2.6-1.8 5.1-3.8 7.5-5.8z" fill="url(#next-grad)"/>
+        <path d="M82 36h12v56H82z" fill="#FFFFFF"/>
+        <defs>
+          <linearGradient id="next-grad" x1="77" y1="74.5" x2="103.5" y2="108.5" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#FFFFFF"/>
+            <stop offset="1" stopColor="#FFFFFF" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
       </svg>
     ),
-    color: '#E34F26'
+    color: '#FFFFFF'
   },
-  css: {
+  nodejs: {
     component: () => (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-        <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438L1.5 0zm17.09 4.413L5.41 4.41l.213 2.622 10.125.002-.255 2.716h-6.64l.24 2.573h6.182l-.366 3.523-2.91.804-2.956-.81-.188-2.11h-2.61l.29 3.751L12 19.351l5.379-1.443.744-8.157z" fill="#1572B6"/>
+        <path d="M12 1.847a2.213 2.213 0 0 0-1.107.297L2.43 6.958A2.213 2.213 0 0 0 1.323 8.87v9.645c0 .79.421 1.52 1.107 1.914l8.463 4.814a2.213 2.213 0 0 0 2.214 0l8.463-4.814A2.213 2.213 0 0 0 22.677 18.515V8.87a2.213 2.213 0 0 0-1.107-1.912L13.107 2.144A2.213 2.213 0 0 0 12 1.847zm-1.041 3.504c.162-.094.364-.094.526 0l6.98 3.972a.526.526 0 0 1 .263.456v7.944a.526.526 0 0 1-.263.456l-6.98 3.972a.526.526 0 0 1-.526 0l-6.98-3.972a.526.526 0 0 1-.263-.456V9.779c0-.188.1-.354.263-.456l6.98-3.972z" fill="#5FA04E"/>
       </svg>
     ),
-    color: '#1572B6'
+    color: '#5FA04E'
   },
   python: {
     component: () => (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-full h-full scale-[0.9]">
-        <path d="M11.66 1.13c-3 .15-2.82 1.32-2.82 1.32v1.44H12v.42H7.66s-1.94.22-1.94 2.89c0 2.67 1.69 2.8 1.69 2.8h1v-1.42s-.03-1.69 1.69-1.69h3s1.61.04 1.61-1.62V1.9s.11-1.18-3.04-1.18c0 0-.01 0-.01 0-.02 0-.02 0-.02 0zm-1.55 1.63a.65.65 0 1 1 0 1.3.65.65 0 0 1 0-1.3z" fill="#3776AB"/>
-        <path d="M12.34 22.87c3-.15 2.82-1.32 2.82-1.32v-1.44H12v-.42h4.34s1.94-.22 1.94-2.89c0-2.67-1.69-2.8-1.69-2.8h-1v1.42s.03 1.69-1.69 1.69h-3s-1.61-.04-1.61 1.62v3s-.11 1.18 3.04 1.18l.01 0 .01 0zm1.55-1.63a.65.65 0 1 1 0-1.3.65.65 0 0 1 0 1.3z" fill="#FFD343"/>
+      <svg viewBox="0 0 128 128" fill="none" className="w-full h-full">
+        <path d="M64.6 2.7c-21.6 0-24.6 9.3-24.6 9.3l.1 11.5h25.1v3.5H37.5C20.1 27.1 17.6 38.9 17.6 38.9s-3.1 13.3 17.2 14.8v-8.1s-.2-9.4 9.3-9.4h25.3s8.9-.4 8.9-8.8V13.5s.5-10.8-13.7-10.8z" fill="#387eb8"/>
+        <path d="M47.8 16.7a3.8 3.8 0 1 1-7.5 0 3.8 3.8 0 0 1 7.5 0z" fill="#fff"/>
+        <path d="M65.1 123.6c21.6 0 24.6-9.3 24.6-9.3l-.1-11.5H64.5v-3.5h27.7c17.4 0 19.9-11.8 19.9-11.8s3.1-13.3-17.2-14.8v8.1s.2 9.4-9.3 9.4H60.2s-8.9.4-8.9 8.8v13.9s-.5 10.8 13.8 10.8z" fill="#ffe052"/>
+        <path d="M81.8 109.6a3.8 3.8 0 1 1 7.5 0 3.8 3.8 0 0 1-7.5 0z" fill="#fff"/>
       </svg>
     ),
-    color: '#3776AB'
+    color: '#FFE052'
   },
   react: {
     component: () => (
@@ -104,24 +114,24 @@ SkillIcon.displayName = 'SkillIcon';
 const skillsConfig: SkillConfig[] = [
   // Inner Orbit
   { 
-    id: 'html',
-    orbitRadius: 100, 
-    size: 40, 
-    speed: 1, 
-    iconType: 'html', 
-    phaseShift: 0, 
-    glowColor: 'cyan',
-    label: 'HTML5'
-  },
-  { 
-    id: 'css',
+    id: 'nextjs',
     orbitRadius: 100, 
     size: 45, 
     speed: 1, 
-    iconType: 'css', 
+    iconType: 'nextjs', 
+    phaseShift: 0, 
+    glowColor: 'cyan',
+    label: 'Next.js'
+  },
+  { 
+    id: 'nodejs',
+    orbitRadius: 100, 
+    size: 45, 
+    speed: 1, 
+    iconType: 'nodejs', 
     phaseShift: (2 * Math.PI) / 3, 
     glowColor: 'cyan',
-    label: 'CSS3'
+    label: 'Node.js'
   },
   { 
     id: 'python',
@@ -152,7 +162,7 @@ const skillsConfig: SkillConfig[] = [
     iconType: 'sql', 
     phaseShift: (2 * Math.PI) / 3, 
     glowColor: 'purple',
-    label: 'SQL'
+    label: 'PostgreSQL'
   },
   { 
     id: 'ml',
@@ -162,7 +172,7 @@ const skillsConfig: SkillConfig[] = [
     iconType: 'ml', 
     phaseShift: (4 * Math.PI) / 3, 
     glowColor: 'purple',
-    label: 'ML / AI'
+    label: 'AI / LLM'
   },
 ];
 
@@ -176,12 +186,11 @@ const OrbitingSkill = memo(({ config, angle }: OrbitingSkillProps) => {
 
   return (
     <div
-      className="absolute top-1/2 left-1/2 will-change-transform"
+      className="absolute top-1/2 left-1/2"
       style={{
         width: `${size}px`,
         height: `${size}px`,
         transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%))`,
-        transition: 'none',
         zIndex: isHovered ? 20 : 10,
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -197,12 +206,12 @@ const OrbitingSkill = memo(({ config, angle }: OrbitingSkillProps) => {
         style={{
           boxShadow: isHovered
             ? `0 0 30px ${iconComponents[iconType]?.color}40, 0 0 60px ${iconComponents[iconType]?.color}20`
-            : undefined
+            : `0 0 15px ${iconComponents[iconType]?.color}20`,
         }}
       >
         <SkillIcon type={iconType} />
         {isHovered && (
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900/95 backdrop-blur-sm rounded text-xs text-white whitespace-nowrap pointer-events-none">
+          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap border border-gray-700">
             {label}
           </div>
         )}
@@ -212,64 +221,36 @@ const OrbitingSkill = memo(({ config, angle }: OrbitingSkillProps) => {
 });
 OrbitingSkill.displayName = 'OrbitingSkill';
 
-// --- Optimized Orbit Path Component ---
+// --- Glowing Orbit Path Component ---
 const GlowingOrbitPath = memo(({ radius, glowColor = 'cyan', animationDelay = 0 }: GlowingOrbitPathProps) => {
-  const glowColors = {
-    cyan: {
-      primary: 'rgba(6, 182, 212, 0.4)',
-      secondary: 'rgba(6, 182, 212, 0.2)',
-      border: 'rgba(6, 182, 212, 0.3)'
-    },
-    purple: {
-      primary: 'rgba(147, 51, 234, 0.4)',
-      secondary: 'rgba(147, 51, 234, 0.2)',
-      border: 'rgba(147, 51, 234, 0.3)'
-    }
+  const glowStyles = {
+    cyan: 'border-cyan-500/30 shadow-[0_0_25px_rgba(6,182,212,0.15)]',
+    purple: 'border-purple-500/30 shadow-[0_0_25px_rgba(168,85,247,0.15)]',
   };
-
-  const colors = glowColors[glowColor] || glowColors.cyan;
 
   return (
     <div
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+      className={`
+        absolute top-1/2 left-1/2 rounded-full border border-dashed
+        transform -translate-x-1/2 -translate-y-1/2 pointer-events-none
+        transition-all duration-1000 animate-pulse
+        ${glowStyles[glowColor]}
+      `}
       style={{
         width: `${radius * 2}px`,
         height: `${radius * 2}px`,
         animationDelay: `${animationDelay}s`,
       }}
-    >
-      {/* Glowing background */}
-      <div
-        className="absolute inset-0 rounded-full animate-pulse"
-        style={{
-          background: `radial-gradient(circle, transparent 30%, ${colors.secondary} 70%, ${colors.primary} 100%)`,
-          boxShadow: `0 0 60px ${colors.primary}, inset 0 0 60px ${colors.secondary}`,
-          animation: 'pulse 4s ease-in-out infinite',
-          animationDelay: `${animationDelay}s`,
-        }}
-      />
-
-      {/* Static ring for depth */}
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          border: `1px solid ${colors.border}`,
-          boxShadow: `inset 0 0 20px ${colors.secondary}`,
-        }}
-      />
-    </div>
+    />
   );
 });
 GlowingOrbitPath.displayName = 'GlowingOrbitPath';
 
-// --- Main App Component ---
-export default function OrbitingSkills() {
+// --- Main OrbitingSkills Component ---
+export const OrbitingSkills = memo(() => {
   const [time, setTime] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (isPaused) return;
-
     let animationFrameId: number;
     let lastTime = performance.now();
 
@@ -277,67 +258,43 @@ export default function OrbitingSkills() {
       const deltaTime = (currentTime - lastTime) / 1000;
       lastTime = currentTime;
 
-      setTime(prevTime => prevTime + deltaTime);
+      setTime((prevTime) => prevTime + deltaTime);
       animationFrameId = requestAnimationFrame(animate);
     };
 
     animationFrameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isPaused]);
 
-  const orbitConfigs: Array<{ radius: number; glowColor: GlowColor; delay: number }> = [
-    { radius: 100, glowColor: 'cyan', delay: 0 },
-    { radius: 180, glowColor: 'purple', delay: 1.5 }
-  ];
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   return (
-    <div className="w-full flex items-center justify-center overflow-visible">
-      <div 
-        className="relative w-[300px] h-[300px] md:w-[450px] md:h-[450px] flex items-center justify-center"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        
-        {/* Central "Code" Icon with enhanced glow */}
-        <div className="w-20 h-20 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center z-10 relative shadow-2xl">
-          <div className="absolute inset-0 rounded-full bg-cyan-500/30 blur-xl animate-pulse"></div>
-          <div className="absolute inset-0 rounded-full bg-purple-500/20 blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="relative z-10">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#06B6D4" />
-                  <stop offset="100%" stopColor="#9333EA" />
-                </linearGradient>
-              </defs>
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
+    <div className="relative w-full h-full min-h-[400px] flex items-center justify-center overflow-hidden">
+      {/* Central Core */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+        <div className="relative w-20 h-20 bg-gradient-to-tr from-cyan-500 to-purple-600 rounded-full flex items-center justify-center p-0.5 shadow-[0_0_50px_rgba(6,182,212,0.4)] animate-pulse">
+          <div className="w-full h-full bg-gray-900 rounded-full flex flex-col items-center justify-center p-2 text-center">
+            <span className="text-xs font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              FULLSTACK
+            </span>
+            <span className="text-[9px] text-gray-400">DEV</span>
           </div>
         </div>
-
-        {/* Render glowing orbit paths */}
-        {orbitConfigs.map((config) => (
-          <GlowingOrbitPath
-            key={`path-${config.radius}`}
-            radius={config.radius}
-            glowColor={config.glowColor}
-            animationDelay={config.delay}
-          />
-        ))}
-
-        {/* Render orbiting skill icons */}
-        {skillsConfig.map((config) => {
-          const angle = time * config.speed + (config.phaseShift || 0);
-          return (
-            <OrbitingSkill
-              key={config.id}
-              config={config}
-              angle={angle}
-            />
-          );
-        })}
       </div>
+
+      {/* Orbit Paths */}
+      <GlowingOrbitPath radius={100} glowColor="cyan" animationDelay={0} />
+      <GlowingOrbitPath radius={180} glowColor="purple" animationDelay={1} />
+
+      {/* Skill Icons */}
+      {skillsConfig.map((config) => {
+        const currentAngle = config.phaseShift + time * config.speed * 0.5;
+        return <OrbitingSkill key={config.id} config={config} angle={currentAngle} />;
+      })}
     </div>
   );
-}
+});
+
+OrbitingSkills.displayName = 'OrbitingSkills';
+export default OrbitingSkills;

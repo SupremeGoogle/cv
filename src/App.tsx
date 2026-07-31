@@ -1,230 +1,35 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './style.css'
 import OrbitingSkills from './components/ui/orbiting-skills'
 import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
-import DigitalProjectSphere, { type DigitalProject } from './components/ui/digital-project-sphere';
-import PixelProjectArt from './components/ui/pixel-project-art';
+import SphereImageGrid from './components/ui/img-sphere';
+import TargetCursor from './components/ui/TargetCursor';
+
+type WebProject = {
+  id: number;
+  name: string;
+  url: string;
+  img: string;
+  desc: string;
+};
 
 const digitalProjects: DigitalProject[] = [
-  { id: 1, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
-  { id: 2, name: 'Aristo', url: 'https://aristo39.com', img: '/legacy/2.jpg', desc: 'Профессиональный салон гардеробных систем' },
-  { id: 3, name: 'KIBERone: Навигатор', url: 'https://kiberone.vercel.app', img: '/legacy/3.jpg', desc: 'Информационный лендинг родительского навигатора' },
-  { id: 4, name: 'C# Курс', url: 'https://supremegoogle.github.io/C-/', img: '/legacy/4.jpg', desc: 'Образовательный каталог уроков программирования' },
-  { id: 5, name: 'Пастерия 51', url: 'https://pasteriya.vercel.app', img: '/legacy/5.jpg', desc: 'Кафе пасты ручной работы и завтраков' },
-  { id: 6, name: 'L.A. Coffee', url: 'https://la-coffee.vercel.app', img: '/legacy/6.jpg', desc: 'Атмосферная кофейня со свежей выпечкой' },
-  { id: 7, name: 'Анима', url: 'https://anima-rho-three.vercel.app', img: '/legacy/7.jpg', desc: 'Стильное кафе итальянской кухни' },
-  { id: 8, name: 'Нотариус', url: 'https://notarius-rudobelec.vercel.app', img: '/legacy/8.jpg', desc: 'Официальный сайт нотариальной конторы' },
-  { id: 9, name: 'Брусничка', url: 'https://brusni4ka.vercel.app', img: '/legacy/9.jpg', desc: 'Сеть супермаркетов свежих продуктов' },
-  { id: 10, name: 'Твой Портной', url: 'https://tvoy-portnoy.vercel.app', img: '/legacy/10.jpg', desc: 'Профессиональное ателье: пошив и ремонт' },
-  { id: 11, name: 'Шляпный бутик', url: 'https://shlyapa-one.vercel.app', img: '/legacy/11.jpg', desc: 'Магазин головных уборов премиум-класса' },
+  { id: 1, name: 'verix.tj', url: 'https://verix.tj', img: '/legacy/1.jpg', desc: 'Инновационная сервисная экосистема и цифровой хаб (Next.js & Node.js Fullstack)' },
+  { id: 2, name: 'Стальное Основание', url: 'https://stalnoe-osnovanie.ru', img: '/legacy/2.jpg', desc: 'Платформа производственной компании и металлоконструкций' },
+  { id: 3, name: 'Crown Shine Detailing', url: 'https://crownshinedetailing.com', img: '/legacy/3.jpg', desc: 'Студия премиального детейлинга и ухода за авто' },
+  { id: 4, name: 'Jolies Fleurs', url: 'https://joliesfleurs.ru', img: '/legacy/5.jpg', desc: 'Премиальный интернет-магазин флористики и доставки цветов' },
+  { id: 5, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
+  { id: 6, name: 'Aristo', url: 'https://aristo39.com', img: '/legacy/2.jpg', desc: 'Профессиональный салон гардеробных систем' },
+  { id: 7, name: 'KIBERone: Навигатор', url: 'https://kiberone.vercel.app', img: '/legacy/3.jpg', desc: 'Информационный лендинг родительского навигатора' },
+  { id: 8, name: 'C# Курс', url: 'https://supremegoogle.github.io/C-/', img: '/legacy/4.jpg', desc: 'Образовательный каталог уроков программирования' },
+  { id: 9, name: 'Пастерия 51', url: 'https://pasteriya.vercel.app', img: '/legacy/5.jpg', desc: 'Кафе пасты ручной работы и завтраков' },
+  { id: 10, name: 'L.A. Coffee', url: 'https://la-coffee.vercel.app', img: '/legacy/6.jpg', desc: 'Атмосферная кофейня со свежей выпечкой' },
+  { id: 11, name: 'Нотариус', url: 'https://notarius-rudobelec.vercel.app', img: '/legacy/8.jpg', desc: 'Официальный сайт нотариальной конторы' }
 ];
 
-type WorkplaceAiStatus =
-  | 'idle'
-  | 'uploading'
-  | 'submitting'      // sending the photo to /api/start-generation
-  | 'generating'      // polling /api/check-status, first 60s window
-  | 'almost_done'     // 60s passed, give the admin another 15s with a softer message
-  | 'awaiting_email'  // 75s total, ask for an email
-  | 'email_sending'   // submitting the email to /api/submit-email
-  | 'email_sent'      // confirmation that the email is saved
-  | 'done'
-  | 'error';
-
-const POLL_INTERVAL_MS = 2000;
-// 60s of "generating" → 15s of "almost done" → email form.
-const ON_SITE_WAIT_MS = 60000;
-const ALMOST_DONE_EXTRA_MS = 15000;
-
-// New flow: the site uploads the workspace photo to /api/start-generation, then
-// polls /api/check-status. The admin (me) gets a Telegram notification, manually
-// generates the result in AI Studio and sends it back via the bot.
-const START_ENDPOINT = '/api/start-generation';
-const GENERATE_ENDPOINT = '/api/generate';
-const STATUS_ENDPOINT = '/api/check-status';
-const EMAIL_ENDPOINT = '/api/submit-email';
-// Identity reference shipped with the site; glued next to the visitor's photo
-// before the request goes to the image model.
-const REFERENCE_FACE_URL = '/reference-face.jpg';
-// Both panels of the two-panel sheet share this height and keep their own
-// aspect ratio; the scene panel is capped so the sheet can't grow unbounded.
-const COMPOSITE_PANEL_HEIGHT = 1024;
-const COMPOSITE_MAX_SCENE_WIDTH = 1536;
-const COMPOSITE_SEAM = 6;
-const IMAGE_REQUEST_TIMEOUT_MS = 90000;
-// 2048×1365 keeps a 3:2 photo aspect (most phone cameras) at near-original
-// detail. Combined with quality 0.95 below we land at roughly 0.7-1.2 MB —
-// well under the Vercel request body limit (~4.5 MB) even after base64.
-const IMAGE_WIDTH = 2048;
-const IMAGE_HEIGHT = 1365;
-const IMAGE_JPEG_QUALITY = 0.95;
-const WORKPLACE_GENERATION_LIMIT = 2;
-const IP_LOOKUP_ENDPOINT = 'https://api.ipify.org?format=json';
-const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
-
-const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(String(reader.result));
-  reader.onerror = () => reject(new Error('Не удалось прочитать изображение.'));
-  reader.readAsDataURL(file);
-});
-
-const blobToBase64 = (blob: Blob) => new Promise<string>((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => {
-    const result = String(reader.result);
-    const comma = result.indexOf(',');
-    resolve(comma >= 0 ? result.slice(comma + 1) : result);
-  };
-  reader.onerror = () => reject(new Error('Не удалось обработать изображение.'));
-  reader.readAsDataURL(blob);
-});
-
-const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
-  const image = new Image();
-  if (src.startsWith('http')) {
-    image.crossOrigin = 'anonymous';
-  }
-  image.onload = () => resolve(image);
-  image.onerror = () => reject(new Error('Не удалось загрузить изображение.'));
-  image.src = src;
-});
-
-const drawContain = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) => {
-  const sourceRatio = image.naturalWidth / image.naturalHeight;
-  const targetRatio = width / height;
-  let targetWidth = width;
-  let targetHeight = height;
-  let targetX = x;
-  let targetY = y;
-
-  if (sourceRatio > targetRatio) {
-    targetHeight = width / sourceRatio;
-    targetY = y + (height - targetHeight) / 2;
-  } else {
-    targetWidth = height * sourceRatio;
-    targetX = x + (width - targetWidth) / 2;
-  }
-
-  ctx.drawImage(image, targetX, targetY, targetWidth, targetHeight);
-};
-
-const createImageFile = async (src: string, filename: string, type: 'image/jpeg' | 'image/png' = 'image/jpeg') => {
-  const image = await loadImage(src);
-  const canvas = document.createElement('canvas');
-  canvas.width = IMAGE_WIDTH;
-  canvas.height = IMAGE_HEIGHT;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
-
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawContain(ctx, image, 0, 0, canvas.width, canvas.height);
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(blob => {
-      if (blob) resolve(blob);
-      else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
-    }, type, type === 'image/jpeg' ? IMAGE_JPEG_QUALITY : undefined);
-  });
-};
-
-// Glue the identity reference and the visitor's scene into one side-by-side
-// image. DeepInfra's edits endpoint accepts a single file, so this two-panel
-// sheet is how the model gets both inputs — api/_lib/prompt.ts explains the
-// layout to the model and tells it to return only the right-hand panel.
-const createCompositeImage = async (workspaceDataUrl: string) => {
-  const [reference, workspace] = await Promise.all([
-    loadImage(REFERENCE_FACE_URL),
-    loadImage(workspaceDataUrl),
-  ]);
-
-  // Both panels share a height and keep their own aspect ratio. Padding either
-  // one into a square would waste roughly a third of the pixels the model gets
-  // to look at — and the scene panel is where detail matters most.
-  const panelWidth = (image: HTMLImageElement, max: number) => {
-    const ratio = image.naturalWidth / image.naturalHeight;
-    return Math.max(1, Math.min(max, Math.round(COMPOSITE_PANEL_HEIGHT * ratio)));
-  };
-  const referenceWidth = panelWidth(reference, COMPOSITE_PANEL_HEIGHT);
-  const workspaceWidth = panelWidth(workspace, COMPOSITE_MAX_SCENE_WIDTH);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = referenceWidth + COMPOSITE_SEAM + workspaceWidth;
-  canvas.height = COMPOSITE_PANEL_HEIGHT;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
-
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawContain(ctx, reference, 0, 0, referenceWidth, canvas.height);
-  drawContain(ctx, workspace, referenceWidth + COMPOSITE_SEAM, 0, workspaceWidth, canvas.height);
-
-  // A hard seam helps the model read this as two separate panels rather than
-  // one wide room.
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(referenceWidth, 0, COMPOSITE_SEAM, canvas.height);
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      blob => (blob ? resolve(blob) : reject(new Error('Не удалось собрать изображение для генерации.'))),
-      'image/jpeg',
-      IMAGE_JPEG_QUALITY,
-    );
-  });
-};
-
-const extractApiError = (payload: unknown) => {
-  if (!payload) return 'Сервис вернул пустой ответ. Откройте /api/health, чтобы понять, что не настроено.';
-  if (typeof payload === 'string') return payload;
-  if (typeof payload !== 'object') return String(payload);
-
-  const data = payload as Record<string, unknown>;
-  const candidates = [data.error, data.detail, data.message];
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    if (typeof candidate === 'string') return candidate;
-    if (typeof candidate === 'object') {
-      const nested = candidate as Record<string, unknown>;
-      if (typeof nested.message === 'string') return nested.message;
-      if (typeof nested.detail === 'string') return nested.detail;
-      return JSON.stringify(candidate);
-    }
-    return String(candidate);
-  }
-
-  return JSON.stringify(payload);
-};
-
-const getClientIp = async () => {
-  try {
-    const response = await fetch(IP_LOOKUP_ENDPOINT, { cache: 'no-store' });
-    if (!response.ok) throw new Error('IP lookup failed');
-    const payload = await response.json();
-    return typeof payload.ip === 'string' && payload.ip ? payload.ip : 'unknown-ip';
-  } catch {
-    return 'unknown-ip';
-  }
-};
-
-const reserveWorkplaceGeneration = async () => {
-  // TEMP: per-IP limit disabled for testing. Remove the next line to restore the limit.
-  return { allowed: true, used: 0, ip: 'unlimited' };
-
-  const ip = await getClientIp();
-  const key = `${WORKPLACE_LIMIT_STORAGE_PREFIX}${ip}`;
-  const current = Number(window.localStorage.getItem(key) || '0');
-
-  if (current >= WORKPLACE_GENERATION_LIMIT) {
-    return { allowed: false, used: current, ip };
-  }
-
-  const next = current + 1;
-  window.localStorage.setItem(key, String(next));
-  return { allowed: true, used: next, ip };
-};
+const COMMERCIAL_SITES = digitalProjects;
 
 // ── ScrambleText class for animations ──
 class ScrambleText {
@@ -271,18 +76,69 @@ class ScrambleText {
 }
 
 function App() {
-  const [selectedDigitalProject, setSelectedDigitalProject] = useState<DigitalProject | null>(null);
-  const [isWorkplaceModalOpen, setIsWorkplaceModalOpen] = useState(false);
-  const [workplaceStatus, setWorkplaceStatus] = useState<WorkplaceAiStatus>('idle');
-  const [workplacePreview, setWorkplacePreview] = useState<string | null>(null);
-  const [workplaceResult, setWorkplaceResult] = useState<string | null>(null);
-  const [workplaceError, setWorkplaceError] = useState('');
-  const [workplaceLimitReached, setWorkplaceLimitReached] = useState(false);
-  const [workplaceEmail, setWorkplaceEmail] = useState('');
-  const [workplaceRequestId, setWorkplaceRequestId] = useState<string | null>(null);
-  const workplaceInputRef = useRef<HTMLInputElement | null>(null);
-  // Tracks the active polling loop so we can cancel it when the modal closes or status changes.
-  const workplacePollAbortRef = useRef<{ aborted: boolean } | null>(null);
+  const [activeSite, setActiveSite] = useState<WebProject | null>(null);
+  const [fullscreenImgUrl, setFullscreenImgUrl] = useState<string | null>(null);
+
+  // ── Drag to scroll logic ──
+  const trackWrapperRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const velocity = useRef(0);
+  const lastX = useRef(0);
+  const rafId = useRef<number | null>(null);
+
+  const applyMomentum = () => {
+    if (!trackWrapperRef.current || Math.abs(velocity.current) < 0.5) return;
+    trackWrapperRef.current.scrollLeft -= velocity.current;
+    velocity.current *= 0.92; // Friction factor
+    rafId.current = requestAnimationFrame(applyMomentum);
+  };
+
+  const handleDragStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    isDragging.current = true;
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+    const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+    if (trackWrapperRef.current) {
+      startX.current = pageX - trackWrapperRef.current.offsetLeft;
+      scrollLeft.current = trackWrapperRef.current.scrollLeft;
+      lastX.current = pageX;
+      velocity.current = 0;
+      trackWrapperRef.current.style.cursor = 'grabbing';
+      trackWrapperRef.current.style.scrollBehavior = 'auto';
+      trackWrapperRef.current.style.scrollSnapType = 'none';
+      if ('touches' in e) document.body.style.overscrollBehaviorY = 'contain';
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    if (trackWrapperRef.current) {
+      trackWrapperRef.current.style.cursor = 'grab';
+      document.body.style.overscrollBehaviorY = 'auto';
+      applyMomentum();
+      
+      // Restore snapping after momentum finishes or after a delay
+      setTimeout(() => {
+        if (!isDragging.current && trackWrapperRef.current) {
+          trackWrapperRef.current.style.scrollSnapType = 'x proximity';
+          trackWrapperRef.current.style.scrollBehavior = 'smooth';
+        }
+      }, 500);
+    }
+  };
+
+  const handleDragMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging.current || !trackWrapperRef.current) return;
+    const pageX = 'touches' in e ? e.touches[0].pageX : e.pageX;
+    const x = pageX - trackWrapperRef.current.offsetLeft;
+    const walk = (x - startX.current); 
+    trackWrapperRef.current.scrollLeft = scrollLeft.current - walk;
+    
+    velocity.current = pageX - lastX.current;
+    lastX.current = pageX;
+  };
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -314,7 +170,7 @@ function App() {
     const cp = initParticles();
 
     // ── Visibility Setup ──
-    gsap.set('.terminal-window, .hero-greeting, .hero-cmd, .hero-title, .hero-desc, .hero-btns, .hero-visual, .scroll-indicator, .workplace-cta, .contact-box', { opacity: 0, y: 30 });
+    gsap.set('.terminal-window, .hero-greeting, .hero-cmd, .hero-title, .hero-desc, .hero-btns, .hero-avatar-wrapper, .scroll-indicator, .contact-box', { opacity: 0, y: 30 });
     gsap.set('.hero-title', { x: -30, y: 0 }); // Override for title slide-in
 
     // ── Scroll Events ──
@@ -341,11 +197,11 @@ function App() {
        .to('.hero-title', { opacity: 1, x: 0, duration: 0.6 }, '-=0.4')
        .to('.hero-desc', { opacity: 1, y: 0, duration: 0.6 }, '-=0.3')
        .to('.hero-btns', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2')
-       .to('.hero-visual', { opacity: 1, scale: 1, duration: 1, ease: 'power2.out' }, '-=0.8')
+       .to('.hero-avatar-wrapper', { opacity: 1, scale: 1, duration: 1, ease: 'power2.out' }, '-=0.8')
        .to('.scroll-indicator', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
 
     // ── General Scroll Reveals ──
-    document.querySelectorAll('.section-label, .about-card, .exp-card, .bento-card, .edu-card, .cert-item, .workplace-cta, .contact-box, .skills-subtitle').forEach(el => {
+    document.querySelectorAll('.section-label, .about-card, .exp-card, .bento-card, .edu-card, .cert-item, .contact-box').forEach(el => {
       gsap.to(el, { opacity: 1, y: 0, duration: 0.8, scrollTrigger: { trigger: el, start: 'top 85%' } });
     });
 
@@ -375,135 +231,42 @@ function App() {
       }
     });
 
-    // ── Projects Horizontal ──
-    const cleanupHandlers: Array<() => void> = [];
-    const track = document.querySelector('.projects-track') as HTMLElement;
-    if (track && window.innerWidth > 968) {
-      const section = document.querySelector('.projects') as HTMLElement;
-      let projectsScroll: ScrollTrigger | undefined;
-      const getScrollDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
-      const tl = gsap.to(track, {
-        x: () => -getScrollDistance(),
+    // ── Projects Scroll Reveal ──
+    document.querySelectorAll('.project-slide').forEach((slide) => {
+      gsap.fromTo(slide,
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: slide, start: 'top 82%' } }
+      );
+      const ghost = slide.querySelector('.project-ghost');
+      if (ghost) {
+        gsap.fromTo(ghost, { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 1, scrollTrigger: { trigger: slide, start: 'top 85%', scrub: 0.5 } });
+      }
+    });
+
+    // ── Horizontal Scroll Pinning (Desktop) ──
+    const mm = gsap.matchMedia();
+    mm.add("(min-width: 1024px)", () => {
+      const track = document.querySelector('.projects-track');
+      const wrapper = document.querySelector('.projects-track-wrapper');
+      if (!track || !wrapper) return;
+
+      const scrollWidth = track.scrollWidth;
+      const viewportWidth = window.innerWidth;
+      const amountToScroll = scrollWidth - viewportWidth;
+
+      gsap.to(track, {
+        x: () => -amountToScroll,
         ease: "none",
         scrollTrigger: {
           trigger: ".projects",
+          start: "top top",
+          end: () => "+=" + amountToScroll,
           pin: true,
           scrub: 1,
           invalidateOnRefresh: true,
-          end: () => "+=" + getScrollDistance(),
-          onRefresh: self => {
-            projectsScroll = self;
-          },
-        },
-      });
-
-      projectsScroll = tl.scrollTrigger;
-
-      const onProjectsWheel = (event: WheelEvent) => {
-        if (!projectsScroll?.isActive) return;
-
-        const horizontalDelta = Math.abs(event.deltaX);
-        const verticalDelta = Math.abs(event.deltaY);
-        const scrollAmount = horizontalDelta > verticalDelta ? event.deltaX : event.shiftKey ? event.deltaY : 0;
-        if (Math.abs(scrollAmount) < 1) return;
-
-        event.preventDefault();
-        window.scrollBy({ top: scrollAmount, left: 0, behavior: 'auto' });
-      };
-
-      section?.addEventListener('wheel', onProjectsWheel, { passive: false });
-      cleanupHandlers.push(() => section?.removeEventListener('wheel', onProjectsWheel));
-
-      document.querySelectorAll('.project-slide').forEach(slide => {
-        const ghost = slide.querySelector('.project-ghost');
-        if (ghost) gsap.to(ghost, { x: 100, scrollTrigger: { trigger: slide, containerAnimation: tl, scrub: true } });
-      });
-    }
-
-    const projectsWrapper = document.querySelector('.projects-track-wrapper') as HTMLElement;
-    const mobileProjectsSection = document.querySelector('.projects') as HTMLElement;
-    if (projectsWrapper && mobileProjectsSection && window.innerWidth <= 968) {
-      let startX = 0;
-      let startY = 0;
-      let startScrollLeft = 0;
-      let isHorizontalSwipe = false;
-      let isPointerDragging = false;
-
-      const finishProjectsSwipe = () => {
-        isPointerDragging = false;
-        projectsWrapper.classList.remove('projects-dragging');
-      };
-
-      const updateProjectsSwipe = (clientX: number, clientY: number, preventDefault: () => void) => {
-        const deltaX = clientX - startX;
-        const deltaY = clientY - startY;
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
-
-        if (!isHorizontalSwipe && absX > 6 && absX > absY) {
-          isHorizontalSwipe = true;
-          projectsWrapper.classList.add('projects-dragging');
         }
-
-        if (!isHorizontalSwipe) return;
-
-        preventDefault();
-        projectsWrapper.scrollLeft = startScrollLeft - deltaX;
-      };
-
-      const onProjectsTouchStart = (event: TouchEvent) => {
-        const touch = event.touches[0];
-        if (!touch) return;
-
-        startX = touch.clientX;
-        startY = touch.clientY;
-        startScrollLeft = projectsWrapper.scrollLeft;
-        isHorizontalSwipe = false;
-      };
-
-      const onProjectsTouchMove = (event: TouchEvent) => {
-        const touch = event.touches[0];
-        if (!touch) return;
-        updateProjectsSwipe(touch.clientX, touch.clientY, () => event.preventDefault());
-      };
-
-      const onProjectsPointerDown = (event: PointerEvent) => {
-        if (event.pointerType === 'touch') return;
-        if (event.pointerType === 'mouse' && event.button !== 0) return;
-
-        startX = event.clientX;
-        startY = event.clientY;
-        startScrollLeft = projectsWrapper.scrollLeft;
-        isHorizontalSwipe = false;
-        isPointerDragging = true;
-      };
-
-      const onProjectsPointerMove = (event: PointerEvent) => {
-        if (!isPointerDragging) return;
-        updateProjectsSwipe(event.clientX, event.clientY, () => event.preventDefault());
-      };
-
-      mobileProjectsSection.addEventListener('touchstart', onProjectsTouchStart, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('touchmove', onProjectsTouchMove, { passive: false, capture: true });
-      mobileProjectsSection.addEventListener('touchend', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('touchcancel', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointerdown', onProjectsPointerDown, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointermove', onProjectsPointerMove, { passive: false, capture: true });
-      mobileProjectsSection.addEventListener('pointerup', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointercancel', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointerleave', finishProjectsSwipe, { passive: true, capture: true });
-      cleanupHandlers.push(() => {
-        mobileProjectsSection.removeEventListener('touchstart', onProjectsTouchStart, { capture: true });
-        mobileProjectsSection.removeEventListener('touchmove', onProjectsTouchMove, { capture: true });
-        mobileProjectsSection.removeEventListener('touchend', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('touchcancel', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('pointerdown', onProjectsPointerDown, { capture: true });
-        mobileProjectsSection.removeEventListener('pointermove', onProjectsPointerMove, { capture: true });
-        mobileProjectsSection.removeEventListener('pointerup', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('pointercancel', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('pointerleave', finishProjectsSwipe, { capture: true });
       });
-    }
+    });
 
     // ── Mouse Follow & Interactions ──
     const moveM = (e: MouseEvent) => {
@@ -545,7 +308,7 @@ function App() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('mousemove', moveM);
       clearTimeout(typeTimeout);
-      cleanupHandlers.forEach(cleanup => cleanup());
+      mm.revert();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
@@ -567,242 +330,11 @@ function App() {
     document.querySelector('.nav-links')?.classList.toggle('active');
   };
 
-  const openWorkplaceModal = () => {
-    setIsWorkplaceModalOpen(true);
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeWorkplaceModal = () => {
-    setIsWorkplaceModalOpen(false);
-    document.body.style.overflow = '';
-    // Stop any background polling — visitor walked away.
-    if (workplacePollAbortRef.current) workplacePollAbortRef.current.aborted = true;
-  };
-
-  const resetWorkplaceAi = () => {
-    if (workplacePollAbortRef.current) workplacePollAbortRef.current.aborted = true;
-    setWorkplaceStatus('idle');
-    setWorkplacePreview(null);
-    setWorkplaceResult(null);
-    setWorkplaceError('');
-    setWorkplaceLimitReached(false);
-    setWorkplaceEmail('');
-    setWorkplaceRequestId(null);
-    if (workplaceInputRef.current) workplaceInputRef.current.value = '';
-  };
-
-  const handleWorkplaceFile = async (file?: File) => {
-    if (!file) return;
-
-    try {
-      setWorkplaceStatus('uploading');
-      setWorkplaceError('');
-      setWorkplaceLimitReached(false);
-      setWorkplaceResult(null);
-      const dataUrl = await readFileAsDataUrl(file);
-      setWorkplacePreview(dataUrl);
-      setWorkplaceStatus('idle');
-    } catch (error) {
-      setWorkplaceStatus('error');
-      setWorkplaceError(error instanceof Error ? error.message : 'Не удалось загрузить фото рабочего места.');
-    }
-  };
-
-  // Polls /api/check-status every POLL_INTERVAL_MS. Resolves with the result
-  // image (data URL) if it arrives within the window, or null on timeout.
-  const pollForResult = async (
-    requestId: string,
-    deadlineMs: number,
-    abort: { aborted: boolean },
-  ): Promise<{ image: string; mimeType: string } | null> => {
-    while (!abort.aborted && Date.now() < deadlineMs) {
-      try {
-        const response = await fetch(`${STATUS_ENDPOINT}?id=${encodeURIComponent(requestId)}`, {
-          method: 'GET',
-          cache: 'no-store',
-        });
-        if (response.ok) {
-          const payload = await response.json();
-          if (payload?.status === 'done' && payload.image) {
-            return { image: payload.image, mimeType: payload.mimeType || 'image/jpeg' };
-          }
-        }
-      } catch {
-        // network blip — keep polling
-      }
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
-    }
-    return null;
-  };
-
-  const generateWorkplaceImage = async () => {
-    if (!workplacePreview) {
-      setWorkplaceStatus('error');
-      setWorkplaceError('Сначала загрузите фото рабочего места.');
-      return;
-    }
-
-    try {
-      setWorkplaceStatus('submitting');
-      setWorkplaceError('');
-      setWorkplaceLimitReached(false);
-      setWorkplaceResult(null);
-      setWorkplaceRequestId(null);
-
-      const limit = await reserveWorkplaceGeneration();
-      if (!limit.allowed) {
-        setWorkplaceLimitReached(true);
-        throw new Error('На этот IP уже использованы 2 тестовые генерации.');
-      }
-
-      const workspaceBlob = await createImageFile(workplacePreview, 'workspace.jpg');
-      const workspaceBase64 = await blobToBase64(workspaceBlob);
-
-      // 1. Kick off the request: server stores it in KV and pings the admin in Telegram.
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), IMAGE_REQUEST_TIMEOUT_MS);
-      let startPayload: any = null;
-      try {
-        const response = await fetch(START_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            workspaceImage: workspaceBase64,
-            workspaceMimeType: 'image/jpeg',
-          }),
-          signal: controller.signal,
-        });
-        const rawText = await response.text();
-        try { startPayload = JSON.parse(rawText); } catch { /* fall through */ }
-        if (!response.ok) {
-          throw new Error(extractApiError(startPayload));
-        }
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Сервер слишком долго отвечает. Попробуйте фото меньшего размера или повторите.');
-        }
-        throw error;
-      } finally {
-        window.clearTimeout(timeout);
-      }
-
-      const requestId: string = startPayload?.requestId;
-      if (!requestId) throw new Error('Сервер не вернул ID заявки.');
-      setWorkplaceRequestId(requestId);
-
-      // 1b. Kick off automatic generation. Deliberately not awaited: the polling
-      //     loop below is what surfaces the result, and every failure mode here
-      //     (no token, spent budget, model error) just means the admin answers
-      //     by hand — which /api/start-generation has already set up.
-      void (async () => {
-        try {
-          const compositeBlob = await createCompositeImage(workplacePreview);
-          const compositeBase64 = await blobToBase64(compositeBlob);
-          const response = await fetch(GENERATE_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requestId, compositeImage: compositeBase64 }),
-          });
-          const payload = await response.json().catch(() => null);
-          if (!payload?.generated) {
-            console.info('[workplace] авто-генерация недоступна, ждём ручную:', payload?.reason);
-          }
-        } catch (error) {
-          console.warn('[workplace] авто-генерация не запустилась:', error);
-        }
-      })();
-
-      // 2. Poll for up to ON_SITE_WAIT_MS. If a result arrives — show it. Otherwise
-      //    surface the email form.
-      setWorkplaceStatus('generating');
-      const abort = { aborted: false };
-      // Replace any previous polling loop.
-      if (workplacePollAbortRef.current) workplacePollAbortRef.current.aborted = true;
-      workplacePollAbortRef.current = abort;
-
-      // Phase 1: first 60 seconds with the regular "перемещаюсь" message.
-      const firstDeadline = Date.now() + ON_SITE_WAIT_MS;
-      let result = await pollForResult(requestId, firstDeadline, abort);
-
-      if (abort.aborted) return;
-
-      if (result) {
-        setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
-        setWorkplaceStatus('done');
-        return;
-      }
-
-      // Phase 2: another 15 seconds with a softer "almost done" message.
-      setWorkplaceStatus('almost_done');
-      const secondDeadline = Date.now() + ALMOST_DONE_EXTRA_MS;
-      result = await pollForResult(requestId, secondDeadline, abort);
-
-      if (abort.aborted) return;
-
-      if (result) {
-        setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
-        setWorkplaceStatus('done');
-        return;
-      }
-
-      // Timed out — but keep polling in the background, in case the admin replies soon.
-      setWorkplaceStatus('awaiting_email');
-      keepPollingInBackground(requestId, abort);
-    } catch (error) {
-      setWorkplaceStatus('error');
-      setWorkplaceError(error instanceof Error ? error.message : 'Произошла ошибка генерации.');
-    }
-  };
-
-  // After the on-site 40-second window, we keep checking quietly. If the admin
-  // does reply while the visitor is still on the page, we still light up the
-  // result. After 10 more minutes we give up — the email path takes over.
-  const keepPollingInBackground = async (requestId: string, abort: { aborted: boolean }) => {
-    const longDeadline = Date.now() + 10 * 60 * 1000;
-    const result = await pollForResult(requestId, longDeadline, abort);
-    if (abort.aborted) return;
-    if (result) {
-      setWorkplaceResult(`data:${result.mimeType};base64,${result.image}`);
-      setWorkplaceStatus('done');
-    }
-  };
-
-  const submitWorkplaceEmail = async () => {
-    if (!workplaceRequestId) {
-      setWorkplaceError('Не удалось определить заявку. Попробуйте сгенерировать заново.');
-      return;
-    }
-    const email = workplaceEmail.trim();
-    if (!email) {
-      setWorkplaceError('Введите email.');
-      return;
-    }
-
-    try {
-      setWorkplaceStatus('email_sending');
-      setWorkplaceError('');
-      const response = await fetch(EMAIL_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: workplaceRequestId, email }),
-      });
-      const rawText = await response.text();
-      let payload: any = null;
-      try { payload = JSON.parse(rawText); } catch { /* keep null */ }
-      if (!response.ok) {
-        throw new Error(extractApiError(payload));
-      }
-      setWorkplaceStatus('email_sent');
-    } catch (error) {
-      setWorkplaceStatus('awaiting_email');
-      setWorkplaceError(error instanceof Error ? error.message : 'Не удалось отправить email.');
-    }
-  };
-
   return (
     <>
       <canvas id="particles-canvas"></canvas>
       <div id="progress-bar"></div>
+      <TargetCursor targetSelector=".cursor-target, button, a, .project-browser, .dp-card, .bento-card, .btn-primary, .btn-outline, .tag" spinDuration={2.5} parallaxOn={true} hideDefaultCursor={true} cursorColor="#ffffff" cursorColorOnTarget="#34D399" />
       <div className="cursor-ring"></div>
       <div className="cursor-dot"></div>
 
@@ -864,14 +396,14 @@ function App() {
 
                   <div className="hero-btns">
                     <a href="#projects" className="btn-primary">Портфолио</a>
-                    <a href="https://github.com/SupremeGoogle/" target="_blank" rel="noopener noreferrer" className="btn-outline">GitHub</a>
-                    <a href="mailto:gafarovakbar@mail.ru" className="btn-outline">Связаться</a>
+                    <a href="https://github.com/SupremeGoogle/" target="_blank" className="btn-outline">GitHub</a>
+                    <a href="#contact" className="btn-outline">Связаться</a>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="hero-visual">
+            <div className="hero-visual hidden md:flex">
               <OrbitingSkills />
             </div>
           </div>
@@ -916,9 +448,11 @@ function App() {
               </div>
               <div className="about-card">
                 <div className="about-card-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path
-                      d="M12 21v-8m4-4h-8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2Zm0-4V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2" />
+                  <svg width="24" height="24" viewBox="0 0 128 128" fill="none">
+                    <path d="M64.6 2.7c-21.6 0-24.6 9.3-24.6 9.3l.1 11.5h25.1v3.5H37.5C20.1 27.1 17.6 38.9 17.6 38.9s-3.1 13.3 17.2 14.8v-8.1s-.2-9.4 9.3-9.4h25.3s8.9-.4 8.9-8.8V13.5s.5-10.8-13.7-10.8z" fill="#387eb8"/>
+                    <path d="M47.8 16.7a3.8 3.8 0 1 1-7.5 0 3.8 3.8 0 0 1 7.5 0z" fill="#fff"/>
+                    <path d="M65.1 123.6c21.6 0 24.6-9.3 24.6-9.3l-.1-11.5H64.5v-3.5h27.7c17.4 0 19.9-11.8 19.9-11.8s3.1-13.3-17.2-14.8v8.1s.2 9.4-9.3 9.4H60.2s-8.9.4-8.9 8.8v13.9s-.5 10.8 13.8 10.8z" fill="#ffe052"/>
+                    <path d="M81.8 109.6a3.8 3.8 0 1 1 7.5 0 3.8 3.8 0 0 1-7.5 0z" fill="#fff"/>
                   </svg>
                 </div>
                 <h4>Python</h4>
@@ -979,10 +513,7 @@ function App() {
                     <div className="exp-role">Разработчик (AI/ML)</div>
                     <div className="exp-company">Балтийский центр нейротехнологий и ИИ</div>
                   </div>
-                  <div className="exp-side">
-                    <span className="exp-date">2024 — н.в.</span>
-                    <PixelProjectArt variant="neural" />
-                  </div>
+                  <span className="exp-date">2024 — н.в.</span>
                 </div>
                 <p className="exp-desc">Разрабатываю интеллектуальные системы на базе AI, компьютерного зрения и анализа
                   цифрового контента. Полный цикл AI-разработки: сбор данных → датасеты → разметка → обучение → тестирование
@@ -1004,10 +535,7 @@ function App() {
                     <div className="exp-role">Старший тьютор / Тьютор</div>
                     <div className="exp-company">KIBERone</div>
                   </div>
-                  <div className="exp-side">
-                    <span className="exp-date">2021 — 2026</span>
-                    <PixelProjectArt variant="teach" />
-                  </div>
+                  <span className="exp-date">2021 — 2026</span>
                 </div>
                 <p className="exp-desc">Преподавал детям 6–14 лет программирование и цифровые технологии. Последние 2 года
                   совмещал преподавание с ролью старшего тьютора: руководил академическими процессами, курировал команду,
@@ -1023,7 +551,7 @@ function App() {
                   <span className="tag-blue tag">Telegram Bot API</span>
                   <span className="tag-purple tag">Unity</span>
                   <span className="tag-purple tag">Blender</span>
-                  <span className="tag-blue tag">HTML/CSS</span>
+                  <span className="tag-blue tag">Node.js</span>
                 </div>
               </div>
             </div>
@@ -1036,8 +564,7 @@ function App() {
         <div className="container">
           <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ ls ./skills/</div>
           <h2 className="section-title">Мои <span data-value="Компетенции"></span></h2>
-          <p className="skills-subtitle">Универсален: работаю как разработчик, специалист по автоматизации и наставник команды.
-            Быстро осваиваю новые технологии и довожу каждый проект до результата.</p>
+          <p className="skills-subtitle">Fullstack-инженер и архитектор цифровых сервисов. Экспертные знания Next.js, Node.js, React, Python и AI-технологий. Создаю высоконагруженные веб-приложения и масштабируемые системы.</p>
           <div className="bento-grid-custom">
             <div className="bento-card top-left">
               <div className="bento-icon">
@@ -1048,16 +575,16 @@ function App() {
                   <line x1="9" y1="21" x2="9" y2="9"></line>
                 </svg>
               </div>
-              <h3>AI и Computer Vision</h3>
-              <p>Обучение нейросетей с нуля, подготовка и разметка датасетов, анализ данных и создание прикладных решений в
-                области компьютерного зрения.</p>
+              <h3>Fullstack & Web Architecture</h3>
+              <p>Разработка современнейших приложений на <strong>Next.js</strong> (App Router, SSR, Server Components) и <strong>Node.js</strong>. Проектирование REST/GraphQL API, микросервисов и отзывчивых веб-интерфейсов.</p>
               <div className="bento-pills">
-                <span className="bento-pill">PyTorch</span>
-                <span className="bento-pill">YOLO</span>
-                <span className="bento-pill">OpenCV</span>
-                <span className="bento-pill">RAG</span>
+                <span className="bento-pill">Next.js</span>
+                <span className="bento-pill">Node.js</span>
+                <span className="bento-pill">React</span>
+                <span className="bento-pill">TypeScript</span>
+                <span className="bento-pill">Fullstack</span>
               </div>
-              <div className="bento-decoration dek-window">
+              <div className="bento-decoration dek-window hidden md:block">
                 <div className="code-window">
                   <div className="code-window-bar"><span></span><span></span><span></span></div>
                   <div className="code-window-body">
@@ -1096,7 +623,7 @@ function App() {
                 <span className="bento-pill">Telegram API</span>
                 <span className="bento-pill">CI/CD</span>
               </div>
-              <div className="bento-decoration dek-orbit">
+              <div className="bento-decoration dek-orbit hidden md:block">
                 <div className="orbit-deco">
                   <div className="orbit-ring"></div>
                   <div className="orbit-center">
@@ -1123,7 +650,7 @@ function App() {
               <h3>Инфраструктура и БД</h3>
               <p>Проектирование логики хранения данных в PostgreSQL, контейнеризация приложений в Docker и работа с сетевыми
                 протоколами.</p>
-              <div className="bento-decoration dek-progress">
+              <div className="bento-decoration dek-progress hidden md:block">
                 <div className="progress-decoration">
                   <div className="prog-row"><span className="bracket">{">_"}</span>
                     <div className="prog-bar-track">
@@ -1159,12 +686,23 @@ function App() {
           <div className="projects-header">
             <div className="projects-header-left">
               <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ cat ./projects.txt</div>
-              <h2 className="section-title">Лучшие <span data-value="Проекты"></span></h2>
+              <h2 className="section-title">Мои <span data-value="Проекты"></span></h2>
             </div>
-            <div className="projects-scroll-hint">ЛИСТАЙТЕ ГОРИЗОНТАЛЬНО</div>
+            <div className="projects-scroll-hint">Листайте горизонтально ➔</div>
           </div>
         </div>
-        <div className="projects-track-wrapper">
+        <div 
+          className="projects-track-wrapper"
+          ref={trackWrapperRef}
+          onMouseDown={handleDragStart}
+          onMouseLeave={handleDragEnd}
+          onMouseUp={handleDragEnd}
+          onMouseMove={handleDragMove}
+          onTouchStart={handleDragStart}
+          onTouchEnd={handleDragEnd}
+          onTouchMove={handleDragMove}
+          style={{ cursor: 'grab' }}
+        >
           <div className="projects-track">
             {/* Project 1 */}
             <div className="project-slide project-slide-standard">
@@ -1187,7 +725,7 @@ function App() {
                   </div>
                 </div>
                 <div className="project-info">
-                  <div className="project-num"><span className="num-val">01</span> КОМПЬЮТЕРНОЕ ЗРЕНИЕ<PixelProjectArt variant="uav" /></div>
+                  <div className="project-num"><span className="num-val">01</span> КОМПЬЮТЕРНОЕ ЗРЕНИЕ</div>
                   <h3 className="project-name">Система распознавания техники для БПЛА</h3>
                   <p className="project-desc">Система компьютерного зрения для автоматического обнаружения наземной техники по
                     данным с беспилотников.</p>
@@ -1210,7 +748,7 @@ function App() {
               <div className="project-ghost">MONITORING</div>
               <div className="project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
-                  <div className="project-num"><span className="num-val">02</span> AI АНАЛИЗ<PixelProjectArt variant="monitor" /></div>
+                  <div className="project-num"><span className="num-val">02</span> AI АНАЛИЗ</div>
                   <h3 className="project-name">Система мониторинга контента</h3>
                   <p className="project-desc">Интеллектуальная система выявления признаков продажи запрещённых веществ с
                     применением RAG-подходов.</p>
@@ -1234,7 +772,13 @@ function App() {
                     <div className="browser-url"></div>
                   </div>
                   <div className="browser-body">
-                    <img src="/monitoring.jpg" alt="Мониторинг" className="project-img" />
+                    <img 
+                      src="/monitoring.jpg" 
+                      alt="Мониторинг" 
+                      className="project-img cursor-pointer transition-transform duration-300 hover:scale-[1.02]" 
+                      onClick={() => setFullscreenImgUrl('/monitoring.jpg')}
+                      title="Нажмите, чтобы увеличить"
+                    />
                     <div className="mock-title">Content Monitor</div>
                     <button className="btn-outline btn-sm cert-btn" onClick={() => toggleModal(true)}>Свидетельство</button>
                   </div>
@@ -1253,31 +797,31 @@ function App() {
                     <div className="browser-dot green"></div>
                     <div className="browser-url"></div>
                   </div>
-                  <div className="browser-body p-0 overflow-hidden" style={{ background: '#0a0a0c', height: '480px' }}>
-                    <RadialOrbitalTimeline timelineData={[
-                      { id: 1, title: "KIBERone KLD", date: "2023", content: "Бот школы KIBERone: приём заявок, интеграция с CRM, рассылки.", category: "Bot", iconName: "messageSquare", relatedIds: [6], status: "completed", energy: 95 },
-                      { id: 2, title: "Etagi KLD", date: "2023", content: "Бот компании Этажи: интеграция с CRM, умные ссылки.", category: "Bot", iconName: "home", relatedIds: [3], status: "completed", energy: 90 },
-                      { id: 3, title: "AZTmoto", date: "2024", content: "Магазин мото-инвентаря: каталог и рассылки.", category: "Bot", iconName: "zap", relatedIds: [2], status: "completed", energy: 85 },
-                      { id: 4, title: "Dreamcars39", date: "2024", content: "Аренда люкс авто: управление записями и расписанием.", iconName: "car", relatedIds: [2, 5], status: "completed", energy: 80, category: "Bot" },
-                      { id: 5, title: "Kibernalog", date: "2024", content: "Процесс генерации документов для налогового вычета.", category: "Automation", iconName: "fileText", relatedIds: [1, 4], status: "completed", energy: 100 },
-                      { id: 6, title: "KIBERone Visor", date: "2024", content: "Контроль родительских чатов и групп школы.", category: "Shield", iconName: "shieldCheck", relatedIds: [1], status: "completed", energy: 98 },
-                      { id: 7, title: "All Interior", date: "2025", content: "Бот-консультант по подбору дизайна интерьера.", iconName: "messageSquare", relatedIds: [3, 4], status: "in-progress", energy: 70, category: "AI" },
-                    ]} />
+                  <div className="browser-body p-0 digital-projects-bg" style={{ overflow: 'hidden', position: 'relative' }}>
+                    <div className="h-[260px] md:h-[340px] lg:h-[480px] w-full">
+                      <RadialOrbitalTimeline timelineData={[
+                        { id: 1, title: "KIBERone KLD", date: "2023", content: "CRM-бот школы KIBERone: приём онлайн-заявок, умные ссылки, интеграция с AmoCRM, автоматические рассылки ученикам и родителям.", category: "Bot", iconName: "messageSquare", relatedIds: [6], status: "completed", energy: 95, link: "https://t.me/kiberoneKLD_bot" },
+                                                { id: 3, title: "AZTmoto", date: "2024", content: "Бот мото-магазина: каталог экипировки с фото, автоматические рассылки новинок и акций по базе клиентов.", category: "Bot", iconName: "zap", relatedIds: [2], status: "completed", energy: 85, link: "https://t.me/AZTmoto_bot" },
+                        { id: 4, title: "Dreamcars39", date: "2024", content: "Бот аренды премиальных авто: онлайн-запись, управление расписанием броней, уведомления для клиентов и менеджеров.", iconName: "car", relatedIds: [2, 5], status: "completed", energy: 80, category: "Bot", link: "https://t.me/Dreamcars39_bot" },
+                        { id: 5, title: "VeriX Bot", date: "2024", content: "Полностью автоматизированный бот: генерирует пакет документов для налогового вычета по данным пользователя, экспорт в PDF.", category: "Automation", iconName: "fileText", relatedIds: [1, 4], status: "completed", energy: 100, link: "https://t.me/veri_x_bot" },
+                        { id: 6, title: "KIBERone Visor", date: "2024", content: "Сложнейший бот: мониторит родительских чаты школы KIBERone, анализирует активность, автоматический контроль качества коммуникаций.", category: "Shield", iconName: "shieldCheck", relatedIds: [1], status: "completed", energy: 98, link: "https://t.me/KIBERoneVisor_bot" },
+                        { id: 7, title: "All Interior", date: "2026", content: "ИИ-консультант по дизайну интерьера: помогает выбрать стиль, палитру и мебель, интегрирован с нейросетью для визуализации идей.", iconName: "messageSquare", relatedIds: [3, 4], status: "in-progress", energy: 70, category: "AI", link: "https://t.me/allinterior_bot" },
+                      ]} />
+                    </div>
                   </div>
                 </div>
                 <div className="project-info">
-                  <div className="project-num"><span className="num-val">03</span> АВТОМАТИЗАЦИЯ<PixelProjectArt variant="bots" /></div>
+                  <div className="project-num"><span className="num-val">03</span> АВТОМАТИЗАЦИЯ</div>
                   <h3 className="project-name">Telegram-боты для автоматизации</h3>
                   <p className="project-desc">Серия из 10+ Telegram-ботов для реальных бизнес-задач: налоговый вычет, учёт
                     медиафайлов, CRM-процессы.</p>
                   <ul className="project-tasks">
-                    <li><strong>@kiberoneKLD_bot</strong> — CRM, рассылки, заявки</li>
-                    <li><strong>@etagi_kaliningrad_bot</strong> — CRM, умные ссылки</li>
-                    <li><strong>@AZTmoto_bot</strong> — Рассылки и каталог магазина</li>
-                    <li><strong>@Dreamcars39_bot</strong> — Управление бронированием</li>
-                    <li><strong>@kibernalog_bot</strong> — Генератор документов</li>
-                    <li><strong>@KIBERoneVisor_bot</strong> — Контроль качества чатов</li>
-                    <li><strong>@allinterior_bot</strong> — ИИ-консультант по дизайну</li>
+                    <li><a href="https://t.me/kiberoneKLD_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@kiberoneKLD_bot</strong></a> — CRM, рассылки, онлайн-запись</li>
+                    <li><a href="https://t.me/AZTmoto_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@AZTmoto_bot</strong></a> — Каталог, рассылки</li>
+                    <li><a href="https://t.me/Dreamcars39_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@Dreamcars39_bot</strong></a> — Бронирование авто</li>
+                    <li><a href="https://t.me/veri_x_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@veri_x_bot</strong></a> — Экосистема VeriX & Автоматизация</li>
+                    <li><a href="https://t.me/KIBERoneVisor_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@KIBERoneVisor_bot</strong></a> — Мониторинг родительских чатов</li>
+                    <li><a href="https://t.me/allinterior_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@allinterior_bot</strong></a> — ИИ-консультант по интерьеру</li>
                   </ul>
                   <div className="tags">
                     <span className="tag">Python</span>
@@ -1291,19 +835,19 @@ function App() {
             {/* Project 4 */}
             <div className="project-slide project-slide-standard">
               <div className="project-ghost">DIGITAL WEB</div>
-              <div className="project-slide-content digital-project-slide-content" style={{ direction: 'rtl' }}>
+              <div className="project-slide-content" style={{ direction: 'rtl' }}>
                 <div className="project-info" style={{ direction: 'ltr', textAlign: 'left' }}>
-                  <div className="project-num"><span className="num-val">04</span> WEB-РАЗРАБОТКА<PixelProjectArt variant="web" /></div>
+                  <div className="project-num"><span className="num-val">04</span> WEB-РАЗРАБОТКА</div>
                   <h3 className="project-name">Коммерческие digital-проекты</h3>
-                  <p className="project-desc">Более 15 коммерческих сайтов и digital-решений для бизнеса Калининграда:
-                    от лендингов до платформ с интеграцией и обработкой данных.</p>
-                  <ul className="project-tasks digital-project-list">
-                    {digitalProjects.map(project => (
-                      <li key={project.id}>
-                        <a href={project.url} target="_blank" rel="noopener noreferrer" className="project-bot-link">
-                          <strong>{project.name}</strong>
-                        </a>
-                        <span> — {project.desc}</span>
+                  <p className="project-desc">Более 15 коммерческих сайтов и digital-решений для бизнеса Калининграда — от лендингов до многофункциональных платформ с CRM-интеграцией.</p>
+                  <ul className="project-tasks text-[0.8rem] md:text-sm" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '10px' }}>
+                    {COMMERCIAL_SITES.map(site => (
+                      <li key={site.id} style={{ marginBottom: '8px' }}>
+                        <span>
+                          <a href={site.url} target="_blank" rel="noopener" className="project-bot-link transition-colors duration-200 block md:inline" style={site.name === 'C# Курс' ? { color: '#3b82f6', fontWeight: 'bold' } : { fontWeight: 'bold' }}>
+                            {site.name}
+                          </a> <span className="hidden md:inline">—</span> <span className="block md:inline">{site.desc}</span>
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -1316,50 +860,53 @@ function App() {
                 </div>
                 <div className="project-browser" style={{ direction: 'ltr' }}>
                   <div className="browser-bar">
-                    <div
-                      className="browser-dot red"
-                      onClick={() => setSelectedDigitalProject(null)}
-                      title="Назад к проектам"
-                    ></div>
+                    <div className="browser-dot red" onClick={() => setActiveSite(null)} style={{ cursor: 'pointer' }}></div>
                     <div className="browser-dot yellow"></div>
                     <div className="browser-dot green"></div>
-                    <div
-                      className="browser-url browser-url-text"
-                      onClick={() => selectedDigitalProject && window.open(selectedDigitalProject.url, '_blank', 'noopener,noreferrer')}
-                      title={selectedDigitalProject ? 'Открыть сайт в новой вкладке' : 'Выберите проект'}
-                    >
-                      {selectedDigitalProject ? selectedDigitalProject.url.replace('https://', '') : 'vercel.app / projects'}
+                    <div className="browser-url browser-url-text" style={{ cursor: 'pointer' }} onClick={() => { if (activeSite) window.open(activeSite.url, '_blank') }}>
+                      {activeSite ? activeSite.url.replace('https://', '') : 'vercel.app / projects'}
                     </div>
                   </div>
                   <div className="browser-body p-0 digital-projects-bg">
-                    {selectedDigitalProject ? (
-                      <div className="digital-project-preview">
-                        <button
-                          type="button"
-                          className="iframe-back-btn"
-                          onClick={() => setSelectedDigitalProject(null)}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M19 12H5M12 19l-7-7 7-7" />
-                          </svg>
+                    {activeSite ? (
+                      <div className="h-[380px] md:h-[340px] lg:h-[520px] w-full flex flex-col relative z-10">
+                        <button onClick={() => setActiveSite(null)} className="iframe-back-btn">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                           Назад к проектам
                         </button>
-                        <iframe
-                          src={selectedDigitalProject.url}
-                          title={selectedDigitalProject.name}
-                          className="digital-project-frame"
-                        ></iframe>
+                        <iframe src={activeSite.url} className="w-full h-full min-h-[380px] md:min-h-[340px] lg:min-h-[520px] border-none bg-white" title={activeSite.name} />
                       </div>
                     ) : (
-                      <DigitalProjectSphere
-                        projects={digitalProjects}
-                        onProjectClick={setSelectedDigitalProject}
-                      />
+                      <div className="h-[260px] md:h-[340px] lg:h-[520px] w-full relative flex items-center justify-center overflow-hidden">
+                        <SphereImageGrid
+                          images={COMMERCIAL_SITES.map(site => ({
+                            id: String(site.id),
+                            src: site.img,
+                            alt: site.name,
+                            title: site.name,
+                            description: site.desc
+                          }))}
+                          containerSize={typeof window !== 'undefined' ? (window.innerWidth < 768 ? 260 : (window.innerHeight < 850 ? 370 : (window.innerWidth > 1900 ? 580 : 460))) : 460}
+                          sphereRadius={typeof window !== 'undefined' ? (window.innerWidth < 768 ? 100 : (window.innerHeight < 850 ? 140 : (window.innerWidth > 1900 ? 220 : 175))) : 175}
+                          autoRotate={true}
+                          autoRotateSpeed={typeof window !== 'undefined' && window.innerHeight < 850 ? 0.4 : 0.8}
+                          dragSensitivity={0.9}
+                          momentumDecay={0.96}
+                          baseImageScale={typeof window !== 'undefined' && window.innerWidth < 768 ? 0.16 : (window.innerHeight < 850 ? 0.19 : 0.13)}
+                          perspective={1000}
+                          onImageClick={(imgData) => {
+                             const site = COMMERCIAL_SITES.find(s => String(s.id) === imgData.id);
+                             if (site) setActiveSite(site);
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
             </div>
+
+
           </div>
         </div>
       </section>
@@ -1372,9 +919,8 @@ function App() {
           <div className="edu-card">
             <div className="edu-name">Балтийский федеральный университет имени Иммануила Канта</div>
             <div className="edu-degree">ОНК Высоких технологий · Информационные системы и технологии</div>
-            <div className="edu-dates">2021 — 2025</div>
+            <div className="edu-dates">2021 — 2026</div>
             <span className="diploma-badge">✦ Красный диплом</span>
-            <PixelProjectArt variant="grad" />
           </div>
 
           <div className="certs-grid">
@@ -1385,19 +931,6 @@ function App() {
             <div className="cert-item">Победитель международной олимпиады по арифметике</div>
             <div className="cert-item">Свидетельство о регистрации разработанной системы</div>
           </div>
-
-          <div className="workplace-cta">
-            <div>
-              <div className="workplace-cta-kicker">AI workplace preview</div>
-              <h3>Проверьте, как я буду выглядеть на вашем рабочем месте</h3>
-              <p>Сфотографируйте рабочее место — это займет меньше минуты.</p>
-            </div>
-            <button className="workplace-try-btn workplace-try-btn-large" type="button" onClick={openWorkplaceModal}>
-              <span className="workplace-try-btn-icon">AI</span>
-              <span>Попробуйте меня на своём рабочем месте</span>
-              <span className="workplace-try-btn-arrow">→</span>
-            </button>
-          </div>
         </div>
       </section>
 
@@ -1407,172 +940,19 @@ function App() {
           <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ nc -zv portfolio 8000</div>
           <h2 className="section-title">Свяжитесь <span data-value="со мной"></span></h2>
           <div className="contact-box">
-            <PixelProjectArt variant="signal" />
             <h3 className="contact-title">Готов к новым вызовам</h3>
             <p className="contact-sub">Для сотрудничества, предложений или профессионального общения — выберите любой удобный
               способ связи. Буду рад обсудить ваш проект!</p>
             <div className="contact-links">
               <a href="mailto:gafarovakbar@mail.ru" className="btn-primary">Email</a>
-              <a href="https://t.me/supremeHn" target="_blank" rel="noopener noreferrer" className="btn-outline">Telegram</a>
+              <a href="https://t.me/supremeHn" target="_blank" className="btn-outline">Telegram</a>
             </div>
           </div>
         </div>
       </section>
 
-      {isWorkplaceModalOpen && (
-        <div className="workplace-modal" role="dialog" aria-modal="true" aria-labelledby="workplace-modal-title">
-          <div className="workplace-modal-backdrop" onClick={closeWorkplaceModal}></div>
-          <div className="workplace-modal-content">
-            <button className="workplace-modal-close" type="button" onClick={closeWorkplaceModal} aria-label="Закрыть">
-              &times;
-            </button>
-            <div className="workplace-modal-header">
-              <div className="workplace-modal-kicker">AI workplace preview</div>
-              <h3 id="workplace-modal-title">Попробуйте меня на своём рабочем месте</h3>
-              <p>Сфотографируйте рабочее место, это займет меньше минуты. Я аккуратно вставлю свою фотографию в вашу сцену.</p>
-            </div>
-
-            <input
-              ref={workplaceInputRef}
-              className="workplace-file-input"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={event => handleWorkplaceFile(event.target.files?.[0])}
-            />
-
-            <button
-              type="button"
-              className="workplace-upload-zone"
-              onClick={() => workplaceInputRef.current?.click()}
-            >
-              <span className="workplace-upload-icon">+</span>
-              <strong>{workplacePreview ? 'Заменить фото рабочего места' : 'Снять или загрузить фото рабочего места'}</strong>
-              <small>JPG, PNG или фото с камеры</small>
-            </button>
-
-            <div className="workplace-preview-grid">
-              <div className="workplace-preview-card">
-                <div className="workplace-preview-label">Ваше рабочее место</div>
-                {workplacePreview ? (
-                  <img src={workplacePreview} alt="Фото рабочего места" />
-                ) : (
-                  <div className="workplace-preview-empty">Фото пока не выбрано</div>
-                )}
-              </div>
-            </div>
-
-            {workplaceLimitReached ? (
-              <div className="workplace-limit-card">
-                <div className="workplace-limit-kicker">Лимит теста исчерпан</div>
-                <h4>Больше нельзя генерировать с этого IP</h4>
-                <p>Но мы можем сделать живую фотографию и обсудить задачу лично.</p>
-                <a href="#contact" className="btn-primary" onClick={closeWorkplaceModal}>
-                  Связаться со мной
-                </a>
-              </div>
-            ) : workplaceError ? (
-              <div className="workplace-error">
-                <strong>Ошибка:</strong> {workplaceError}
-                <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', opacity: 0.75 }}>
-                  Подробности: <a href="/api/health" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>/api/health</a>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="workplace-actions">
-              <button
-                type="button"
-                className="btn-primary workplace-generate-btn"
-                onClick={generateWorkplaceImage}
-                disabled={
-                  !workplacePreview
-                  || workplaceStatus === 'uploading'
-                  || workplaceStatus === 'submitting'
-                  || workplaceStatus === 'generating'
-                  || workplaceStatus === 'almost_done'
-                  || workplaceStatus === 'awaiting_email'
-                  || workplaceStatus === 'email_sending'
-                  || workplaceStatus === 'email_sent'
-                }
-              >
-                {workplaceStatus === 'generating'
-                 || workplaceStatus === 'almost_done'
-                 || workplaceStatus === 'submitting'
-                  ? 'Перемещаюсь...'
-                  : 'Сгенерировать пример'}
-              </button>
-              <button type="button" className="btn-outline workplace-reset-btn" onClick={resetWorkplaceAi}>
-                Сбросить
-              </button>
-            </div>
-
-            {(workplaceStatus === 'uploading'
-              || workplaceStatus === 'submitting'
-              || workplaceStatus === 'generating') && (
-              <div className="workplace-loading">
-                <span></span>
-                <strong>
-                  {workplaceStatus === 'uploading' && 'Загружаю фото...'}
-                  {workplaceStatus === 'submitting' && 'Отправляю заявку...'}
-                  {workplaceStatus === 'generating' && 'Перемещаюсь в ваш офис, подождите немного'}
-                  {workplaceStatus === 'generating' && <i aria-hidden="true"></i>}
-                </strong>
-              </div>
-            )}
-
-            {workplaceStatus === 'awaiting_email' && (
-              <div className="workplace-email-form">
-                <div className="workplace-preview-label">Долго генерирую — оставьте почту</div>
-                <p>Заявку я уже принял. Пришлю готовое фото на вашу почту, как только закончу.</p>
-                <input
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  placeholder="your@email.com"
-                  value={workplaceEmail}
-                  onChange={event => setWorkplaceEmail(event.target.value)}
-                  className="workplace-email-input"
-                />
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={submitWorkplaceEmail}
-                  disabled={!workplaceEmail.trim()}
-                >
-                  Отправить почту
-                </button>
-              </div>
-            )}
-
-            {workplaceStatus === 'email_sending' && (
-              <div className="workplace-loading">
-                <span></span>
-                <strong>Сохраняю почту...</strong>
-              </div>
-            )}
-
-            {workplaceStatus === 'email_sent' && (
-              <div className="workplace-success">
-                ✅ Успешно — почта получена. Пришлю готовое фото в ближайшее время.
-              </div>
-            )}
-
-            {workplaceResult && (
-              <div className="workplace-result">
-                <div className="workplace-preview-label">Результат</div>
-                <img src={workplaceResult} alt="Сгенерированный пример на рабочем месте" />
-                <a className="btn-primary workplace-download-btn" href={workplaceResult} download="akbar-workplace-preview.png">
-                  Скачать
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       <footer className="footer">
-        <span>GA</span> · © {new Date().getFullYear()} Гафаров Акбар Маруфович
+        <span>GA</span> · © 2026 Гафаров Акбар Маруфович
       </footer>
 
       {/* ══════ MODAL ══════ */}
@@ -1581,10 +961,32 @@ function App() {
         <div className="modal-content">
           <button className="modal-close" onClick={() => toggleModal(false)}>&times;</button>
           <div className="modal-body">
-            <embed src="/100 СВИДЕТЕЛЬСТВО.pdf" type="application/pdf" width="100%" height="800px" />
+            <embed src="/100 СВИДЕТЕЛЬСТВО.pdf" type="application/pdf" width="100%" className="cert-embed" />
           </div>
         </div>
       </div>
+
+      {/* ══════ IMAGE MODAL ══════ */}
+      {fullscreenImgUrl && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 cursor-zoom-out p-4"
+          onClick={() => setFullscreenImgUrl(null)}
+          style={{ backdropFilter: 'blur(10px)' }}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white text-4xl leading-none hover:text-[var(--primary)] transition-colors"
+            onClick={() => setFullscreenImgUrl(null)}
+          >
+            &times;
+          </button>
+          <img 
+            src={fullscreenImgUrl} 
+            alt="Fullscreen View" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-white/10" 
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
     </>
   )
 }
