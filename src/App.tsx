@@ -805,8 +805,7 @@ function App() {
                         { id: 4, title: "Dreamcars39", date: "2024", content: "Бот аренды премиальных авто: онлайн-запись, управление расписанием броней, уведомления для клиентов и менеджеров.", iconName: "car", relatedIds: [2, 5], status: "completed", energy: 80, category: "Bot", link: "https://t.me/Dreamcars39_bot" },
                         { id: 5, title: "VeriX Bot", date: "2024", content: "Полностью автоматизированный бот: генерирует пакет документов для налогового вычета по данным пользователя, экспорт в PDF.", category: "Automation", iconName: "fileText", relatedIds: [1, 4], status: "completed", energy: 100, link: "https://t.me/veri_x_bot" },
                         { id: 6, title: "KIBERone Visor", date: "2024", content: "Сложнейший бот: мониторит родительских чаты школы KIBERone, анализирует активность, автоматический контроль качества коммуникаций.", category: "Shield", iconName: "shieldCheck", relatedIds: [1], status: "completed", energy: 98, link: "https://t.me/KIBERoneVisor_bot" },
-                        { id: 7, title: "All Interior", date: "2026", content: "ИИ-консультант по дизайну интерьера: помогает выбрать стиль, палитру и мебель, интегрирован с нейросетью для визуализации идей.", iconName: "messageSquare", relatedIds: [3, 4], status: "in-progress", energy: 70, category: "AI", link: "https://t.me/allinterior_bot" },
-                      ]} />
+                                              ]} />
                     </div>
                   </div>
                 </div>
@@ -821,8 +820,7 @@ function App() {
                     <li><a href="https://t.me/Dreamcars39_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@Dreamcars39_bot</strong></a> — Бронирование авто</li>
                     <li><a href="https://t.me/veri_x_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@veri_x_bot</strong></a> — Экосистема VeriX & Автоматизация</li>
                     <li><a href="https://t.me/KIBERoneVisor_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@KIBERoneVisor_bot</strong></a> — Мониторинг родительских чатов</li>
-                    <li><a href="https://t.me/allinterior_bot" target="_blank" rel="noopener" className="project-bot-link"><strong>@allinterior_bot</strong></a> — ИИ-консультант по интерьеру</li>
-                  </ul>
+                                      </ul>
                   <div className="tags">
                     <span className="tag-blue tag">Node.js</span>
                     <span className="tag">TypeScript</span>
@@ -931,7 +929,7 @@ function App() {
 
           <div className="certs-grid">
             <div className="cert-item">Диплом о профессиональной подготовке: специалист по ИИ</div>
-            <div className="cert-item">Сертифицированный педагог HISTES</div>
+            <div className="cert-item">Сертифицированный педагог</div>
             <div className="cert-item">Сертификаты онлайн-курсов (Stepik и др.)</div>
             <div className="cert-item">Наставник первокурсников БФУ</div>
             <div className="cert-item">Победитель международной олимпиады по арифметике</div>
