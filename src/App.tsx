@@ -32,97 +32,6 @@ const digitalProjects: WebProject[] = [
   { id: 11, name: 'Нотариус', url: 'https://notarius-rudobelec.vercel.app', img: '/legacy/8.jpg', desc: 'Официальный сайт нотариальной конторы' }
 ];
 
-const SiteSvgIcon = ({ name }: { name: string }) => {
-  if (name.includes('verix')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-emerald-400 " viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-      </svg>
-    );
-  }
-  if (name.includes('Стальное')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h6M9 14h6" />
-      </svg>
-    );
-  }
-  if (name.includes('Crown')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-yellow-400 " viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" />
-      </svg>
-    );
-  }
-  if (name.includes('Jolies')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-pink-400 " viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4zM12 14a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4zM2 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4zM14 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4z" />
-      </svg>
-    );
-  }
-  if (name.includes('БалтМаг')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" />
-      </svg>
-    );
-  }
-  if (name.includes('Aristo')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <line x1="12" y1="3" x2="12" y2="21" />
-        <line x1="8" y1="12" x2="8" y2="12.01" strokeWidth="3" />
-        <line x1="16" y1="12" x2="16" y2="12.01" strokeWidth="3" />
-      </svg>
-    );
-  }
-  if (name.includes('KIBERone')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-indigo-400 " style={{ animationDuration: '8s' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-      </svg>
-    );
-  }
-  if (name.includes('C#')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="16 18 22 12 16 6" />
-        <polyline points="8 6 2 12 8 18" />
-      </svg>
-    );
-  }
-  if (name.includes('Пастерия')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M12 2v4M8 4v2M16 4v2M3 11c0 5 4 9 9 9s9-4 9-9H3z" />
-      </svg>
-    );
-  }
-  if (name.includes('L.A. Coffee')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3" />
-      </svg>
-    );
-  }
-  if (name.includes('Нотариус')) {
-    return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M12 3v18M6 7.5h12M4 12h16M7 16.5h10" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-    </svg>
-  );
-};
-
 const COMMERCIAL_SITES = digitalProjects;
 
 type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
@@ -1242,7 +1151,7 @@ function App() {
                       <li key={site.id} style={{ marginBottom: '8px' }}>
                         <span>
                           <a href={site.url} target="_blank" rel="noopener" className="project-bot-link transition-colors duration-200 block md:inline" style={site.name === 'C# Курс' ? { color: '#3b82f6', fontWeight: 'bold' } : { fontWeight: 'bold' }}>
-                            <SiteSvgIcon name={site.name} />{site.name}
+                            {site.name}
                           </a> <span className="hidden md:inline">—</span> <span className="block md:inline">{site.desc}</span>
                         </span>
                       </li>
@@ -1267,7 +1176,16 @@ function App() {
                       {activeSite ? activeSite.url.replace('https://', '') : 'vercel.app / projects'}
                     </div>
                   </div>
-                  <div className="browser-body p-0 digital-projects-bg">
+                  <div className="browser-body p-0 digital-projects-bg" style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
+                      <GridDistortion
+                        imageSrc="/monitoring.jpg"
+                        grid={10}
+                        mouse={0.1}
+                        strength={0.15}
+                        relaxation={0.9}
+                      />
+                    </div>
                     {activeSite ? (
                       <div className="h-[380px] md:h-[340px] lg:h-[520px] w-full flex flex-col relative z-10">
                         <button onClick={() => setActiveSite(null)} className="iframe-back-btn">
@@ -1277,7 +1195,7 @@ function App() {
                         <iframe src={activeSite.url} className="w-full h-full min-h-[380px] md:min-h-[340px] lg:min-h-[520px] border-none bg-white" title={activeSite.name} />
                       </div>
                     ) : (
-                      <div className="h-[260px] md:h-[340px] lg:h-[520px] w-full relative flex items-center justify-center overflow-hidden">
+                      <div className="h-[260px] md:h-[340px] lg:h-[520px] w-full relative flex items-center justify-center overflow-hidden z-10">
                         <SphereImageGrid
                           images={COMMERCIAL_SITES.map(site => ({
                             id: String(site.id),
