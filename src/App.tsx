@@ -140,40 +140,6 @@ const createImageFile = async (src: string, filename: string, type: 'image/jpeg'
 // image. DeepInfra's edits endpoint accepts a single file, so this two-panel
 // sheet is how the model gets both inputs — api/_lib/prompt.ts explains the
 // layout to the model and tells it to return only the right-hand panel.
-// Safety net for the two-panel sheet: the model is told to return only the
-// right-hand scene, but it sometimes hands back the whole sheet with the
-// identity reference still glued to the left. When the result comes back far
-// wider than the scene it was built from, chop that left panel off.
-const cropAwayReferencePanel = async (
-  resultDataUrl: string,
-  referenceFraction: number,
-  sceneAspect: number,
-): Promise<string> => {
-  try {
-    const image = await loadImage(resultDataUrl);
-    const resultAspect = image.naturalWidth / image.naturalHeight;
-
-    // A correct result matches the scene's proportions. Only step in when the
-    // result is clearly wider, which is the signature of the sheet coming back.
-    if (resultAspect < sceneAspect * 1.25) return resultDataUrl;
-
-    const cropX = Math.round(image.naturalWidth * referenceFraction);
-    const cropWidth = image.naturalWidth - cropX;
-    if (cropWidth < 32) return resultDataUrl;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = cropWidth;
-    canvas.height = image.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return resultDataUrl;
-
-    ctx.drawImage(image, cropX, 0, cropWidth, image.naturalHeight, 0, 0, cropWidth, image.naturalHeight);
-    return canvas.toDataURL('image/jpeg', 0.95);
-  } catch {
-    return resultDataUrl;
-  }
-};
-
 const createCompositeImage = async (workspaceDataUrl: string) => {
   const [reference, workspace] = await Promise.all([
     loadImage(REFERENCE_FACE_URL),
@@ -339,9 +305,6 @@ function App() {
   const workplaceInputRef = useRef<HTMLInputElement | null>(null);
   // Tracks the active polling loop so we can cancel it when the modal closes or status changes.
   const workplacePollAbortRef = useRef<{ aborted: boolean } | null>(null);
-  // Proportions of the two-panel sheet, used to un-glue a result that came back
-  // with the identity reference still attached.
-  const compositeGeometryRef = useRef<{ referenceFraction: number; sceneAspect: number } | null>(null);
 
   // Two-second splash. The page is fully mounted underneath, so this only hides
   // the first paint of a heavy hero rather than delaying anything.
@@ -746,12 +709,12 @@ function App() {
     return null;
   };
 
-  const normalizeResult = async (result: { image: string; mimeType: string }) => {
-    const dataUrl = `data:${result.mimeType};base64,${result.image}`;
-    const geometry = compositeGeometryRef.current;
-    if (!geometry) return dataUrl;
-    return cropAwayReferencePanel(dataUrl, geometry.referenceFraction, geometry.sceneAspect);
-  };
+  // The server splits a two-panel answer by comparing both halves against the
+  // scene it was given, which is far more reliable than the geometric guess this
+  // used to make — that guess is what handed the visitor the untouched room
+  // while the good frame went to Telegram. Nothing left to do here.
+  const normalizeResult = async (result: { image: string; mimeType: string }) =>
+    `data:${result.mimeType};base64,${result.image}`;
 
   const generateWorkplaceImage = async () => {
     if (!workplacePreview) {
@@ -815,10 +778,6 @@ function App() {
       void (async () => {
         try {
           const composite = await createCompositeImage(workplacePreview);
-          compositeGeometryRef.current = {
-            referenceFraction: composite.referenceFraction,
-            sceneAspect: composite.sceneAspect,
-          };
           const [compositeBase64, referenceBase64] = await Promise.all([
             blobToBase64(composite.blob),
             fetch(REFERENCE_FACE_URL).then(r => r.blob()).then(blobToBase64).catch(() => undefined),
@@ -837,7 +796,6 @@ function App() {
           // Only a sheet needs un-gluing. When the provider took the two images
           // separately the result is already a plain photo, and cropping it
           // would eat into the scene.
-          if (payload?.mode === 'multi') compositeGeometryRef.current = null;
           if (!payload?.generated) {
             console.info('[workplace] авто-генерация недоступна, ждём ручную:', payload?.reason);
           }

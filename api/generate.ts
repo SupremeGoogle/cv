@@ -12,6 +12,7 @@
 
 import { kvGet, kvSet } from './_lib/kv.js';
 import { generateWorkplacePhoto, deepinfraToken, deepinfraModel } from './_lib/deepinfra.js';
+import { keepGeneratedHalf } from './_lib/split-result.js';
 import { clientIp, reserveAutoGeneration } from './_lib/limits.js';
 import { adminChatId, tgSendPhotoBase64, tgSendMessage } from './_lib/telegram.js';
 
@@ -127,13 +128,19 @@ export default async function handler(req: any, res: any) {
   }
 
   const elapsedSec = Math.round((Date.now() - startedAt) / 1000);
-  console.log(`[generate] ${requestId}: done in ${elapsedSec}s via ${deepinfraModel()} (${generated.mode})`);
+
+  // The model often answers with the whole two-panel sheet. Drop the half that
+  // is just a copy of the scene we sent, so the visitor and Telegram both get
+  // the generated photo alone rather than one guessing at a crop.
+  const split = keepGeneratedHalf(generated.base64, body.sceneImage?.trim());
+  const finalImage = split.base64;
+  console.log(`[generate] ${requestId}: done in ${elapsedSec}s via ${deepinfraModel()} (${generated.mode}, split: ${split.action})`);
 
   try {
     const updated: StoredRequest = {
       ...stored,
       status: 'done',
-      resultImage: generated.base64,
+      resultImage: finalImage,
       resultMimeType: generated.mimeType,
       source: 'auto',
     };
@@ -146,8 +153,8 @@ export default async function handler(req: any, res: any) {
   // Show the admin what the visitor just saw, with an escape hatch.
   await tgSendPhotoBase64(
     adminChatId(),
-    generated.base64,
-    `🤖 <b>Автогенерация #${requestId}</b> готова за ${elapsedSec}с — клиент уже видит это фото.\n\nМодель: <code>${deepinfraModel()}</code> (${generated.mode})\nЕсли получилось плохо — нажми кнопку и пришли свой вариант, он заменит этот.`,
+    finalImage,
+    `🤖 <b>Автогенерация #${requestId}</b> готова за ${elapsedSec}с — клиент уже видит это фото.\n\nМодель: <code>${deepinfraModel()}</code> (${generated.mode}, кадр: ${split.action})\nЕсли получилось плохо — нажми кнопку и пришли свой вариант, он заменит этот.`,
     {
       inline_keyboard: [
         [{ text: '♻️ Заменить своим фото', callback_data: `upload:${requestId}` }],
