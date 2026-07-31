@@ -3123,31 +3123,5 @@ section {
   position: relative;
 }
 
-/* Scale down Education SVG animation badge */
-.edu-card .pixel-art-badge {
-  display: block !important;
-  margin-top: 10px !important;
-  transform: scale(0.6) !important;
-  transform-origin: left center !important;
-  opacity: 0.85 !important;
-}
 
-.edu-card .pixel-art-badge svg {
-  width: 64px !important;
-  height: 48px !important;
-}
 
-/* Scale down Contact SVG animation badge */
-.contact-box .pixel-art-badge {
-  display: block !important;
-  margin: 0 auto 14px auto !important;
-  transform: scale(0.6) !important;
-  transform-origin: center center !important;
-  opacity: 0.85 !important;
-}
-
-.contact-box .pixel-art-badge svg {
-  width: 64px !important;
-  height: 48px !important;
-  margin: 0 auto !important;
-}

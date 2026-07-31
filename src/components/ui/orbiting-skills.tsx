@@ -60,7 +60,7 @@ const iconComponents: Record<IconType, { component: () => React.JSX.Element; col
   },
       python: {
     component: () => (
-      <img src="/python-logo.png" alt="Python Logo" className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.5)] rounded-full" />
+      <img src="/python_logo_flat.jpg" alt="Python Logo" className="w-full h-full object-contain rounded-full" />
     ),
     color: '#3776AB'
   },

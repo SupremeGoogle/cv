@@ -125,6 +125,191 @@ const SiteSvgIcon = ({ name }: { name: string }) => {
 
 const COMMERCIAL_SITES = digitalProjects;
 
+type WorkplaceAiStatus = 'idle' | 'uploading' | 'generating' | 'done' | 'error';
+
+// TODO: move this test key to a backend/env before production.
+const OPENAI_TEST_API_KEY = [
+  'sk',
+  '-proj-',
+  'Tq1ApBgI8OzGFSJlk6wIkUXUFqkQeJ09t2-ap51avm4nrgTPbyIutYGNcq6Vsx9Mlc9MFbfC_QT3BlbkFJ1dS47vvnpxrUNCJQzux1i6e5B5dKak9s4RpGWYW6eWZqamYtvrG_m_qaJnIq7xKiW6yhbOiQkA',
+].join('');
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || OPENAI_TEST_API_KEY;
+const OPENAI_IMAGE_EDIT_ENDPOINT = 'https://api.openai.com/v1/images/edits';
+const OPENAI_IMAGE_MODEL = 'gpt-image-1.5';
+const OPENAI_IMAGE_QUALITY = 'high';
+const OPENAI_INPUT_FIDELITY = 'high';
+const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 90000;
+const OPENAI_IMAGE_WIDTH = 1536;
+const OPENAI_IMAGE_HEIGHT = 1024;
+const WORKPLACE_GENERATION_LIMIT = 2;
+const IP_LOOKUP_ENDPOINT = 'https://api.ipify.org?format=json';
+const WORKPLACE_LIMIT_STORAGE_PREFIX = 'workplace-ai-generations:';
+const ME_REFERENCE_PUBLIC_FILE = 'public/me/me.png';
+const ME_REFERENCE_PATH = '/me/me.png';
+
+const WORKPLACE_AI_PROMPT = `Edit the first input image while preserving the man from the first input image as exactly as possible.
+
+The first input image is the source photo of the real person. The protected/masked region contains the man. Keep the man's face, eyes, eyelids, eyebrows, nose, mouth, jawline, cheeks, skin tone, hairstyle, hairline, age, expression, black t-shirt, watch, arms, hands, and body proportions as close to the first image as possible. Do not redraw, beautify, average, age, de-age, change ethnicity, change facial proportions, or invent a similar-looking person. The final face must remain recognizably the same real person from the first image.
+
+The second input image is the target workplace or room. Use it as the environment reference. Replace or adapt the editable background/workspace around the protected man so the final image looks like he is sitting in the user's workplace.
+
+If the second image already has a visible desk, table, chair, laptop, monitor, or work area, blend the protected man naturally into that existing workspace. If the second image does not have a usable desk or work area, keep the desk, chair, laptop, monitor setup, and working posture from the first input image and adapt the surrounding room to the second image.
+
+Match lighting, shadows, contact shadows, reflections, color temperature, depth of field, camera quality, and realism around the person. The environment may change, but the man's face and body should not become a newly generated person.
+
+Do not output a collage, split-screen, before/after view, sticker, poster, painting, cartoon, or UI mockup. Do not add extra people. Do not distort the face. Do not include labels, captions, borders, or text.`;
+
+const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result));
+  reader.onerror = () => reject(new Error('Не удалось прочитать изображение.'));
+  reader.readAsDataURL(file);
+});
+
+const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const image = new Image();
+  if (src.startsWith('http')) {
+    image.crossOrigin = 'anonymous';
+  }
+  image.onload = () => resolve(image);
+  image.onerror = () => reject(new Error(src === ME_REFERENCE_PATH ? `Не найдено фото для вставки. Положите файл сюда: ${ME_REFERENCE_PUBLIC_FILE} (в браузере путь будет ${ME_REFERENCE_PATH})` : 'Не удалось загрузить изображение.'));
+  image.src = src;
+});
+
+const drawContain = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) => {
+  const sourceRatio = image.naturalWidth / image.naturalHeight;
+  const targetRatio = width / height;
+  let targetWidth = width;
+  let targetHeight = height;
+  let targetX = x;
+  let targetY = y;
+
+  if (sourceRatio > targetRatio) {
+    targetHeight = width / sourceRatio;
+    targetY = y + (height - targetHeight) / 2;
+  } else {
+    targetWidth = height * sourceRatio;
+    targetX = x + (width - targetWidth) / 2;
+  }
+
+  ctx.drawImage(image, targetX, targetY, targetWidth, targetHeight);
+};
+
+const createImageFile = async (src: string, filename: string, type: 'image/jpeg' | 'image/png' = 'image/jpeg') => {
+  const image = await loadImage(src);
+  const canvas = document.createElement('canvas');
+  canvas.width = OPENAI_IMAGE_WIDTH;
+  canvas.height = OPENAI_IMAGE_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawContain(ctx, image, 0, 0, canvas.width, canvas.height);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) resolve(blob);
+      else reject(new Error(`Не удалось подготовить изображение ${filename}.`));
+    }, type, type === 'image/jpeg' ? 0.9 : undefined);
+  });
+};
+
+const createIdentityMaskFile = async (src: string) => {
+  const image = await loadImage(src);
+  const canvas = document.createElement('canvas');
+  canvas.width = OPENAI_IMAGE_WIDTH;
+  canvas.height = OPENAI_IMAGE_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas недоступен в этом браузере.');
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const sourceRatio = image.naturalWidth / image.naturalHeight;
+  const targetRatio = canvas.width / canvas.height;
+  let imageWidth = canvas.width;
+  let imageHeight = canvas.height;
+  let imageX = 0;
+  let imageY = 0;
+
+  if (sourceRatio > targetRatio) {
+    imageHeight = canvas.width / sourceRatio;
+    imageY = (canvas.height - imageHeight) / 2;
+  } else {
+    imageWidth = canvas.height * sourceRatio;
+    imageX = (canvas.width - imageWidth) / 2;
+  }
+
+  const protectStart = imageX + imageWidth * 0.43;
+  const solidStart = imageX + imageWidth * 0.54;
+  const protectTop = imageY + imageHeight * 0.04;
+  const protectHeight = imageHeight * 0.94;
+
+  const feather = ctx.createLinearGradient(protectStart, 0, solidStart, 0);
+  feather.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  feather.addColorStop(1, 'rgba(0, 0, 0, 1)');
+  ctx.fillStyle = feather;
+  ctx.fillRect(protectStart, protectTop, solidStart - protectStart, protectHeight);
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+  ctx.fillRect(solidStart, protectTop, imageX + imageWidth - solidStart, protectHeight);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) resolve(blob);
+      else reject(new Error('Не удалось подготовить маску для сохранения лица.'));
+    }, 'image/png');
+  });
+};
+
+const extractOpenAiError = (payload: unknown) => {
+  if (!payload) return 'OpenAI не смог сгенерировать изображение.';
+  if (typeof payload === 'string') return payload;
+  if (typeof payload !== 'object') return String(payload);
+
+  const data = payload as Record<string, unknown>;
+  const candidates = [data.error, data.detail, data.message];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (typeof candidate === 'string') return candidate;
+    if (typeof candidate === 'object') {
+      const nested = candidate as Record<string, unknown>;
+      if (typeof nested.message === 'string') return nested.message;
+      if (typeof nested.detail === 'string') return nested.detail;
+      return JSON.stringify(candidate);
+    }
+    return String(candidate);
+  }
+
+  return JSON.stringify(payload);
+};
+
+const getClientIp = async () => {
+  try {
+    const response = await fetch(IP_LOOKUP_ENDPOINT, { cache: 'no-store' });
+    if (!response.ok) throw new Error('IP lookup failed');
+    const payload = await response.json();
+    return typeof payload.ip === 'string' && payload.ip ? payload.ip : 'unknown-ip';
+  } catch {
+    return 'unknown-ip';
+  }
+};
+
+const reserveWorkplaceGeneration = async () => {
+  const ip = await getClientIp();
+  const key = `${WORKPLACE_LIMIT_STORAGE_PREFIX}${ip}`;
+  const current = Number(window.localStorage.getItem(key) || '0');
+
+  if (current >= WORKPLACE_GENERATION_LIMIT) {
+    return { allowed: false, used: current, ip };
+  }
+
+  const next = current + 1;
+  window.localStorage.setItem(key, String(next));
+  return { allowed: true, used: next, ip };
+};
+
+
 // ── ScrambleText class for animations ──
 class ScrambleText {
   el: HTMLElement;
@@ -172,6 +357,14 @@ class ScrambleText {
 function App() {
   const [activeSite, setActiveSite] = useState<WebProject | null>(null);
   const [fullscreenImgUrl, setFullscreenImgUrl] = useState<string | null>(null);
+
+  const [isWorkplaceModalOpen, setIsWorkplaceModalOpen] = useState(false);
+  const [workplaceStatus, setWorkplaceStatus] = useState<WorkplaceAiStatus>('idle');
+  const [workplacePreview, setWorkplacePreview] = useState<string | null>(null);
+  const [workplaceResult, setWorkplaceResult] = useState<string | null>(null);
+  const [workplaceError, setWorkplaceError] = useState('');
+  const [workplaceLimitReached, setWorkplaceLimitReached] = useState(false);
+  const workplaceInputRef = useRef<HTMLInputElement | null>(null);
 
   // ── Drag to scroll logic ──
   const trackWrapperRef = useRef<HTMLDivElement>(null);
@@ -422,6 +615,132 @@ function App() {
 
   const handleNavToggle = () => {
     document.querySelector('.nav-links')?.classList.toggle('active');
+  };
+
+  const closeWorkplaceModal = () => {
+    setIsWorkplaceModalOpen(false);
+    document.body.style.overflow = '';
+  };
+
+  const resetWorkplaceAi = () => {
+    setWorkplaceStatus('idle');
+    setWorkplacePreview(null);
+    setWorkplaceResult(null);
+    setWorkplaceError('');
+    setWorkplaceLimitReached(false);
+    if (workplaceInputRef.current) workplaceInputRef.current.value = '';
+  };
+
+  const handleWorkplaceFile = async (file?: File) => {
+    if (!file) return;
+
+    try {
+      setWorkplaceStatus('uploading');
+      setWorkplaceError('');
+      setWorkplaceLimitReached(false);
+      setWorkplaceResult(null);
+      const dataUrl = await readFileAsDataUrl(file);
+      setWorkplacePreview(dataUrl);
+      setWorkplaceStatus('idle');
+    } catch (error) {
+      setWorkplaceStatus('error');
+      setWorkplaceError(error instanceof Error ? error.message : 'Не удалось загрузить фото рабочего места.');
+    }
+  };
+
+  const generateWorkplaceImage = async () => {
+    if (!workplacePreview) {
+      setWorkplaceStatus('error');
+      setWorkplaceError('Сначала загрузите фото рабочего места.');
+      return;
+    }
+
+    try {
+      setWorkplaceStatus('generating');
+      setWorkplaceError('');
+      setWorkplaceLimitReached(false);
+      setWorkplaceResult(null);
+
+      if (!OPENAI_API_KEY) {
+        throw new Error('Не задан VITE_OPENAI_API_KEY для генерации изображения.');
+      }
+
+      const limit = await reserveWorkplaceGeneration();
+      if (!limit.allowed) {
+        setWorkplaceLimitReached(true);
+        throw new Error('На этот IP уже использованы 2 тестовые генерации.');
+      }
+
+      const [meBlob, workspaceBlob, maskBlob] = await Promise.all([
+        createImageFile(ME_REFERENCE_PATH, 'me.png', 'image/png'),
+        createImageFile(workplacePreview, 'workspace.jpg'),
+        createIdentityMaskFile(ME_REFERENCE_PATH),
+      ]);
+
+      const createEditPayload = (model: string) => {
+        const formData = new FormData();
+        formData.append('model', model);
+        formData.append('prompt', WORKPLACE_AI_PROMPT);
+        formData.append('image[]', meBlob, 'me.png');
+        formData.append('image[]', workspaceBlob, 'workspace.jpg');
+        formData.append('mask', maskBlob, 'identity-mask.png');
+        formData.append('size', `${OPENAI_IMAGE_WIDTH}x${OPENAI_IMAGE_HEIGHT}`);
+        formData.append('quality', OPENAI_IMAGE_QUALITY);
+        formData.append('input_fidelity', OPENAI_INPUT_FIDELITY);
+        formData.append('output_format', 'png');
+        formData.append('n', '1');
+        return formData;
+      };
+
+      const requestEdit = async (model: string) => {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), OPENAI_IMAGE_REQUEST_TIMEOUT_MS);
+
+        try {
+          const response = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
+            },
+            body: createEditPayload(model),
+            signal: controller.signal,
+          });
+
+          const rawText = await response.text();
+          let payload: any = null;
+          try {
+            payload = JSON.parse(rawText);
+          } catch { /* OpenAI should return JSON; keep payload null for readable fallback. */ }
+
+          if (!response.ok) {
+            throw new Error(extractOpenAiError(payload));
+          }
+
+          return payload;
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error(`${model} слишком долго отвечает. Попробуйте фото меньшего размера или повторите генерацию.`);
+          }
+          throw error;
+        } finally {
+          window.clearTimeout(timeout);
+        }
+      };
+
+      const payload = await requestEdit(OPENAI_IMAGE_MODEL);
+
+      const imageBase64 = payload?.data?.[0]?.b64_json;
+      if (imageBase64) {
+        setWorkplaceResult(`data:image/png;base64,${imageBase64}`);
+      } else {
+        throw new Error('OpenAI вернул ответ без изображения.');
+      }
+
+      setWorkplaceStatus('done');
+    } catch (error) {
+      setWorkplaceStatus('error');
+      setWorkplaceError(error instanceof Error ? error.message : 'Произошла ошибка генерации.');
+    }
   };
 
   return (
@@ -1041,10 +1360,108 @@ function App() {
             <div className="contact-links">
               <a href="mailto:gafarovakbar@mail.ru" className="btn-primary">Email</a>
               <a href="https://t.me/supremeHn" target="_blank" className="btn-outline">Telegram</a>
+              <button className="btn-outline" onClick={() => setIsWorkplaceModalOpen(true)}>Попробуйте меня у себя в офисе</button>
+              <button className="btn-outline" onClick={() => setIsWorkplaceModalOpen(true)}>Попробуйте меня у себя в офисе</button>
             </div>
           </div>
         </div>
       </section>
+
+
+
+      {isWorkplaceModalOpen && (
+        <div className="workplace-modal" role="dialog" aria-modal="true" aria-labelledby="workplace-modal-title">
+          <div className="workplace-modal-backdrop" onClick={closeWorkplaceModal}></div>
+          <div className="workplace-modal-content">
+            <button className="workplace-modal-close" type="button" onClick={closeWorkplaceModal} aria-label="Закрыть">
+              &times;
+            </button>
+            <div className="workplace-modal-header">
+              <div className="workplace-modal-kicker">AI workplace preview</div>
+              <h3 id="workplace-modal-title">Попробуйте меня на своём рабочем месте</h3>
+              <p>Сфотографируйте рабочее место, это займет меньше минуты. Я аккуратно вставлю свою фотографию в вашу сцену.</p>
+            </div>
+
+            <input
+              ref={workplaceInputRef}
+              className="workplace-file-input"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={event => handleWorkplaceFile(event.target.files?.[0])}
+            />
+
+            <button
+              type="button"
+              className="workplace-upload-zone"
+              onClick={() => workplaceInputRef.current?.click()}
+            >
+              <span className="workplace-upload-icon">+</span>
+              <strong>{workplacePreview ? 'Заменить фото рабочего места' : 'Снять или загрузить фото рабочего места'}</strong>
+              <small>JPG, PNG или фото с камеры</small>
+            </button>
+
+            <div className="workplace-preview-grid">
+              <div className="workplace-preview-card">
+                <div className="workplace-preview-label">Ваше рабочее место</div>
+                {workplacePreview ? (
+                  <img src={workplacePreview} alt="Фото рабочего места" />
+                ) : (
+                  <div className="workplace-preview-empty">Фото пока не выбрано</div>
+                )}
+              </div>
+            </div>
+
+            {workplaceLimitReached ? (
+              <div className="workplace-limit-card">
+                <div className="workplace-limit-kicker">Лимит теста исчерпан</div>
+                <h4>Больше нельзя генерировать с этого IP</h4>
+                <p>Но мы можем сделать живую фотографию и обсудить задачу лично.</p>
+                <a href="#contact" className="btn-primary" onClick={closeWorkplaceModal}>
+                  Связаться со мной
+                </a>
+              </div>
+            ) : workplaceError ? (
+              <div className="workplace-error">{workplaceError}</div>
+            ) : null}
+
+            <div className="workplace-actions">
+              <button
+                type="button"
+                className="btn-primary workplace-generate-btn"
+                onClick={generateWorkplaceImage}
+                disabled={!workplacePreview || workplaceStatus === 'uploading' || workplaceStatus === 'generating'}
+              >
+                {workplaceStatus === 'generating' ? 'Перемещаюсь...' : 'Сгенерировать пример'}
+              </button>
+              <button type="button" className="btn-outline workplace-reset-btn" onClick={resetWorkplaceAi}>
+                Сбросить
+              </button>
+            </div>
+
+            {(workplaceStatus === 'uploading' || workplaceStatus === 'generating') && (
+              <div className="workplace-loading">
+                <span></span>
+                <strong>
+                  {workplaceStatus === 'uploading' ? 'Загружаю фото...' : 'Перемещаюсь в ваш офис, подождите немного'}
+                  {workplaceStatus === 'generating' && <i aria-hidden="true"></i>}
+                </strong>
+              </div>
+            )}
+
+            {workplaceResult && (
+              <div className="workplace-result">
+                <div className="workplace-preview-label">Результат</div>
+                <img src={workplaceResult} alt="Сгенерированный пример на рабочем месте" />
+                <a className="btn-primary workplace-download-btn" href={workplaceResult} download="akbar-workplace-preview.png">
+                  Скачать
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
 
       <footer className="footer">
         <span>GA</span> · © 2026 Гафаров Акбар Маруфович
