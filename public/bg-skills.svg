@@ -1,43 +1,15 @@
 <svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="sk_g1" cx="50%" cy="45%" r="65%">
-      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.25" />
+    <radialGradient id="el_sk1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.1" />
       <stop offset="100%" stop-color="#0B0F19" stop-opacity="0" />
     </radialGradient>
   </defs>
 
   <rect width="1440" height="900" fill="#0B0F19" />
-  <rect width="1440" height="900" fill="url(#sk_g1)" />
+  <rect width="1440" height="900" fill="url(#el_sk1)" />
 
-  <g opacity="0.2">
-    <!-- AI Neural Network Synapses -->
-    <circle cx="720" cy="450" r="280" stroke="#06B6D4" stroke-width="1.5" stroke-dasharray="4 8"/>
-    <circle cx="720" cy="450" r="160" stroke="#A855F7" stroke-width="1.5"/>
-
-    <!-- Neural Nodes -->
-    <g fill="#06B6D4">
-      <circle cx="720" cy="170" r="8"/>
-      <circle cx="1000" cy="450" r="8"/>
-      <circle cx="720" cy="730" r="8"/>
-      <circle cx="440" cy="450" r="8"/>
-      <circle cx="917" cy="253" r="7"/>
-      <circle cx="917" cy="647" r="7"/>
-      <circle cx="523" cy="647" r="7"/>
-      <circle cx="523" cy="253" r="7"/>
-    </g>
-
-    <!-- Connecting Synapse Lines -->
-    <line x1="720" y1="170" x2="917" y2="253" stroke="#06B6D4" stroke-width="1.5"/>
-    <line x1="917" y1="253" x2="1000" y2="450" stroke="#06B6D4" stroke-width="1.5"/>
-    <line x1="1000" y1="450" x2="917" y2="647" stroke="#06B6D4" stroke-width="1.5"/>
-    <line x1="917" y1="647" x2="720" y2="730" stroke="#06B6D4" stroke-width="1.5"/>
-    <line x1="720" y1="730" x2="523" y2="647" stroke="#06B6D4" stroke-width="1.5"/>
-    <line x1="523" y1="647" x2="440" y2="450" stroke="#06B6D4" stroke-width="1.5"/>
-    <line x1="440" y1="450" x2="523" y2="253" stroke="#06B6D4" stroke-width="1.5"/>
-    <line x1="523" y1="253" x2="720" y2="170" stroke="#06B6D4" stroke-width="1.5"/>
-
-    <!-- Cross AI Lines -->
-    <line x1="720" y1="170" x2="720" y2="730" stroke="#A855F7" stroke-width="1.5" stroke-dasharray="6 6"/>
-    <line x1="440" y1="450" x2="1000" y2="450" stroke="#A855F7" stroke-width="1.5" stroke-dasharray="6 6"/>
-  </g>
+  <!-- Minimalist Orbital Accent -->
+  <circle cx="720" cy="450" r="360" fill="none" stroke="rgba(6, 182, 212, 0.04)" stroke-width="1" stroke-dasharray="8 8" />
+  <circle cx="720" cy="450" r="240" fill="none" stroke="rgba(255, 255, 255, 0.02)" stroke-width="1" />
 </svg>
