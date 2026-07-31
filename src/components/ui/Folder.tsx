@@ -1,7 +1,7 @@
 // React Bits Folder, typed for this project.
 // Click (or hover) a folder and up to three "papers" fan out of it.
 
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import './Folder.css';
 
 const darkenColor = (hex: string, percent: number) => {
@@ -24,9 +24,11 @@ type FolderProps = {
   size?: number;
   items?: ReactNode[];
   className?: string;
+  /** Flip to true to open the folder without a click — used on scroll. */
+  autoOpen?: boolean;
 };
 
-const Folder = ({ color = '#5227FF', size = 1, items = [], className = '' }: FolderProps) => {
+const Folder = ({ color = '#5227FF', size = 1, items = [], className = '', autoOpen = false }: FolderProps) => {
   // Upstream caps this at 3; a fourth slot is supported here so one folder can
   // hold all four stats (see the .paper:nth-child(4) rules in Folder.css).
   const maxItems = 4;
@@ -34,6 +36,12 @@ const Folder = ({ color = '#5227FF', size = 1, items = [], className = '' }: Fol
   while (papers.length < maxItems) papers.push(null);
 
   const [open, setOpen] = useState(false);
+
+  // Opening on scroll should not fight the click handler: once autoOpen fires
+  // the folder stays clickable and can be closed again by hand.
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
   const [paperOffsets, setPaperOffsets] = useState(
     Array.from({ length: maxItems }, () => ({ x: 0, y: 0 })),
   );

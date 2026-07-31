@@ -10,6 +10,7 @@ import CardSwap, { Card } from './components/ui/CardSwap';
 import Folder from './components/ui/Folder';
 import ProfileCard from './components/ui/ProfileCard';
 import TargetCursor from './components/ui/TargetCursor';
+import PythonLogo from './components/ui/python-logo';
 
 const digitalProjects: DigitalProject[] = [
   { id: 1, name: 'verix.tj', url: 'https://verix.tj', img: '/legacy/1.jpg', desc: 'Инновационная сервисная экосистема и цифровой хаб (Fullstack)' },
@@ -317,6 +318,9 @@ class ScrambleText {
 }
 
 function App() {
+  const [isBooting, setIsBooting] = useState(true);
+  const [statsFolderOpen, setStatsFolderOpen] = useState(false);
+  const statsFolderRef = useRef<HTMLDivElement | null>(null);
   const [selectedDigitalProject, setSelectedDigitalProject] = useState<DigitalProject | null>(null);
   const [isWorkplaceModalOpen, setIsWorkplaceModalOpen] = useState(false);
   const [workplaceStatus, setWorkplaceStatus] = useState<WorkplaceAiStatus>('idle');
@@ -332,6 +336,30 @@ function App() {
   // Proportions of the two-panel sheet, used to un-glue a result that came back
   // with the identity reference still attached.
   const compositeGeometryRef = useRef<{ referenceFraction: number; sceneAspect: number } | null>(null);
+
+  // Two-second splash. The page is fully mounted underneath, so this only hides
+  // the first paint of a heavy hero rather than delaying anything.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsBooting(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  // The stats folder opens itself once it is properly on screen.
+  useEffect(() => {
+    const node = statsFolderRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          setStatsFolderOpen(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.55 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -469,90 +497,10 @@ function App() {
       });
     }
 
-    const projectsWrapper = document.querySelector('.projects-track-wrapper') as HTMLElement;
-    const mobileProjectsSection = document.querySelector('.projects') as HTMLElement;
-    if (projectsWrapper && mobileProjectsSection && window.innerWidth <= 968) {
-      let startX = 0;
-      let startY = 0;
-      let startScrollLeft = 0;
-      let isHorizontalSwipe = false;
-      let isPointerDragging = false;
-
-      const finishProjectsSwipe = () => {
-        isPointerDragging = false;
-        projectsWrapper.classList.remove('projects-dragging');
-      };
-
-      const updateProjectsSwipe = (clientX: number, clientY: number, preventDefault: () => void) => {
-        const deltaX = clientX - startX;
-        const deltaY = clientY - startY;
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
-
-        if (!isHorizontalSwipe && absX > 6 && absX > absY) {
-          isHorizontalSwipe = true;
-          projectsWrapper.classList.add('projects-dragging');
-        }
-
-        if (!isHorizontalSwipe) return;
-
-        preventDefault();
-        projectsWrapper.scrollLeft = startScrollLeft - deltaX;
-      };
-
-      const onProjectsTouchStart = (event: TouchEvent) => {
-        const touch = event.touches[0];
-        if (!touch) return;
-
-        startX = touch.clientX;
-        startY = touch.clientY;
-        startScrollLeft = projectsWrapper.scrollLeft;
-        isHorizontalSwipe = false;
-      };
-
-      const onProjectsTouchMove = (event: TouchEvent) => {
-        const touch = event.touches[0];
-        if (!touch) return;
-        updateProjectsSwipe(touch.clientX, touch.clientY, () => event.preventDefault());
-      };
-
-      const onProjectsPointerDown = (event: PointerEvent) => {
-        if (event.pointerType === 'touch') return;
-        if (event.pointerType === 'mouse' && event.button !== 0) return;
-
-        startX = event.clientX;
-        startY = event.clientY;
-        startScrollLeft = projectsWrapper.scrollLeft;
-        isHorizontalSwipe = false;
-        isPointerDragging = true;
-      };
-
-      const onProjectsPointerMove = (event: PointerEvent) => {
-        if (!isPointerDragging) return;
-        updateProjectsSwipe(event.clientX, event.clientY, () => event.preventDefault());
-      };
-
-      mobileProjectsSection.addEventListener('touchstart', onProjectsTouchStart, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('touchmove', onProjectsTouchMove, { passive: false, capture: true });
-      mobileProjectsSection.addEventListener('touchend', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('touchcancel', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointerdown', onProjectsPointerDown, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointermove', onProjectsPointerMove, { passive: false, capture: true });
-      mobileProjectsSection.addEventListener('pointerup', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointercancel', finishProjectsSwipe, { passive: true, capture: true });
-      mobileProjectsSection.addEventListener('pointerleave', finishProjectsSwipe, { passive: true, capture: true });
-      cleanupHandlers.push(() => {
-        mobileProjectsSection.removeEventListener('touchstart', onProjectsTouchStart, { capture: true });
-        mobileProjectsSection.removeEventListener('touchmove', onProjectsTouchMove, { capture: true });
-        mobileProjectsSection.removeEventListener('touchend', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('touchcancel', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('pointerdown', onProjectsPointerDown, { capture: true });
-        mobileProjectsSection.removeEventListener('pointermove', onProjectsPointerMove, { capture: true });
-        mobileProjectsSection.removeEventListener('pointerup', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('pointercancel', finishProjectsSwipe, { capture: true });
-        mobileProjectsSection.removeEventListener('pointerleave', finishProjectsSwipe, { capture: true });
-      });
-    }
+    // Mobile projects used to be driven by a hand-rolled touch handler that set
+    // scrollLeft directly. That killed the browser's fling momentum, so reaching
+    // slide 2 took several swipes. Native scrolling plus the CSS scroll-snap
+    // does it in one.
 
     // ── Mouse Follow & Interactions ──
 
@@ -863,6 +811,13 @@ function App() {
 
   return (
     <>
+      {isBooting && (
+        <div className="boot-splash" role="status" aria-label="Загрузка">
+          <div className="boot-logo">GA<span>.</span></div>
+          <div className="boot-bar"><i /></div>
+        </div>
+      )}
+
       <canvas id="particles-canvas"></canvas>
       <div id="progress-bar"></div>
       <TargetCursor targetSelector=".cursor-target" spinDuration={2} cursorColor="#34D399" cursorColorOnTarget="#38BDF8" />
@@ -955,8 +910,8 @@ function App() {
                 нейросетей и развертывания готовых инструментов.</p>
               <p>Легко адаптируюсь к новым задачам, быстро осваиваю современные технологии и умею эффективно работать как в
                 команде, так и самостоятельно, беря на себя полную ответственность за финальный результат.</p>
-              <p>Помимо разработки, я успешно совмещаю роли наставника и координатора, имея опыт управления академическими
-                процессами и курирования команд из более чем 35 специалистов.</p>
+              <p>Четыре года преподавал программирование — эта привычка объяснять простыми словами
+                осталась и в работе: код и решения стараюсь делать понятными для команды.</p>
               <div className="langs-grid" style={{ marginTop: '2rem' }}>
                 <div className="lang-item"><span className="lang-name">Русский</span><span className="lang-level">Разг.</span></div>
                 <div className="lang-item"><span className="lang-name">Английский</span><span className="lang-level">B2</span></div>
@@ -976,11 +931,8 @@ function App() {
                 <p>PyTorch, YOLO, RAG, нейросети, компьютерное зрение</p>
               </div>
               <div className="about-card">
-                <div className="about-card-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path
-                      d="M12 21v-8m4-4h-8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2Zm0-4V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2" />
-                  </svg>
+                <div className="about-card-icon about-card-icon-python">
+                  <PythonLogo className="about-python-mark" />
                 </div>
                 <h4>Python</h4>
                 <p>Бэкенд, автоматизация, боты, анализ данных</p>
@@ -1007,8 +959,9 @@ function App() {
             </div>
           </div>
           <div className="stats-folder">
-            <div className="stats-folder-slot">
+            <div className="stats-folder-slot" ref={statsFolderRef}>
               <Folder
+                autoOpen={statsFolderOpen}
                 size={2.1}
                 color="#34D399"
                 items={[
@@ -1102,7 +1055,7 @@ function App() {
             Что-то знаю глубже, что-то ещё изучаю — но берусь только за то, что могу довести до конца.</p>
           <div className="skills-swap-layout">
             <div className="skills-swap-stage">
-              <CardSwap width={440} height={330} cardDistance={54} verticalDistance={62} delay={4200} pauseOnHover easing="elastic">
+              <CardSwap width={440} height={330} cardDistance={54} verticalDistance={62} delay={4200} easing="elastic">
                 <Card customClass="skill-card">
                   <div className="skill-card-head">
                     <span className="skill-card-index">01</span>
@@ -1290,11 +1243,11 @@ function App() {
                   <p className="project-desc">Более 15 коммерческих сайтов и digital-решений для бизнеса Калининграда — от лендингов до многофункциональных платформ с CRM-интеграцией.</p>
                   <ul className="project-tasks digital-project-list">
                     {digitalProjects.map(project => (
-                      <li key={project.id}>
-                        <a href={project.url} target="_blank" rel="noopener noreferrer" className="project-bot-link">
-                          <strong>{project.name}</strong>
+                      <li key={project.id} className="digital-project-row">
+                        <a href={project.url} target="_blank" rel="noopener noreferrer" className="project-bot-link cursor-target">
+                          {project.name}
                         </a>
-                        <span> — {project.desc}</span>
+                        <span className="digital-project-desc">{project.desc}</span>
                       </li>
                     ))}
                   </ul>
@@ -1383,12 +1336,12 @@ function App() {
           <div className="workplace-cta">
             <div>
               <div className="workplace-cta-kicker">AI workplace preview</div>
-              <h3>Проверьте, как я буду выглядеть на вашем рабочем месте</h3>
+              <h3>Проверьте, как я буду выглядеть на рабочем месте</h3>
               <p>Сфотографируйте рабочее место — это займет меньше минуты.</p>
             </div>
             <button className="workplace-try-btn workplace-try-btn-large" type="button" onClick={openWorkplaceModal}>
               <span className="workplace-try-btn-icon">AI</span>
-              <span>Попробуйте меня на своём рабочем месте</span>
+              <span>Попробуйте меня на рабочем месте</span>
               <span className="workplace-try-btn-arrow">→</span>
             </button>
           </div>
@@ -1406,8 +1359,15 @@ function App() {
             <p className="contact-sub">Для сотрудничества, предложений или профессионального общения — выберите любой удобный
               способ связи. Буду рад обсудить ваш проект!</p>
             <div className="contact-links">
-              <a href="mailto:gafarovakbar@mail.ru" className="btn-primary cursor-target">Email</a>
-              <a href="https://t.me/supremeHn" target="_blank" rel="noopener noreferrer" className="btn-outline cursor-target">Telegram</a>
+              <a
+                href="https://t.me/supremeHn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary contact-telegram cursor-target"
+              >
+                Написать в Telegram
+              </a>
+              <a href="mailto:gafarovakbar@mail.ru" className="btn-outline cursor-target">Email</a>
             </div>
           </div>
         </div>
@@ -1422,7 +1382,7 @@ function App() {
             </button>
             <div className="workplace-modal-header">
               <div className="workplace-modal-kicker">AI workplace preview</div>
-              <h3 id="workplace-modal-title">Попробуйте меня на своём рабочем месте</h3>
+              <h3 id="workplace-modal-title">Попробуйте меня на рабочем месте</h3>
               <p>Сфотографируйте рабочее место, это займет меньше минуты. Я аккуратно вставлю свою фотографию в вашу сцену.</p>
             </div>
 

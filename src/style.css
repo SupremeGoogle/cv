@@ -3718,8 +3718,13 @@ section {
     padding: 0.65rem;
   }
 
+  /* Two columns on a phone: uploaded shot wider on the left, portrait beside
+     it. This rule carries !important because it used to force a single column
+     and several later rules were losing to it. */
   .workplace-preview-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) !important;
+    gap: 0.6rem;
+    align-items: start;
   }
 
   .workplace-modal-content {
@@ -4261,8 +4266,292 @@ section {
   align-items: start;
 }
 
-@media (max-width: 720px) {
-  .workplace-preview-grid {
+
+
+/* The About card shows the real Python mark. `.about-card-icon` is a plain
+   flex row, so without an explicit box the coloured background stretched the
+   full card width. */
+.about-card-icon-python {
+  width: 44px;
+  height: 44px;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(55, 118, 171, 0.12);
+  border: 1px solid rgba(55, 118, 171, 0.32);
+}
+
+.about-card-icon-python .about-python-mark {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+/* Project 04 site list: name and description were running together into one
+   wrapped line on desktop. Give each row two columns that align. */
+.digital-project-row {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: 0.1rem 0.9rem;
+  align-items: baseline;
+  margin-bottom: 0.45rem;
+}
+
+.digital-project-row .project-bot-link {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.digital-project-desc {
+  color: var(--text-mid);
+  line-height: 1.45;
+}
+
+@media (max-width: 968px) {
+  .digital-project-row {
     grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+
+  .digital-project-row .project-bot-link {
+    white-space: normal;
+  }
+}
+
+/* ── Boot splash ── */
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  animation: boot-fade 2s ease forwards;
+}
+
+.boot-logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.6rem, 9vw, 4.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  animation: boot-pop 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.boot-logo span {
+  color: var(--accent);
+}
+
+.boot-bar {
+  width: min(190px, 42vw);
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.boot-bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--gradient);
+  transform-origin: left center;
+  animation: boot-progress 1.9s ease-in-out forwards;
+}
+
+@keyframes boot-pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes boot-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes boot-fade {
+  0%, 80% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-splash,
+  .boot-logo,
+  .boot-bar i {
+    animation: none !important;
+  }
+}
+
+/* ══════ Mobile / tablet review pass ══════ */
+@media (max-width: 968px) {
+  /* SVG pixel scenes are decoration; on a phone they only crowd the cards. */
+  .pixel-art-badge {
+    display: none !important;
+  }
+
+  /* Languages: two per row instead of a long single column. */
+  .langs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .lang-item {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+
+  /* Competency cards were anchored bottom-right of their stage and ran off
+     the screen; centre the stack instead. */
+  .skills-swap-stage {
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .skills-swap-stage .card-swap-container {
+    position: absolute;
+    bottom: auto;
+    right: auto;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.68);
+    transform-origin: center center;
+  }
+
+  /* Education: two columns, tighter. */
+  .certs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .cert-item {
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .edu-card {
+    padding: 22px 20px;
+  }
+
+  .edu-name {
+    font-size: 1.05rem;
+  }
+
+  .edu-degree {
+    font-size: 0.85rem;
+  }
+
+  /* Workplace modal: upload zone and preview shrink so the portrait fits
+     beside them as a second column. */
+  .workplace-upload-zone {
+    padding: 0.9rem 1rem;
+  }
+
+  .workplace-preview-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 0.7rem;
+  }
+
+  .workplace-preview-card img,
+  .workplace-preview-empty {
+    max-height: 170px;
+  }
+
+  .workplace-profile .pc-card {
+    height: 190px;
+  }
+
+  .workplace-profile .pc-details h3 {
+    font-size: 0.95rem;
+  }
+
+  .workplace-profile .pc-details p {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .certs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cert-item {
+    font-size: 0.72rem;
+    padding: 10px 11px;
+  }
+
+  .skills-swap-stage .card-swap-container {
+    transform: translate(-50%, -50%) scale(0.52);
+  }
+
+  .skills-swap-stage {
+    min-height: 320px;
+  }
+}
+
+/* Telegram is the channel that actually gets answered — make it the primary
+   action and step the email back. */
+.contact-links {
+  flex-wrap: wrap;
+}
+
+.contact-links .contact-telegram {
+  order: -1;
+}
+
+/* The component already bails on touch devices, but a narrow desktop window is
+   not a place for a bracket cursor either. */
+@media (max-width: 968px), (pointer: coarse) {
+  .target-cursor-wrapper {
+    display: none !important;
+  }
+
+  body {
+    cursor: auto !important;
+  }
+}
+
+/* Two about-cards side by side at 375px left four-word lines wrapping to five
+   rows; one column reads far better. */
+@media (max-width: 520px) {
+  .about-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .langs-grid {
+    gap: 0.5rem;
+  }
+}
+
+/* Modal on a phone: the uploaded shot stays the wider column and the portrait
+   sits beside it, rather than pushing everything into one tall stack. */
+@media (max-width: 968px) {
+  .workplace-modal-content .workplace-preview-grid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: start;
+  }
+
+  .workplace-modal-content .workplace-preview-card img,
+  .workplace-modal-content .workplace-preview-empty {
+    max-height: 150px;
+  }
+
+  .workplace-modal-content .workplace-upload-zone {
+    padding: 0.8rem 0.9rem;
+  }
+
+  .workplace-modal-content .workplace-upload-zone strong {
+    font-size: 0.86rem;
+  }
+
+  .workplace-modal-content .workplace-profile .pc-card {
+    height: 175px;
   }
 }

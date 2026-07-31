@@ -5,7 +5,9 @@
   width: 0;
   height: 0;
   pointer-events: none;
-  z-index: 9999;
+  /* Above the workplace modal (10001) and the boot splash (100000), or the
+     cursor vanishes the moment either opens. */
+  z-index: 100002;
   mix-blend-mode: difference;
   transform: translate(-50%, -50%);
 }
