@@ -6,6 +6,9 @@ import OrbitingSkills from './components/ui/orbiting-skills'
 import RadialOrbitalTimeline from "./components/ui/radial-orbital-timeline";
 import DigitalProjectSphere, { type DigitalProject } from './components/ui/digital-project-sphere';
 import PixelProjectArt from './components/ui/pixel-project-art';
+import GridDistortion from './components/ui/GridDistortion';
+import CardSwap, { Card } from './components/ui/CardSwap';
+import Folder from './components/ui/Folder';
 
 const digitalProjects: DigitalProject[] = [
   { id: 1, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
@@ -824,9 +827,9 @@ function App() {
 
       {/* ══════ HERO ══════ */}
       <section className="hero" id="hero">
-        <video autoPlay loop muted playsInline id="hero-video">
-          <source src="/ezgif-40e95fbedf42a49f.mp4" type="video/mp4" />
-        </video>
+        <div className="hero-distortion">
+          <GridDistortion imageSrc="/hero-bg.jpg" grid={14} mouse={0.12} strength={0.16} relaxation={0.91} />
+        </div>
         <div className="hero-video-overlay"></div>
         <div className="container">
           <div className="hero-content">
@@ -945,23 +948,25 @@ function App() {
               </div>
             </div>
           </div>
-          <div className="stats-row">
-            <div className="stat-item">
-              <div className="stat-num count-up" data-target="4" data-suffix="+">0</div>
-              <div className="stat-label">Лет в IT и обучении</div>
+          <div className="stats-folder">
+            <div className="stats-folder-slot">
+              <Folder
+                size={2.6}
+                color="#34D399"
+                items={[
+                  { value: '4+', label: 'Лет в IT и обучении' },
+                  { value: '100+', label: 'Учеников обучено' },
+                  { value: '15+', label: 'Сайтов для бизнеса' },
+                  { value: '10+', label: 'Telegram-ботов' },
+                ].map(stat => (
+                  <span className="stat-paper" key={stat.label}>
+                    <b>{stat.value}</b>
+                    <i>{stat.label}</i>
+                  </span>
+                ))}
+              />
             </div>
-            <div className="stat-item">
-              <div className="stat-num count-up" data-target="100" data-suffix="+">0</div>
-              <div className="stat-label">Учеников обучено</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-num count-up" data-target="15" data-suffix="+">0</div>
-              <div className="stat-label">Сайтов для бизнеса</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-num count-up" data-target="10" data-suffix="+">0</div>
-              <div className="stat-label">Telegram-ботов</div>
-            </div>
+            <p className="stats-folder-hint">Нажмите на папку — внутри цифры</p>
           </div>
         </div>
       </section>
@@ -1036,118 +1041,58 @@ function App() {
         <div className="container">
           <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ ls ./skills/</div>
           <h2 className="section-title">Мои <span data-value="Компетенции"></span></h2>
-          <p className="skills-subtitle">Универсален: работаю как разработчик, специалист по автоматизации и наставник команды.
-            Быстро осваиваю новые технологии и довожу каждый проект до результата.</p>
-          <div className="bento-grid-custom">
-            <div className="bento-card top-left">
-              <div className="bento-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                  <line x1="9" y1="21" x2="9" y2="9"></line>
-                </svg>
-              </div>
-              <h3>AI и Computer Vision</h3>
-              <p>Обучение нейросетей с нуля, подготовка и разметка датасетов, анализ данных и создание прикладных решений в
-                области компьютерного зрения.</p>
-              <div className="bento-pills">
-                <span className="bento-pill">PyTorch</span>
-                <span className="bento-pill">YOLO</span>
-                <span className="bento-pill">OpenCV</span>
-                <span className="bento-pill">RAG</span>
-              </div>
-              <div className="bento-decoration dek-window">
-                <div className="code-window">
-                  <div className="code-window-bar"><span></span><span></span><span></span></div>
-                  <div className="code-window-body">
-                    <div className="code-line"><span className="bracket">&lt;&gt;</span>
-                      <div className="bar p" style={{ width: '100px' }}></div>
-                    </div>
-                    <div className="code-line">
-                      <div className="bar g" style={{ width: '180px' }}></div>
-                    </div>
-                    <div className="code-line">
-                      <div className="bar g" style={{ width: '140px' }}></div>
-                    </div>
-                    <div className="code-line">
-                      <div className="bar g" style={{ width: '160px' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <p className="skills-subtitle">Работаю в трёх направлениях: компьютерное зрение, автоматизация и данные.
+            Что-то знаю глубже, что-то ещё изучаю — но берусь только за то, что могу довести до конца.</p>
+          <div className="skills-swap-layout">
+            <div className="skills-swap-copy">
+              <h3>Чем я занимаюсь</h3>
+              <p>Участвую в полном цикле: от сбора данных до запуска. Где-то делаю сам, где-то работаю
+                в команде — и стараюсь, чтобы результатом можно было пользоваться без меня.</p>
+              <ul className="skills-swap-list">
+                <li>Довожу задачи до рабочего состояния, а не до демо</li>
+                <li>Пишу так, чтобы разобрался и другой человек: документация, Docker, понятная структура</li>
+                <li>Стараюсь объяснять решения простым языком — привычка из преподавания</li>
+              </ul>
             </div>
-            <div className="bento-card bottom-left">
-              <div className="bento-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-                  <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-                  <path d="M2 2l7.586 7.586"></path>
-                  <circle cx="11" cy="11" r="2"></circle>
-                </svg>
-              </div>
-              <h3>Автоматизация и Боты</h3>
-              <p>Разработка Telegram-ботов для бизнеса, CRM-автоматизация и цифровизация повторяющихся задач для оптимизации
-                рабочих процессов.</p>
-              <div className="bento-pills">
-                <span className="bento-pill">Python</span>
-                <span className="bento-pill">Docker</span>
-                <span className="bento-pill">Telegram API</span>
-                <span className="bento-pill">CI/CD</span>
-              </div>
-              <div className="bento-decoration dek-orbit">
-                <div className="orbit-deco">
-                  <div className="orbit-ring"></div>
-                  <div className="orbit-center">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)"
-                      strokeWidth="2">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                    </svg>
+            <div className="skills-swap-stage">
+              <CardSwap width={440} height={330} cardDistance={54} verticalDistance={62} delay={4200} pauseOnHover easing="elastic">
+                <Card customClass="skill-card">
+                  <div className="skill-card-head">
+                    <span className="skill-card-index">01</span>
+                    <span className="skill-card-tag">AI / Computer Vision</span>
                   </div>
-                  <div className="orbit-dot"></div>
-                  <div className="orbit-dot"></div>
-                  <div className="orbit-dot"></div>
-                </div>
-              </div>
-            </div>
-            <div className="bento-card right-tall">
-              <div className="bento-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                </svg>
-              </div>
-              <h3>Инфраструктура и БД</h3>
-              <p>Проектирование логики хранения данных в PostgreSQL, контейнеризация приложений в Docker и работа с сетевыми
-                протоколами.</p>
-              <div className="bento-decoration dek-progress">
-                <div className="progress-decoration">
-                  <div className="prog-row"><span className="bracket">{">_"}</span>
-                    <div className="prog-bar-track">
-                      <div className="prog-bar-fill" style={{ width: '40%' }}></div>
-                    </div>
+                  <h4>Компьютерное зрение</h4>
+                  <p>Собираю и размечаю датасеты, обучаю модели, проверяю их на реальных данных
+                    и смотрю, где они ошибаются.</p>
+                  <div className="skill-card-pills">
+                    <span>PyTorch</span><span>YOLO</span><span>OpenCV</span><span>RAG</span>
                   </div>
-                  <div className="prog-row"><span className="bracket">{">_"}</span>
-                    <div className="prog-bar-track">
-                      <div className="prog-bar-fill" style={{ width: '65%' }}></div>
-                    </div>
+                </Card>
+                <Card customClass="skill-card">
+                  <div className="skill-card-head">
+                    <span className="skill-card-index">02</span>
+                    <span className="skill-card-tag">Автоматизация</span>
                   </div>
-                  <div className="prog-row"><span className="bracket">{">_"}</span>
-                    <div className="prog-bar-track">
-                      <div className="prog-bar-fill" style={{ width: '80%' }}></div>
-                    </div>
+                  <h4>Автоматизация</h4>
+                  <p>Telegram-боты и интеграции с CRM: заявки, рассылки, документы. Обычно это
+                    небольшие задачи, но они заметно экономят время команде.</p>
+                  <div className="skill-card-pills">
+                    <span>Python</span><span>Telegram API</span><span>CI/CD</span><span>Docker</span>
                   </div>
-                </div>
-              </div>
-              <div className="bento-pills bento-pills-bottom">
-                <span className="bento-pill">SQL</span>
-                <span className="bento-pill">PostgreSQL</span>
-                <span className="bento-pill">Docker</span>
-                <span className="bento-pill">CRM API</span>
-              </div>
+                </Card>
+                <Card customClass="skill-card">
+                  <div className="skill-card-head">
+                    <span className="skill-card-index">03</span>
+                    <span className="skill-card-tag">Инфраструктура</span>
+                  </div>
+                  <h4>Инфраструктура и данные</h4>
+                  <p>Продумываю, как хранить данные, упаковываю сервисы в Docker и разбираюсь,
+                    чтобы всё запускалось не только на моей машине.</p>
+                  <div className="skill-card-pills">
+                    <span>PostgreSQL</span><span>SQL</span><span>Docker</span><span>REST</span>
+                  </div>
+                </Card>
+              </CardSwap>
             </div>
           </div>
         </div>

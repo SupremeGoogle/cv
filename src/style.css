@@ -3989,3 +3989,213 @@ section {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Hero background: GridDistortion (replaced the mp4 loop) ── */
+.hero-distortion {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-distortion canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Skills: CardSwap layout ── */
+.skills-swap-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 560px);
+  gap: 3rem;
+  align-items: center;
+  margin-top: 2.5rem;
+}
+
+.skills-swap-copy h3 {
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1.25;
+  margin-bottom: 1rem;
+}
+
+.skills-swap-copy p {
+  color: var(--text-mid);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  max-width: 46ch;
+}
+
+.skills-swap-list {
+  list-style: none;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.skills-swap-list li {
+  position: relative;
+  padding-left: 1.6rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.skills-swap-list li::before {
+  content: '▹';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* CardSwap positions itself absolutely against its nearest positioned parent. */
+.skills-swap-stage {
+  position: relative;
+  min-height: 460px;
+}
+
+.skill-card {
+  background: rgba(12, 12, 30, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 1.6rem 1.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+}
+
+.skill-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skill-card-index {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.skill-card-tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.skill-card h4 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.skill-card p {
+  color: var(--text-mid);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.skill-card-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-card-pills span {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Stats: Folder cards ──
+   An open folder throws its papers up to ~100% of their own height above the
+   folder, so the slot is deliberately much taller than the folder itself and
+   anchors it to the bottom. Without that headroom the papers get clipped by
+   the section's overflow. */
+.stats-folder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 3.5rem;
+}
+
+/* The folder is scaled 2.6x and its papers fly a full paper-height above it,
+   so the slot reserves that headroom instead of letting the section clip them. */
+.stats-folder-slot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 420px;
+  width: 100%;
+}
+
+.stats-folder-hint {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 1.6rem;
+}
+
+/* Papers are rendered inside a 2.6x-scaled folder, so these sizes are in
+   pre-scale units — they end up roughly 2.6x bigger on screen. */
+.stat-paper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px;
+  text-align: center;
+}
+
+.stat-paper b {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0A0A1A;
+  line-height: 1;
+}
+
+.stat-paper i {
+  font-style: normal;
+  font-size: 4.4px;
+  line-height: 1.25;
+  color: #3A3A55;
+  max-width: 92%;
+}
+
+@media (max-width: 640px) {
+  .stats-folder-slot {
+    height: 300px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .skills-swap-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .skills-swap-stage {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 580px) {
+  .skills-swap-stage {
+    min-height: 360px;
+  }
+
+  .stat-folder {
+    height: 84px;
+    margin-bottom: 1.2rem;
+  }
+}
