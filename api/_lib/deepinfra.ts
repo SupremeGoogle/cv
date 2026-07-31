@@ -9,7 +9,7 @@
 //   ByteDance/Seedream-4.5    — flat $0.04/image, strong multi-image fusion
 //   black-forest-labs/FLUX-2-pro — cheapest of the usable ones
 
-import { WORKPLACE_PROMPT } from './prompt.js';
+import { WORKPLACE_PROMPT, MULTI_IMAGE_PROMPT } from './prompt.js';
 
 const EDITS_ENDPOINT = 'https://api.deepinfra.com/v1/openai/images/edits';
 const DEFAULT_MODEL = 'google/nano-banana-2';
@@ -42,20 +42,29 @@ const extractError = async (res: Response): Promise<string> => {
   return `DeepInfra ${res.status}: ${text.slice(0, 300)}`;
 };
 
-/**
- * Send the composed two-panel image to DeepInfra and return the generated photo.
- * `compositeBase64` is raw base64 (no data: prefix).
- */
-export const generateWorkplacePhoto = async (
-  compositeBase64: string,
-  size = '1024x1024',
-): Promise<GeneratedImage> => {
-  const token = deepinfraToken();
-  if (!token) throw new Error('DEEPINFRA_TOKEN не задан в переменных окружения.');
+const blobOf = (base64: string) => new Blob([Buffer.from(base64, 'base64')], { type: 'image/jpeg' });
 
+/**
+ * Send images to DeepInfra and return the generated photo.
+ *
+ * Two shapes are attempted, in order:
+ *  1. `image[]` twice — reference and scene as separate inputs. OpenAI's own
+ *     images/edits accepts an array, and when the provider does too the model
+ *     never sees a glued sheet, so it cannot hand one back.
+ *  2. a single composed two-panel image, used when the provider rejects (1).
+ *
+ * The fallback matters because the sheet is what produced results with the
+ * identity reference still stuck to one side.
+ */
+const postEdit = async (
+  parts: { name: string; base64: string; filename: string }[],
+  prompt: string,
+  size: string,
+  token: string,
+) => {
   const form = new FormData();
-  form.append('image', new Blob([Buffer.from(compositeBase64, 'base64')], { type: 'image/jpeg' }), 'composite.jpg');
-  form.append('prompt', WORKPLACE_PROMPT);
+  for (const part of parts) form.append(part.name, blobOf(part.base64), part.filename);
+  form.append('prompt', prompt);
   form.append('model', deepinfraModel());
   form.append('n', '1');
   form.append('size', size);
@@ -80,14 +89,67 @@ export const generateWorkplacePhoto = async (
     clearTimeout(timer);
   }
 
-  if (!res.ok) throw new Error(await extractError(res));
+  if (!res.ok) {
+    const message = await extractError(res);
+    const err = new Error(message) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
 
   const payload: any = await res.json();
-  const first = payload?.data?.[0];
-  const b64: string | undefined = first?.b64_json;
+  const b64: string | undefined = payload?.data?.[0]?.b64_json;
   if (!b64) {
     throw new Error(`DeepInfra не вернул изображение: ${JSON.stringify(payload).slice(0, 300)}`);
   }
 
-  return { base64: b64, mimeType: 'image/jpeg' };
+  return { base64: b64, mimeType: 'image/jpeg' } as GeneratedImage;
+};
+
+export type GenerateInput = {
+  /** Identity reference — the portrait. */
+  referenceBase64?: string;
+  /** The visitor's workplace photo. */
+  sceneBase64?: string;
+  /** Pre-glued two-panel sheet, used when the provider only takes one image. */
+  compositeBase64: string;
+};
+
+export const generateWorkplacePhoto = async (
+  input: GenerateInput,
+  size = '1024x1024',
+): Promise<GeneratedImage & { mode: 'multi' | 'composite' }> => {
+  const token = deepinfraToken();
+  if (!token) throw new Error('DEEPINFRA_TOKEN не задан в переменных окружения.');
+
+  if (input.referenceBase64 && input.sceneBase64) {
+    try {
+      const result = await postEdit(
+        [
+          { name: 'image[]', base64: input.referenceBase64, filename: 'reference.jpg' },
+          { name: 'image[]', base64: input.sceneBase64, filename: 'scene.jpg' },
+        ],
+        MULTI_IMAGE_PROMPT,
+        size,
+        token,
+      );
+      return { ...result, mode: 'multi' };
+    } catch (error) {
+      const status = (error as { status?: number }).status;
+      // Only a rejection of the request shape is worth retrying differently.
+      // A timeout or a 5xx would just burn another 50 seconds.
+      if (status && status >= 400 && status < 500) {
+        console.warn(`[deepinfra] multi-image rejected (${status}), falling back to the composite sheet`);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  const result = await postEdit(
+    [{ name: 'image', base64: input.compositeBase64, filename: 'composite.jpg' }],
+    WORKPLACE_PROMPT,
+    size,
+    token,
+  );
+  return { ...result, mode: 'composite' };
 };

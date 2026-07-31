@@ -12,17 +12,17 @@ import ProfileCard from './components/ui/ProfileCard';
 import TargetCursor from './components/ui/TargetCursor';
 
 const digitalProjects: DigitalProject[] = [
-  { id: 1, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
-  { id: 2, name: 'Aristo', url: 'https://aristo39.com', img: '/legacy/2.jpg', desc: 'Профессиональный салон гардеробных систем' },
-  { id: 3, name: 'KIBERone: Навигатор', url: 'https://kiberone.vercel.app', img: '/legacy/3.jpg', desc: 'Информационный лендинг родительского навигатора' },
-  { id: 4, name: 'C# Курс', url: 'https://supremegoogle.github.io/C-/', img: '/legacy/4.jpg', desc: 'Образовательный каталог уроков программирования' },
-  { id: 5, name: 'Пастерия 51', url: 'https://pasteriya.vercel.app', img: '/legacy/5.jpg', desc: 'Кафе пасты ручной работы и завтраков' },
-  { id: 6, name: 'L.A. Coffee', url: 'https://la-coffee.vercel.app', img: '/legacy/6.jpg', desc: 'Атмосферная кофейня со свежей выпечкой' },
-  { id: 7, name: 'Анима', url: 'https://anima-rho-three.vercel.app', img: '/legacy/7.jpg', desc: 'Стильное кафе итальянской кухни' },
-  { id: 8, name: 'Нотариус', url: 'https://notarius-rudobelec.vercel.app', img: '/legacy/8.jpg', desc: 'Официальный сайт нотариальной конторы' },
-  { id: 9, name: 'Брусничка', url: 'https://brusni4ka.vercel.app', img: '/legacy/9.jpg', desc: 'Сеть супермаркетов свежих продуктов' },
-  { id: 10, name: 'Твой Портной', url: 'https://tvoy-portnoy.vercel.app', img: '/legacy/10.jpg', desc: 'Профессиональное ателье: пошив и ремонт' },
-  { id: 11, name: 'Шляпный бутик', url: 'https://shlyapa-one.vercel.app', img: '/legacy/11.jpg', desc: 'Магазин головных уборов премиум-класса' },
+  { id: 1, name: 'verix.tj', url: 'https://verix.tj', img: '/legacy/1.jpg', desc: 'Инновационная сервисная экосистема и цифровой хаб (Fullstack)' },
+  { id: 2, name: 'Стальное Основание', url: 'https://stalnoe-osnovanie.ru', img: '/legacy/2.jpg', desc: 'Платформа производственной компании и металлоконструкций' },
+  { id: 3, name: 'Crown Shine Detailing', url: 'https://crownshinedetailing.com', img: '/legacy/3.jpg', desc: 'Студия премиального детейлинга и ухода за авто' },
+  { id: 4, name: 'Jolies Fleurs', url: 'https://joliesfleurs.ru', img: '/legacy/5.jpg', desc: 'Премиальный интернет-магазин флористики и доставки цветов' },
+  { id: 5, name: 'БалтМаг', url: 'https://baltmag.vercel.app', img: '/legacy/1.jpg', desc: 'Супермаркет хозтоваров и бытовой химии' },
+  { id: 6, name: 'Aristo', url: 'https://aristo39.com', img: '/legacy/2.jpg', desc: 'Профессиональный салон гардеробных систем' },
+  { id: 7, name: 'KIBERone: Навигатор', url: 'https://kiberone.vercel.app', img: '/legacy/3.jpg', desc: 'Информационный лендинг родительского навигатора' },
+  { id: 8, name: 'C# Курс', url: 'https://supremegoogle.github.io/C-/', img: '/legacy/4.jpg', desc: 'Образовательный каталог уроков программирования' },
+  { id: 9, name: 'Пастерия 51', url: 'https://pasteriya.vercel.app', img: '/legacy/5.jpg', desc: 'Кафе пасты ручной работы и завтраков' },
+  { id: 10, name: 'L.A. Coffee', url: 'https://la-coffee.vercel.app', img: '/legacy/6.jpg', desc: 'Атмосферная кофейня со свежей выпечкой' },
+  { id: 11, name: 'Нотариус', url: 'https://notarius-rudobelec.vercel.app', img: '/legacy/8.jpg', desc: 'Официальный сайт нотариальной конторы' },
 ];
 
 type WorkplaceAiStatus =
@@ -747,13 +747,25 @@ function App() {
             referenceFraction: composite.referenceFraction,
             sceneAspect: composite.sceneAspect,
           };
-          const compositeBase64 = await blobToBase64(composite.blob);
+          const [compositeBase64, referenceBase64] = await Promise.all([
+            blobToBase64(composite.blob),
+            fetch(REFERENCE_FACE_URL).then(r => r.blob()).then(blobToBase64).catch(() => undefined),
+          ]);
           const response = await fetch(GENERATE_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requestId, compositeImage: compositeBase64 }),
+            body: JSON.stringify({
+              requestId,
+              compositeImage: compositeBase64,
+              referenceImage: referenceBase64,
+              sceneImage: workspaceBase64,
+            }),
           });
           const payload = await response.json().catch(() => null);
+          // Only a sheet needs un-gluing. When the provider took the two images
+          // separately the result is already a plain photo, and cropping it
+          // would eat into the scene.
+          if (payload?.mode === 'multi') compositeGeometryRef.current = null;
           if (!payload?.generated) {
             console.info('[workplace] авто-генерация недоступна, ждём ручную:', payload?.reason);
           }
@@ -1012,7 +1024,6 @@ function App() {
                 ))}
               />
             </div>
-            <p className="stats-folder-hint">Нажмите на папку — внутри цифры</p>
           </div>
         </div>
       </section>
@@ -1424,28 +1435,15 @@ function App() {
               onChange={event => handleWorkplaceFile(event.target.files?.[0])}
             />
 
-            <div className="workplace-intro">
-              <div className="workplace-profile">
-                <ProfileCard
-                  avatarUrl="/me2.jpg"
-                  name="Гафаров Акбар"
-                  title="AI/ML Engineer"
-                  handle="supremeHn"
-                  status="Открыт к предложениям"
-                  contactText="Написать"
-                  onContactClick={() => window.open('https://t.me/supremeHn', '_blank', 'noopener,noreferrer')}
-                />
-              </div>
-              <button
-                type="button"
-                className="workplace-upload-zone cursor-target"
-                onClick={() => workplaceInputRef.current?.click()}
-              >
-                <span className="workplace-upload-icon">+</span>
-                <strong>{workplacePreview ? 'Заменить фото рабочего места' : 'Снять или загрузить фото рабочего места'}</strong>
-                <small>JPG, PNG или фото с камеры</small>
-              </button>
-            </div>
+            <button
+              type="button"
+              className="workplace-upload-zone cursor-target"
+              onClick={() => workplaceInputRef.current?.click()}
+            >
+              <span className="workplace-upload-icon">+</span>
+              <strong>{workplacePreview ? 'Заменить фото рабочего места' : 'Снять или загрузить фото рабочего места'}</strong>
+              <small>JPG, PNG или фото с камеры</small>
+            </button>
 
             <div className="workplace-preview-grid">
               <div className="workplace-preview-card">
@@ -1455,6 +1453,17 @@ function App() {
                 ) : (
                   <div className="workplace-preview-empty">Фото пока не выбрано</div>
                 )}
+              </div>
+              <div className="workplace-profile">
+                <ProfileCard
+                  avatarUrl="/me2.jpg"
+                  name="Гафаров Акбар"
+                  title="AI/ML Engineer"
+                  handle="supremeHn"
+                  contactText="Написать"
+                  showUserInfo={false}
+                  onContactClick={() => window.open('https://t.me/supremeHn', '_blank', 'noopener,noreferrer')}
+                />
               </div>
             </div>
 

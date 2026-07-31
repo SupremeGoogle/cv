@@ -53,7 +53,7 @@ export default async function handler(req: any, res: any) {
 
   const startedAt = Date.now();
   try {
-    const generated = await generateWorkplacePhoto(compositeImage);
+    const generated = await generateWorkplacePhoto({ compositeBase64: compositeImage });
     const elapsedSec = Math.round((Date.now() - startedAt) / 1000);
 
     await tgSendPhotoBase64(

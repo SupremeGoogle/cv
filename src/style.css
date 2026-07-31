@@ -3381,7 +3381,7 @@ section {
 
   .skills-subtitle {
     max-width: 100%;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.75rem;
     font-size: 0.96rem;
     line-height: 1.6;
   }
@@ -4008,7 +4008,7 @@ section {
 .skills-swap-layout {
   display: flex;
   justify-content: center;
-  margin-top: 2.5rem;
+  margin-top: 0;
 }
 
 .skills-swap-copy h3 {
@@ -4213,24 +4213,17 @@ section {
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
 }
 
-/* ProfileCard sits to the left of the upload zone inside the modal. */
-.workplace-intro {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 1.4rem;
-  align-items: stretch;
-  margin-bottom: 1.2rem;
-}
-
+/* ProfileCard sits beside the uploaded workplace photo. */
 .workplace-profile {
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 /* The card lays its children out with grid + aspect-ratio, so it needs a real
    height — `auto` collapses it to zero. */
 .workplace-profile .pc-card {
-  height: 300px;
+  height: 250px;
   max-height: none;
 }
 
@@ -4256,17 +4249,20 @@ section {
   left: 54%;
 }
 
-.workplace-intro .workplace-upload-zone {
-  margin: 0;
-  height: 100%;
+@media (max-width: 720px) {
+  .workplace-profile .pc-card {
+    height: 230px;
+  }
+}
+
+/* Preview row: uploaded photo on the left, the profile card beside it. */
+.workplace-preview-grid {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
 }
 
 @media (max-width: 720px) {
-  .workplace-intro {
+  .workplace-preview-grid {
     grid-template-columns: 1fr;
-  }
-
-  .workplace-profile .pc-card {
-    height: 260px;
   }
 }

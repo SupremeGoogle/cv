@@ -29,3 +29,24 @@ Place the man INTO that scene as if he was really there when the photo was taken
 Strictly avoid the "pasted sticker" look: no cut-out edges, no glow or halo around the man, no mismatched lighting or color, no floating, no double exposure, no flat overlay, no collage, no split screen, no two people, no text, labels, borders, or watermark. Avoid deformed hands, extra fingers, or fused fingers.
 
 Output only one seamless, natural, photorealistic final photo of the right-hand scene.`;
+
+
+// Used when the provider accepts the two images separately — no sheet to
+// mis-read, so the instructions can stay about the photograph itself.
+export const MULTI_IMAGE_PROMPT = `The FIRST image is an identity reference of a man. The SECOND image is a target scene photograph — a real workplace.
+
+Generate ONE brand-new photograph of that SECOND scene with this man naturally present in it, working there. Output exactly one photograph at the second image's aspect ratio. Never output a side-by-side, a split screen, a collage, a panel, a border, or more than one person.
+
+Image 1 is ONLY an identity reference. Do NOT copy, cut out, or paste pixels from it, and do NOT bring across its background, furniture, or lighting. Re-draw and re-photograph this exact same man from scratch so he belongs in the new scene. The final face must be unmistakably the same real person — same face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hairline, glasses, and age — but freshly rendered inside the scene, never a pasted cut-out.
+
+Image 2 is the master reference for everything else: keep its room, camera angle, perspective, eye level, focal length, lighting direction, color temperature, shadows, and overall photographic look.
+
+Place the man INTO that scene as if he was really there when the photo was taken:
+- Match the scene's camera exactly: same perspective, lens look, depth of field, focus, grain, sharpness and resolution. He must share the SAME image quality as the room — not crisper, not flatter, not higher-contrast.
+- Relight him completely with the scene's light: same direction, color and intensity, with correct cast and contact shadows where his body, hands and arms meet the chair, desk or floor.
+- Match his scale, pose and eye level to the furniture and camera angle. Seat him on the chair that already exists in the scene, in a believable working pose.
+- Hands must be purposeful: one hand on the mouse with fingers curved over it, the other on the keyboard or flat on the desk. No hands hovering in empty space, no twisted wrists, exactly five correctly shaped fingers per hand.
+
+Strictly avoid the pasted-sticker look: no cut-out edges, no halo, no mismatched lighting or color, no floating, no double exposure, no flat overlay, no text, labels, borders or watermark.
+
+Output only one seamless, natural, photorealistic photo of the second scene.`;

@@ -32,7 +32,9 @@ type StoredRequest = {
 
 type GenerateBody = {
   requestId?: string;
-  compositeImage?: string; // base64, no data: prefix — reference + scene, side by side
+  compositeImage?: string; // base64 sheet — fallback when the provider takes one image
+  referenceImage?: string; // base64 portrait
+  sceneImage?: string;     // base64 workplace photo
 };
 
 const readJsonBody = async (req: any): Promise<GenerateBody> => {
@@ -107,7 +109,11 @@ export default async function handler(req: any, res: any) {
   const startedAt = Date.now();
   let generated;
   try {
-    generated = await generateWorkplacePhoto(compositeImage);
+    generated = await generateWorkplacePhoto({
+      compositeBase64: compositeImage,
+      referenceBase64: body.referenceImage?.trim(),
+      sceneBase64: body.sceneImage?.trim(),
+    });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     // Worth knowing about: this is the path that spends money and the one that
@@ -121,7 +127,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const elapsedSec = Math.round((Date.now() - startedAt) / 1000);
-  console.log(`[generate] ${requestId}: done in ${elapsedSec}s via ${deepinfraModel()}`);
+  console.log(`[generate] ${requestId}: done in ${elapsedSec}s via ${deepinfraModel()} (${generated.mode})`);
 
   try {
     const updated: StoredRequest = {
@@ -141,7 +147,7 @@ export default async function handler(req: any, res: any) {
   await tgSendPhotoBase64(
     adminChatId(),
     generated.base64,
-    `🤖 <b>Автогенерация #${requestId}</b> готова за ${elapsedSec}с — клиент уже видит это фото.\n\nМодель: <code>${deepinfraModel()}</code>\nЕсли получилось плохо — нажми кнопку и пришли свой вариант, он заменит этот.`,
+    `🤖 <b>Автогенерация #${requestId}</b> готова за ${elapsedSec}с — клиент уже видит это фото.\n\nМодель: <code>${deepinfraModel()}</code> (${generated.mode})\nЕсли получилось плохо — нажми кнопку и пришли свой вариант, он заменит этот.`,
     {
       inline_keyboard: [
         [{ text: '♻️ Заменить своим фото', callback_data: `upload:${requestId}` }],
@@ -149,5 +155,5 @@ export default async function handler(req: any, res: any) {
     },
   ).catch(err => console.error('[generate] Telegram notify failed:', err));
 
-  res.status(200).json({ generated: true, elapsedSec });
+  res.status(200).json({ generated: true, elapsedSec, mode: generated.mode });
 }
