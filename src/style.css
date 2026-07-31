@@ -4940,3 +4940,53 @@ section {
     color: var(--text-mid);
   }
 }
+
+/* ── Controls must sit above the swipe layer ──
+   The layer spans the whole slide so a drag can start over an iframe, but that
+   also parked it on top of the certificate button and the browser-bar controls.
+   Anything genuinely tappable is lifted above it; z-index needs a position, so
+   these get one. */
+@media (max-width: 968px) {
+  .projects-track-wrapper .cert-btn,
+  .projects-track-wrapper .iframe-back-btn,
+  .projects-track-wrapper .browser-url-text,
+  .projects-track-wrapper .browser-dot {
+    position: relative;
+    z-index: 7;
+    pointer-events: auto;
+  }
+
+  /* The text column already sits above the layer; make sure its scrollable
+     list keeps its own vertical gesture and its links stay tappable. */
+  .projects-track-wrapper .project-info {
+    position: relative;
+    z-index: 6;
+  }
+
+  .projects-track-wrapper .digital-project-list {
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .projects-track-wrapper .project-info a {
+    position: relative;
+    z-index: 7;
+    pointer-events: auto;
+  }
+}
+
+/* ── The swipe layer has to stop blocking ──
+   .project-slide-content carries z-index: 1, which makes it a stacking context:
+   everything inside is sealed below the layer no matter what z-index the button
+   gets. Raising the whole content above the layer would put the iframe back on
+   top and break dragging again.
+   It turns out the layer is not needed: `pointer-events: none` on the mock's
+   subtree already lets touches fall through the iframe to the slide, where the
+   capture-phase drag handler picks them up. So the layer stays in the DOM as a
+   harmless backdrop and stops intercepting. */
+@media (max-width: 968px) {
+  .project-swipe-layer {
+    pointer-events: none !important;
+  }
+}
