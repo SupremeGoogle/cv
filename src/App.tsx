@@ -35,7 +35,7 @@ const digitalProjects: WebProject[] = [
 const SiteSvgIcon = ({ name }: { name: string }) => {
   if (name.includes('verix')) {
     return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-emerald-400 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-emerald-400 " viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
       </svg>
     );
@@ -49,14 +49,14 @@ const SiteSvgIcon = ({ name }: { name: string }) => {
   }
   if (name.includes('Crown')) {
     return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-yellow-400 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-yellow-400 " viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" />
       </svg>
     );
   }
   if (name.includes('Jolies')) {
     return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-pink-400 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-pink-400 " viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="12" cy="12" r="3" />
         <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4zM12 14a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4zM2 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4zM14 12a4 4 0 0 1 4-4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4z" />
       </svg>
@@ -81,7 +81,7 @@ const SiteSvgIcon = ({ name }: { name: string }) => {
   }
   if (name.includes('KIBERone')) {
     return (
-      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-indigo-400 animate-spin" style={{ animationDuration: '8s' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className="inline-block w-4 h-4 mr-1.5 align-middle text-indigo-400 " style={{ animationDuration: '8s' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="12" cy="12" r="10" />
         <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
       </svg>
@@ -1351,10 +1351,19 @@ function App() {
           <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ cat ./education.txt</div>
           <h2 className="section-title">Моё <span data-value="образование"></span></h2>
           <div className="edu-card">
-            <div className="edu-name">Балтийский федеральный университет имени Иммануила Канта</div>
-            <div className="edu-degree">ОНК Высоких технологий · Информационные системы и технологии</div>
-            <div className="edu-dates">2021 — 2026</div>
-            <span className="diploma-badge">✦ Красный диплом</span><PixelProjectArt variant="grad" />
+            <div className="exp-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <div className="edu-name">Балтийский федеральный университет имени Иммануила Канта</div>
+                <div className="edu-degree">ОНК Высоких технологий · Информационные системы и технологии</div>
+              </div>
+              <div className="exp-side" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="exp-date">2021 — 2026</span>
+                <div style={{ transform: 'scale(0.5)', transformOrigin: 'right center' }}>
+                  <PixelProjectArt variant="grad" />
+                </div>
+              </div>
+            </div>
+            <span className="diploma-badge" style={{ marginTop: '12px', display: 'inline-block' }}>✦ Красный диплом</span>
           </div>
 
           <div className="certs-grid">
@@ -1373,15 +1382,22 @@ function App() {
         <div className="container">
           <div className="section-label"><span className="dot"></span> akbar@portfolio:~$ nc -zv portfolio 8000</div>
           <h2 className="section-title">Свяжитесь <span data-value="со мной"></span></h2>
-          <div className="contact-box"><PixelProjectArt variant="signal" />
-            <h3 className="contact-title">Готов к новым вызовам</h3>
+          <div className="contact-box">
+            <div className="exp-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+              <h3 className="contact-title" style={{ margin: 0 }}>Готов к новым вызовам</h3>
+              <div className="exp-side" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ transform: 'scale(0.5)', transformOrigin: 'right center' }}>
+                  <PixelProjectArt variant="signal" />
+                </div>
+              </div>
+            </div>
             <p className="contact-sub">Для сотрудничества, предложений или профессионального общения — выберите любой удобный
               способ связи. Буду рад обсудить ваш проект!</p>
             <div className="contact-links">
               <a href="mailto:gafarovakbar@mail.ru" className="btn-primary">Email</a>
               <a href="https://t.me/supremeHn" target="_blank" className="btn-outline">Telegram</a>
-              <button className="btn-outline" onClick={() => setIsWorkplaceModalOpen(true)}>Попробуйте меня у себя в офисе</button>
-              <button className="btn-outline" onClick={() => setIsWorkplaceModalOpen(true)}>Попробуйте меня у себя в офисе</button>
+              
+              
             </div>
           </div>
         </div>
