@@ -4792,18 +4792,15 @@ section {
 
 /* ── Projects: the whole slide must be grabbable, not just its edges ── */
 @media (max-width: 968px) {
-  /* Everything inside the browser mock is decoration on a phone, and each
-     interactive child (canvas, iframe, orbital timeline) was eating the touch
-     before the scroller saw it. Turn the whole subtree inert, then hand the
-     few real controls their events back. */
-  .projects-track-wrapper .project-browser,
-  .projects-track-wrapper .project-browser * {
+  /* Only a real <iframe> has to stay inert: it consumes pointer events outright,
+     so the drag handler on the wrapper would never see them. The orbital
+     timeline and the project sphere are plain divs — a capture-phase listener
+     still gets their touches first, so they can keep their taps. */
+  .projects-track-wrapper iframe {
     pointer-events: none;
   }
 
-  .projects-track-wrapper .cert-btn,
-  .projects-track-wrapper .iframe-back-btn,
-  .projects-track-wrapper .browser-url-text {
+  .projects-track-wrapper .iframe-back-btn {
     pointer-events: auto;
   }
 }

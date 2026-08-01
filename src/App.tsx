@@ -563,6 +563,10 @@ function App() {
 
         projectsWrapper.scrollLeft = startScroll - dx;
         if (event.cancelable) event.preventDefault();
+        // Once the gesture is a horizontal drag it belongs to the track alone.
+        // Without this the orbital timeline and the project sphere would also
+        // treat it as their own rotate-drag and spin while the slide moves.
+        event.stopPropagation();
       };
 
       const onPointerUp = (event: PointerEvent) => {

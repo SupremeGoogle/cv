@@ -132,7 +132,7 @@ export default async function handler(req: any, res: any) {
   // The model often answers with the whole two-panel sheet. Drop the half that
   // is just a copy of the scene we sent, so the visitor and Telegram both get
   // the generated photo alone rather than one guessing at a crop.
-  const split = keepGeneratedHalf(generated.base64, body.sceneImage?.trim());
+  const split = keepGeneratedHalf(generated.base64, body.sceneImage?.trim(), body.referenceImage?.trim());
   const finalImage = split.base64;
   console.log(`[generate] ${requestId}: done in ${elapsedSec}s via ${deepinfraModel()} (${generated.mode}, split: ${split.action})`);
 
