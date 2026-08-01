@@ -64,6 +64,9 @@ const ECHO_MATCH = 0.05;
 // single photo whose two halves simply look alike.
 const PORTRAIT_MARGIN = 0.25;
 const ECHO_MARGIN = 0.06;
+// An answer this much wider than the photo it should reproduce is two panels,
+// whatever its halves contain.
+const DIPTYCH_ASPECT = 1.5;
 
 const cropToJpeg = (img: Decoded, x0: number, width: number): string => {
   const w = Math.max(1, Math.round(width));
@@ -113,10 +116,7 @@ export const keepGeneratedHalf = (
   const keepLeft = () => ({ base64: cropToJpeg(result, 0, half), action: 'kept-left' as const });
   const keepRight = () => ({ base64: cropToJpeg(result, result.width - half, half), action: 'kept-right' as const });
 
-  // 1. One half is the portrait pasted back beside the work.
-  //    The scene alone cannot catch this: a correct generation shows the same
-  //    room as the scene, so it resembles the scene too, and the earlier rule
-  //    threw away the good frame and kept the portrait.
+  // 1. One half is the portrait handed straight back. Drop it and keep the work.
   if (reference) {
     const ref = thumbnail(reference, 0, reference.width);
     const l = structuralDistance(left, ref);
@@ -126,16 +126,28 @@ export const keepGeneratedHalf = (
     }
   }
 
-  // 2. Otherwise one half is a near-exact echo of the scene. A real generation
-  //    of that room still differs, because a person now fills part of it.
-  if (scene) {
-    const target = thumbnail(scene, 0, scene.width);
-    const l = structuralDistance(left, target);
-    const r = structuralDistance(right, target);
-    if (Math.min(l, r) < ECHO_MATCH && Math.abs(l - r) > ECHO_MARGIN) {
-      return l < r ? keepRight() : keepLeft();
-    }
-  }
+  if (!scene) return { base64: resultBase64, action: 'untouched' };
 
-  return { base64: resultBase64, action: 'untouched' };
+  const sceneThumb = thumbnail(scene, 0, scene.width);
+  const sceneLeft = structuralDistance(left, sceneThumb);
+  const sceneRight = structuralDistance(right, sceneThumb);
+
+  // 2. Is this a diptych at all? Two signals, either is enough:
+  //    - the answer is far wider than the photo it was asked to reproduce, or
+  //    - one half is a near-exact echo of that photo.
+  //    Shape alone used to be ignored, which is why the last run slipped
+  //    through: neither half was an exact echo, because the model had drawn a
+  //    different variation into each one.
+  const resultAspect = result.width / result.height;
+  const sceneAspect = scene.width / scene.height;
+  const isDiptych =
+    resultAspect > sceneAspect * DIPTYCH_ASPECT ||
+    (Math.min(sceneLeft, sceneRight) < ECHO_MATCH && Math.abs(sceneLeft - sceneRight) > ECHO_MARGIN);
+
+  if (!isDiptych) return { base64: resultBase64, action: 'untouched' };
+
+  // 3. Keep the half that departs further from the scene: that is where the
+  //    person was actually added. The other one is the room echoed back, with
+  //    at most a hand in it.
+  return sceneLeft > sceneRight ? keepLeft() : keepRight();
 };
