@@ -33,3 +33,4 @@ secrets.json
 *.njsproj
 *.sln
 *.sw?
+public/__test_scene.jpg

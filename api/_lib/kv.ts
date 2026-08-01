@@ -83,6 +83,15 @@ export const kvDel = async (key: string) => {
   await fetch(url, { method: 'POST', headers: headers() });
 };
 
+/** Give a counted slot back — see reserveAutoGeneration. */
+export const kvDecr = async (key: string): Promise<void> => {
+  ensureKv();
+  await fetch(`${KV_URL}/decr/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: headers(),
+  }).catch(() => { /* a slightly high counter is survivable */ });
+};
+
 /**
  * Atomically increment a counter and return its new value. Used for rate limits,
  * where a read-modify-write cycle would let concurrent requests overwrite each

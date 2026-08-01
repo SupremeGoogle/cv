@@ -8,7 +8,7 @@
 // clearing their browser. Hitting a limit is not an error: the caller falls
 // back to the manual Telegram flow, so the visitor still gets a photo.
 
-import { kvIncr } from './kv.js';
+import { kvDecr, kvIncr } from './kv.js';
 
 const DAY_SECONDS = 60 * 60 * 24;
 
@@ -17,7 +17,7 @@ const numFromEnv = (name: string, fallback: number) => {
   return Number.isFinite(raw) && raw >= 0 ? raw : fallback;
 };
 
-export const perIpDailyLimit = () => numFromEnv('AUTO_GEN_IP_DAILY_LIMIT', 3);
+export const perIpDailyLimit = () => numFromEnv('AUTO_GEN_IP_DAILY_LIMIT', 5);
 export const globalDailyLimit = () => numFromEnv('AUTO_GEN_DAILY_LIMIT', 25);
 
 // Vercel puts the visitor IP in x-forwarded-for (may be a comma-separated chain;
@@ -35,17 +35,27 @@ export type LimitVerdict =
   | { allowed: true; ipCount: number; globalCount: number }
   | { allowed: false; reason: 'ip' | 'global' | 'kv-error'; detail: string };
 
+export const limitKeys = (ip: string) => {
+  const day = today();
+  return { global: `lim:auto:global:${day}`, ip: `lim:auto:ip:${ip}:${day}` };
+};
+
 /**
- * Reserve one auto-generation slot. Counters are incremented up front: it is
- * better to occasionally lose a slot to a failed generation than to let a
- * retry loop spend money without bound.
+ * Reserve one auto-generation slot. Counters go up before the work starts, so a
+ * retry loop cannot spend without bound — but a refused attempt hands its slot
+ * straight back. Without that rollback every blocked call pushed the counter
+ * further past the limit, so the day could never recover.
  */
 export const reserveAutoGeneration = async (ip: string): Promise<LimitVerdict> => {
   const day = today();
 
   try {
-    const globalCount = await kvIncr(`lim:auto:global:${day}`, DAY_SECONDS);
+    const globalKey = `lim:auto:global:${day}`;
+    const ipKey = `lim:auto:ip:${ip}:${day}`;
+
+    const globalCount = await kvIncr(globalKey, DAY_SECONDS);
     if (globalCount > globalDailyLimit()) {
+      await kvDecr(globalKey);
       return {
         allowed: false,
         reason: 'global',
@@ -53,8 +63,10 @@ export const reserveAutoGeneration = async (ip: string): Promise<LimitVerdict> =
       };
     }
 
-    const ipCount = await kvIncr(`lim:auto:ip:${ip}:${day}`, DAY_SECONDS);
+    const ipCount = await kvIncr(ipKey, DAY_SECONDS);
     if (ipCount > perIpDailyLimit()) {
+      await kvDecr(ipKey);
+      await kvDecr(globalKey);
       return {
         allowed: false,
         reason: 'ip',
