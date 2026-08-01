@@ -134,7 +134,7 @@ export default async function handler(req: any, res: any) {
   // the generated photo alone rather than one guessing at a crop.
   const split = keepGeneratedHalf(generated.base64, body.sceneImage?.trim(), body.referenceImage?.trim());
   const finalImage = split.base64;
-  console.log(`[generate] ${requestId}: done in ${elapsedSec}s via ${deepinfraModel()} (${generated.mode}, split: ${split.action})`);
+  console.log(`[generate] ${requestId}: done in ${elapsedSec}s via ${deepinfraModel()} (${generated.mode}, ${generated.size}, split: ${split.action})`);
 
   try {
     const updated: StoredRequest = {
@@ -154,7 +154,7 @@ export default async function handler(req: any, res: any) {
   await tgSendPhotoBase64(
     adminChatId(),
     finalImage,
-    `🤖 <b>Автогенерация #${requestId}</b> готова за ${elapsedSec}с — клиент уже видит это фото.\n\nМодель: <code>${deepinfraModel()}</code> (${generated.mode}, кадр: ${split.action})\nЕсли получилось плохо — нажми кнопку и пришли свой вариант, он заменит этот.`,
+    `🤖 <b>Автогенерация #${requestId}</b> готова за ${elapsedSec}с — клиент уже видит это фото.\n\nМодель: <code>${deepinfraModel()}</code>\nРежим: ${generated.mode}, формат: ${generated.size}, кадр: ${split.action}\nЕсли получилось плохо — нажми кнопку и пришли свой вариант, он заменит этот.`,
     {
       inline_keyboard: [
         [{ text: '♻️ Заменить своим фото', callback_data: `upload:${requestId}` }],

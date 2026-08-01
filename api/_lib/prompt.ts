@@ -20,6 +20,8 @@ IDENTITY IS THE POINT OF THIS TASK. The left panel is ONLY an identity reference
 
 The face in your output must be recognisably the SAME PERSON as in the left panel: same face shape, eyes, eyebrows, nose, mouth, jaw, cheekbones, skin tone, hairline, haircut, glasses, facial hair and age. Do NOT invent a different person, do not substitute a generic stock model, do not change his ethnicity, and do not add facial hair he does not have. If the reference is hard to read, reproduce the face you can see rather than inventing one.
 
+THE ROOM MUST BE THE RIGHT PANEL'S ROOM. Do not invent a desk, do not substitute a tidier or more photogenic workspace, do not change the walls, furniture, clutter, cables, posters or lighting. Every object visible in the right panel must still be there, in the same place, shot from the same spot — the only thing that changes is that the man is now sitting in it. If your output shows a desk that is not the one in the right panel, you have failed the task.
+
 The RIGHT panel is the target scene and the master reference for everything else: keep its room, camera angle, perspective, eye level, focal length, lighting direction, color temperature, shadows, and overall photographic look.
 
 Place the man INTO that scene as if he was really there when the photo was taken:

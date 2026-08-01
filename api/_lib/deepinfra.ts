@@ -10,6 +10,7 @@
 //   black-forest-labs/FLUX-2-pro — cheapest of the usable ones
 
 import { WORKPLACE_PROMPT, MULTI_IMAGE_PROMPT } from './prompt.js';
+import jpeg from 'jpeg-js';
 
 const EDITS_ENDPOINT = 'https://api.deepinfra.com/v1/openai/images/edits';
 const DEFAULT_MODEL = 'google/nano-banana-2';
@@ -108,6 +109,28 @@ const postEdit = async (
   return { base64: b64, mimeType: 'image/jpeg' } as GeneratedImage;
 };
 
+/**
+ * Ask for an output shaped like the visitor's photo.
+ *
+ * Everything so far requested a 1024x1024 square while the scene was portrait
+ * or landscape. A square is exactly the canvas two panels fit into side by
+ * side, so the request itself was inviting the sheet back. Matching the scene's
+ * orientation leaves no comfortable room for a second panel — and the answer
+ * needs no letterboxing either.
+ */
+const sizeForScene = (sceneBase64?: string): string => {
+  if (!sceneBase64) return '1024x1024';
+  try {
+    const { width, height } = jpeg.decode(Buffer.from(sceneBase64, 'base64'), { useTArray: true });
+    const aspect = width / height;
+    if (aspect > 1.2) return '1536x1024';
+    if (aspect < 0.83) return '1024x1536';
+    return '1024x1024';
+  } catch {
+    return '1024x1024';
+  }
+};
+
 export type GenerateInput = {
   /** Identity reference — the portrait. */
   referenceBase64?: string;
@@ -119,10 +142,12 @@ export type GenerateInput = {
 
 export const generateWorkplacePhoto = async (
   input: GenerateInput,
-  size = '1024x1024',
-): Promise<GeneratedImage & { mode: 'multi' | 'composite' }> => {
+  sizeOverride?: string,
+): Promise<GeneratedImage & { mode: 'multi' | 'composite'; size: string }> => {
   const token = deepinfraToken();
   if (!token) throw new Error('DEEPINFRA_TOKEN не задан в переменных окружения.');
+
+  const size = sizeOverride || sizeForScene(input.sceneBase64);
 
   // Sending the two files separately is only tried when explicitly switched on.
   // The endpoint accepted a repeated file without complaint but appears to keep
@@ -151,7 +176,7 @@ export const generateWorkplacePhoto = async (
           size,
           token,
         );
-        return { ...result, mode: 'multi' };
+        return { ...result, mode: 'multi', size };
       } catch (error) {
         const status = (error as { status?: number }).status;
         // Only a rejection of the request shape is worth another attempt. A
@@ -166,11 +191,27 @@ export const generateWorkplacePhoto = async (
     console.warn('[deepinfra] no multi-image shape accepted, falling back to the composite sheet');
   }
 
-  const result = await postEdit(
-    [{ name: 'image', base64: input.compositeBase64, filename: 'composite.jpg' }],
-    WORKPLACE_PROMPT,
-    size,
-    token,
-  );
-  return { ...result, mode: 'composite' };
+  try {
+    const result = await postEdit(
+      [{ name: 'image', base64: input.compositeBase64, filename: 'composite.jpg' }],
+      WORKPLACE_PROMPT,
+      size,
+      token,
+    );
+    return { ...result, mode: 'composite', size };
+  } catch (error) {
+    const status = (error as { status?: number }).status;
+    // A provider that only knows square output should still get an answer out.
+    if (size !== '1024x1024' && status && status >= 400 && status < 500) {
+      console.warn(`[deepinfra] size ${size} rejected (${status}), retrying square`);
+      const result = await postEdit(
+        [{ name: 'image', base64: input.compositeBase64, filename: 'composite.jpg' }],
+        WORKPLACE_PROMPT,
+        '1024x1024',
+        token,
+      );
+      return { ...result, mode: 'composite', size: '1024x1024' };
+    }
+    throw error;
+  }
 };
