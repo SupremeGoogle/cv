@@ -16,7 +16,9 @@ Your output is a single photograph of the RIGHT-hand scene alone, cropped exactl
 
 The LEFT panel tells you what the man looks like. The RIGHT panel is the room he must appear in. Generate ONE brand-new photograph of that room with this man naturally present in it.
 
-The LEFT panel is ONLY an identity reference — it tells you what the man looks like (face, hair, build, black t-shirt, watch). Do NOT copy, cut out, or paste pixels from it. Re-draw and re-photograph this exact same man from scratch so he naturally belongs in the new scene. The final face must be unmistakably the same real person — same face shape, eyes, eyebrows, nose, mouth, jaw, cheeks, skin tone, hairline, and age — but freshly rendered inside the scene, never a pasted cut-out.
+IDENTITY IS THE POINT OF THIS TASK. The left panel is ONLY an identity reference — it shows what the man looks like, nothing about where he should be. Do NOT copy, cut out or paste pixels from it, and do not bring across its background. Re-draw and re-photograph this exact same man from scratch so he belongs in the new scene, never as a pasted cut-out.
+
+The face in your output must be recognisably the SAME PERSON as in the left panel: same face shape, eyes, eyebrows, nose, mouth, jaw, cheekbones, skin tone, hairline, haircut, glasses, facial hair and age. Do NOT invent a different person, do not substitute a generic stock model, do not change his ethnicity, and do not add facial hair he does not have. If the reference is hard to read, reproduce the face you can see rather than inventing one.
 
 The RIGHT panel is the target scene and the master reference for everything else: keep its room, camera angle, perspective, eye level, focal length, lighting direction, color temperature, shadows, and overall photographic look.
 

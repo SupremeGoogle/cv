@@ -20,10 +20,13 @@ const REQUEST_TIMEOUT_MS = 50_000;
 
 export const deepinfraToken = () => process.env.DEEPINFRA_TOKEN || '';
 export const deepinfraModel = () => process.env.DEEPINFRA_IMAGE_MODEL || DEFAULT_MODEL;
+// Off by default — see the note in generateWorkplacePhoto.
+export const multiImageEnabled = () => process.env.DEEPINFRA_MULTI_IMAGE === '1';
 
 export const deepinfraEnvStatus = () => ({
   hasToken: !!deepinfraToken(),
   model: deepinfraModel(),
+  multiImage: multiImageEnabled(),
 });
 
 export type GeneratedImage = { base64: string; mimeType: string };
@@ -121,7 +124,13 @@ export const generateWorkplacePhoto = async (
   const token = deepinfraToken();
   if (!token) throw new Error('DEEPINFRA_TOKEN не задан в переменных окружения.');
 
-  if (input.referenceBase64 && input.sceneBase64) {
+  // Sending the two files separately is only tried when explicitly switched on.
+  // The endpoint accepted a repeated file without complaint but appears to keep
+  // just the last one: the scene arrived, the portrait was dropped, and the model
+  // invented a stranger to sit at the desk. A silent wrong answer is worse than
+  // the glued sheet, which at least preserves the face — and the sheet is now
+  // reliably split back into one photo.
+  if (multiImageEnabled() && input.referenceBase64 && input.sceneBase64) {
     // Providers disagree on how a multi-image edit is spelled: OpenAI takes
     // repeated `image[]`, others take a plain repeated `image`. Try both before
     // giving up on separate files, because the glued sheet is what makes the
