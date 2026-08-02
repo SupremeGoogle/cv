@@ -73,10 +73,21 @@ export default async function handler(req: any, res: any) {
   }
 
   let outcome = 'sent';
+
+  // ?debug=1 answers with what happened instead of a bare 204, so a silent
+  // notification can be diagnosed without digging through platform logs. An
+  // early return has to report its reason too — an empty 204 looked identical
+  // whether the message went out or was skipped.
+  const debug = req.query?.debug === '1';
+  const finish = (reason: string) => {
+    if (debug) res.status(200).json({ outcome: reason });
+    else res.status(204).end();
+  };
+
   try {
     const ua = header(req, 'user-agent');
     if (BOT_PATTERN.test(ua)) {
-      res.status(204).end();
+      finish('skipped: похоже на бота');
       return;
     }
 
@@ -86,7 +97,7 @@ export default async function handler(req: any, res: any) {
     // Quiet window for this visitor.
     const seenKey = `visit:seen:${visitor}`;
     if (await kvGet(seenKey)) {
-      res.status(204).end();
+      finish(`skipped: этот посетитель уже отмечен, тихо ещё ${REPEAT_QUIET_SECONDS / 60} мин`);
       return;
     }
     await kvSet(seenKey, { at: Date.now() }, REPEAT_QUIET_SECONDS);
@@ -97,7 +108,7 @@ export default async function handler(req: any, res: any) {
     // Storm guard — counted before the daily total so a flood cannot inflate it.
     const sentThisHour = await kvIncr(`visit:sent:${hour}`, 60 * 60);
     if (sentThisHour > HOURLY_MESSAGE_CAP) {
-      res.status(204).end();
+      finish(`skipped: часовой потолок ${HOURLY_MESSAGE_CAP} сообщений исчерпан`);
       return;
     }
 
@@ -125,11 +136,5 @@ export default async function handler(req: any, res: any) {
     console.warn('[visit] notification failed:', error);
   }
 
-  // ?debug=1 answers with what happened instead of a bare 204, so a failing
-  // notification can be diagnosed without digging through platform logs.
-  if (req.query?.debug === '1') {
-    res.status(200).json({ outcome });
-    return;
-  }
-  res.status(204).end();
+  finish(outcome);
 }
