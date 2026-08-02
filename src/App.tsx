@@ -306,6 +306,29 @@ function App() {
   // Tracks the active polling loop so we can cancel it when the modal closes or status changes.
   const workplacePollAbortRef = useRef<{ aborted: boolean } | null>(null);
 
+  // Tell the bot someone opened the site. Fire-and-forget and once per tab, so
+  // the beacon never delays the page and moving around it does not re-ping.
+  // `?mute=1` marks this browser as the owner's and keeps it silent for good.
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).has('mute')) {
+        window.localStorage.setItem('visit-muted', '1');
+      }
+      if (window.localStorage.getItem('visit-muted') === '1') return;
+      if (window.sessionStorage.getItem('visit-pinged') === '1') return;
+      window.sessionStorage.setItem('visit-pinged', '1');
+    } catch {
+      // private mode without storage — a duplicate ping is harmless
+    }
+
+    void fetch('/api/visit', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: window.location.pathname }),
+    }).catch(() => { /* nothing on the page depends on this */ });
+  }, []);
+
   // Two-second splash. The page is fully mounted underneath, so this only hides
   // the first paint of a heavy hero rather than delaying anything.
   useEffect(() => {
