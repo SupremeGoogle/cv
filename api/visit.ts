@@ -62,22 +62,33 @@ const describeSource = (referrer: string): string => {
 };
 
 export default async function handler(req: any, res: any) {
-  // Always answer 204 quickly: this is a beacon, and the page must not wait on
-  // it or care whether it worked.
-  res.status(204).end();
+  // The notification has to be finished BEFORE the response goes out. Replying
+  // first and continuing in the background reads nicely but does not work here:
+  // the platform is free to freeze the function the moment it answers, so the
+  // Telegram call was being cut off and nothing ever arrived. The page does not
+  // wait on this either way — the beacon is fired and forgotten client-side.
+  if (!enabled() || req.method !== 'POST') {
+    res.status(204).end();
+    return;
+  }
 
-  if (!enabled() || req.method !== 'POST') return;
-
+  let outcome = 'sent';
   try {
     const ua = header(req, 'user-agent');
-    if (BOT_PATTERN.test(ua)) return;
+    if (BOT_PATTERN.test(ua)) {
+      res.status(204).end();
+      return;
+    }
 
     const ip = clientIp(req);
     const visitor = createHash('sha256').update(`visit:${ip}`).digest('hex').slice(0, 8);
 
     // Quiet window for this visitor.
     const seenKey = `visit:seen:${visitor}`;
-    if (await kvGet(seenKey)) return;
+    if (await kvGet(seenKey)) {
+      res.status(204).end();
+      return;
+    }
     await kvSet(seenKey, { at: Date.now() }, REPEAT_QUIET_SECONDS);
 
     const day = new Date().toISOString().slice(0, 10);
@@ -85,7 +96,10 @@ export default async function handler(req: any, res: any) {
 
     // Storm guard — counted before the daily total so a flood cannot inflate it.
     const sentThisHour = await kvIncr(`visit:sent:${hour}`, 60 * 60);
-    if (sentThisHour > HOURLY_MESSAGE_CAP) return;
+    if (sentThisHour > HOURLY_MESSAGE_CAP) {
+      res.status(204).end();
+      return;
+    }
 
     const todayCount = await kvIncr(`visit:count:${day}`, DAY_SECONDS);
     const isReturning = !!(await kvGet(`visit:known:${visitor}`));
@@ -106,7 +120,16 @@ export default async function handler(req: any, res: any) {
       + `Сегодня заходов: <b>${todayCount}</b>`,
     );
   } catch (error) {
-    // A missed notification must never surface anywhere.
+    // A missed notification must never surface on the page.
+    outcome = error instanceof Error ? error.message : String(error);
     console.warn('[visit] notification failed:', error);
   }
+
+  // ?debug=1 answers with what happened instead of a bare 204, so a failing
+  // notification can be diagnosed without digging through platform logs.
+  if (req.query?.debug === '1') {
+    res.status(200).json({ outcome });
+    return;
+  }
+  res.status(204).end();
 }
